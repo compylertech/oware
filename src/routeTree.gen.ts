@@ -11,7 +11,22 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthTransactionsRouteImport } from './routes/_auth/transactions'
+import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
+import { Route as AuthReportsIndexRouteImport } from './routes/_auth/reports/index'
+import { Route as AuthProductsIndexRouteImport } from './routes/_auth/products/index'
+import { Route as AuthLoansIndexRouteImport } from './routes/_auth/loans/index'
+import { Route as AuthCooperativeIndexRouteImport } from './routes/_auth/cooperative/index'
+import { Route as AuthClientsIndexRouteImport } from './routes/_auth/clients/index'
+import { Route as AuthAdministrationIndexRouteImport } from './routes/_auth/administration/index'
+import { Route as AuthLoansLoanIdRouteImport } from './routes/_auth/loans/$loanId'
+import { Route as AuthCooperativeMembershipRouteImport } from './routes/_auth/cooperative/membership'
+import { Route as AuthCooperativeGovernanceRouteImport } from './routes/_auth/cooperative/governance'
+import { Route as AuthCooperativeConfigurationsRouteImport } from './routes/_auth/cooperative/configurations'
+import { Route as AuthClientsAddRouteImport } from './routes/_auth/clients/add'
+import { Route as AuthClientsClientIdRouteImport } from './routes/_auth/clients/$clientId'
 
 const SigninRoute = SigninRouteImport.update({
   id: '/signin',
@@ -23,38 +38,212 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthTransactionsRoute = AuthTransactionsRouteImport.update({
+  id: '/transactions',
+  path: '/transactions',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthDashboardRoute = AuthDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthReportsIndexRoute = AuthReportsIndexRouteImport.update({
+  id: '/reports/',
+  path: '/reports/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthProductsIndexRoute = AuthProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthLoansIndexRoute = AuthLoansIndexRouteImport.update({
+  id: '/loans/',
+  path: '/loans/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthCooperativeIndexRoute = AuthCooperativeIndexRouteImport.update({
+  id: '/cooperative/',
+  path: '/cooperative/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthClientsIndexRoute = AuthClientsIndexRouteImport.update({
+  id: '/clients/',
+  path: '/clients/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthAdministrationIndexRoute = AuthAdministrationIndexRouteImport.update({
+  id: '/administration/',
+  path: '/administration/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthLoansLoanIdRoute = AuthLoansLoanIdRouteImport.update({
+  id: '/loans/$loanId',
+  path: '/loans/$loanId',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthCooperativeMembershipRoute =
+  AuthCooperativeMembershipRouteImport.update({
+    id: '/cooperative/membership',
+    path: '/cooperative/membership',
+    getParentRoute: () => AuthRoute,
+  } as any)
+const AuthCooperativeGovernanceRoute =
+  AuthCooperativeGovernanceRouteImport.update({
+    id: '/cooperative/governance',
+    path: '/cooperative/governance',
+    getParentRoute: () => AuthRoute,
+  } as any)
+const AuthCooperativeConfigurationsRoute =
+  AuthCooperativeConfigurationsRouteImport.update({
+    id: '/cooperative/configurations',
+    path: '/cooperative/configurations',
+    getParentRoute: () => AuthRoute,
+  } as any)
+const AuthClientsAddRoute = AuthClientsAddRouteImport.update({
+  id: '/clients/add',
+  path: '/clients/add',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthClientsClientIdRoute = AuthClientsClientIdRouteImport.update({
+  id: '/clients/$clientId',
+  path: '/clients/$clientId',
+  getParentRoute: () => AuthRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/signin': typeof SigninRoute
+  '/dashboard': typeof AuthDashboardRoute
+  '/transactions': typeof AuthTransactionsRoute
+  '/clients/$clientId': typeof AuthClientsClientIdRoute
+  '/clients/add': typeof AuthClientsAddRoute
+  '/cooperative/configurations': typeof AuthCooperativeConfigurationsRoute
+  '/cooperative/governance': typeof AuthCooperativeGovernanceRoute
+  '/cooperative/membership': typeof AuthCooperativeMembershipRoute
+  '/loans/$loanId': typeof AuthLoansLoanIdRoute
+  '/administration/': typeof AuthAdministrationIndexRoute
+  '/clients/': typeof AuthClientsIndexRoute
+  '/cooperative/': typeof AuthCooperativeIndexRoute
+  '/loans/': typeof AuthLoansIndexRoute
+  '/products/': typeof AuthProductsIndexRoute
+  '/reports/': typeof AuthReportsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/signin': typeof SigninRoute
+  '/dashboard': typeof AuthDashboardRoute
+  '/transactions': typeof AuthTransactionsRoute
+  '/clients/$clientId': typeof AuthClientsClientIdRoute
+  '/clients/add': typeof AuthClientsAddRoute
+  '/cooperative/configurations': typeof AuthCooperativeConfigurationsRoute
+  '/cooperative/governance': typeof AuthCooperativeGovernanceRoute
+  '/cooperative/membership': typeof AuthCooperativeMembershipRoute
+  '/loans/$loanId': typeof AuthLoansLoanIdRoute
+  '/administration': typeof AuthAdministrationIndexRoute
+  '/clients': typeof AuthClientsIndexRoute
+  '/cooperative': typeof AuthCooperativeIndexRoute
+  '/loans': typeof AuthLoansIndexRoute
+  '/products': typeof AuthProductsIndexRoute
+  '/reports': typeof AuthReportsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_auth': typeof AuthRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/signin': typeof SigninRoute
+  '/_auth/dashboard': typeof AuthDashboardRoute
+  '/_auth/transactions': typeof AuthTransactionsRoute
+  '/_auth/clients/$clientId': typeof AuthClientsClientIdRoute
+  '/_auth/clients/add': typeof AuthClientsAddRoute
+  '/_auth/cooperative/configurations': typeof AuthCooperativeConfigurationsRoute
+  '/_auth/cooperative/governance': typeof AuthCooperativeGovernanceRoute
+  '/_auth/cooperative/membership': typeof AuthCooperativeMembershipRoute
+  '/_auth/loans/$loanId': typeof AuthLoansLoanIdRoute
+  '/_auth/administration/': typeof AuthAdministrationIndexRoute
+  '/_auth/clients/': typeof AuthClientsIndexRoute
+  '/_auth/cooperative/': typeof AuthCooperativeIndexRoute
+  '/_auth/loans/': typeof AuthLoansIndexRoute
+  '/_auth/products/': typeof AuthProductsIndexRoute
+  '/_auth/reports/': typeof AuthReportsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/forgot-password' | '/signin'
+  fullPaths:
+    | '/'
+    | '/forgot-password'
+    | '/signin'
+    | '/dashboard'
+    | '/transactions'
+    | '/clients/$clientId'
+    | '/clients/add'
+    | '/cooperative/configurations'
+    | '/cooperative/governance'
+    | '/cooperative/membership'
+    | '/loans/$loanId'
+    | '/administration/'
+    | '/clients/'
+    | '/cooperative/'
+    | '/loans/'
+    | '/products/'
+    | '/reports/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/forgot-password' | '/signin'
-  id: '__root__' | '/' | '/forgot-password' | '/signin'
+  to:
+    | '/'
+    | '/forgot-password'
+    | '/signin'
+    | '/dashboard'
+    | '/transactions'
+    | '/clients/$clientId'
+    | '/clients/add'
+    | '/cooperative/configurations'
+    | '/cooperative/governance'
+    | '/cooperative/membership'
+    | '/loans/$loanId'
+    | '/administration'
+    | '/clients'
+    | '/cooperative'
+    | '/loans'
+    | '/products'
+    | '/reports'
+  id:
+    | '__root__'
+    | '/'
+    | '/_auth'
+    | '/forgot-password'
+    | '/signin'
+    | '/_auth/dashboard'
+    | '/_auth/transactions'
+    | '/_auth/clients/$clientId'
+    | '/_auth/clients/add'
+    | '/_auth/cooperative/configurations'
+    | '/_auth/cooperative/governance'
+    | '/_auth/cooperative/membership'
+    | '/_auth/loans/$loanId'
+    | '/_auth/administration/'
+    | '/_auth/clients/'
+    | '/_auth/cooperative/'
+    | '/_auth/loans/'
+    | '/_auth/products/'
+    | '/_auth/reports/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   SigninRoute: typeof SigninRoute
 }
@@ -75,6 +264,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -82,24 +278,149 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/transactions': {
+      id: '/_auth/transactions'
+      path: '/transactions'
+      fullPath: '/transactions'
+      preLoaderRoute: typeof AuthTransactionsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/dashboard': {
+      id: '/_auth/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthDashboardRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/reports/': {
+      id: '/_auth/reports/'
+      path: '/reports'
+      fullPath: '/reports/'
+      preLoaderRoute: typeof AuthReportsIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/products/': {
+      id: '/_auth/products/'
+      path: '/products'
+      fullPath: '/products/'
+      preLoaderRoute: typeof AuthProductsIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/loans/': {
+      id: '/_auth/loans/'
+      path: '/loans'
+      fullPath: '/loans/'
+      preLoaderRoute: typeof AuthLoansIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/cooperative/': {
+      id: '/_auth/cooperative/'
+      path: '/cooperative'
+      fullPath: '/cooperative/'
+      preLoaderRoute: typeof AuthCooperativeIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/clients/': {
+      id: '/_auth/clients/'
+      path: '/clients'
+      fullPath: '/clients/'
+      preLoaderRoute: typeof AuthClientsIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/administration/': {
+      id: '/_auth/administration/'
+      path: '/administration'
+      fullPath: '/administration/'
+      preLoaderRoute: typeof AuthAdministrationIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/loans/$loanId': {
+      id: '/_auth/loans/$loanId'
+      path: '/loans/$loanId'
+      fullPath: '/loans/$loanId'
+      preLoaderRoute: typeof AuthLoansLoanIdRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/cooperative/membership': {
+      id: '/_auth/cooperative/membership'
+      path: '/cooperative/membership'
+      fullPath: '/cooperative/membership'
+      preLoaderRoute: typeof AuthCooperativeMembershipRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/cooperative/governance': {
+      id: '/_auth/cooperative/governance'
+      path: '/cooperative/governance'
+      fullPath: '/cooperative/governance'
+      preLoaderRoute: typeof AuthCooperativeGovernanceRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/cooperative/configurations': {
+      id: '/_auth/cooperative/configurations'
+      path: '/cooperative/configurations'
+      fullPath: '/cooperative/configurations'
+      preLoaderRoute: typeof AuthCooperativeConfigurationsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/clients/add': {
+      id: '/_auth/clients/add'
+      path: '/clients/add'
+      fullPath: '/clients/add'
+      preLoaderRoute: typeof AuthClientsAddRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/clients/$clientId': {
+      id: '/_auth/clients/$clientId'
+      path: '/clients/$clientId'
+      fullPath: '/clients/$clientId'
+      preLoaderRoute: typeof AuthClientsClientIdRouteImport
+      parentRoute: typeof AuthRoute
+    }
   }
 }
 
+interface AuthRouteChildren {
+  AuthDashboardRoute: typeof AuthDashboardRoute
+  AuthTransactionsRoute: typeof AuthTransactionsRoute
+  AuthClientsClientIdRoute: typeof AuthClientsClientIdRoute
+  AuthClientsAddRoute: typeof AuthClientsAddRoute
+  AuthCooperativeConfigurationsRoute: typeof AuthCooperativeConfigurationsRoute
+  AuthCooperativeGovernanceRoute: typeof AuthCooperativeGovernanceRoute
+  AuthCooperativeMembershipRoute: typeof AuthCooperativeMembershipRoute
+  AuthLoansLoanIdRoute: typeof AuthLoansLoanIdRoute
+  AuthAdministrationIndexRoute: typeof AuthAdministrationIndexRoute
+  AuthClientsIndexRoute: typeof AuthClientsIndexRoute
+  AuthCooperativeIndexRoute: typeof AuthCooperativeIndexRoute
+  AuthLoansIndexRoute: typeof AuthLoansIndexRoute
+  AuthProductsIndexRoute: typeof AuthProductsIndexRoute
+  AuthReportsIndexRoute: typeof AuthReportsIndexRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthDashboardRoute: AuthDashboardRoute,
+  AuthTransactionsRoute: AuthTransactionsRoute,
+  AuthClientsClientIdRoute: AuthClientsClientIdRoute,
+  AuthClientsAddRoute: AuthClientsAddRoute,
+  AuthCooperativeConfigurationsRoute: AuthCooperativeConfigurationsRoute,
+  AuthCooperativeGovernanceRoute: AuthCooperativeGovernanceRoute,
+  AuthCooperativeMembershipRoute: AuthCooperativeMembershipRoute,
+  AuthLoansLoanIdRoute: AuthLoansLoanIdRoute,
+  AuthAdministrationIndexRoute: AuthAdministrationIndexRoute,
+  AuthClientsIndexRoute: AuthClientsIndexRoute,
+  AuthCooperativeIndexRoute: AuthCooperativeIndexRoute,
+  AuthLoansIndexRoute: AuthLoansIndexRoute,
+  AuthProductsIndexRoute: AuthProductsIndexRoute,
+  AuthReportsIndexRoute: AuthReportsIndexRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   SigninRoute: SigninRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
