@@ -2,6 +2,12 @@
 @source "../src";
 @import "tw-animate-css";
 
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --color-navy: #002663;
+}
+
+
 @custom-variant dark (&:is(.dark *));
 
 /*
