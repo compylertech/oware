@@ -19,7 +19,7 @@ function Logo({ tone = "light" }: { tone?: "light" | "dark" }) {
           isLight ? "text-white" : "text-[#002663]"
         }`}
       >
-        Chelsea Bank
+        Oware
       </span>
     </div>
   );
@@ -83,7 +83,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         </div>
 
         <div className="relative z-10 text-[12px] text-white/20">
-          © {year} Chelsea Bank · All rights reserved
+          © {year} Oware · All rights reserved
         </div>
       </aside>
 

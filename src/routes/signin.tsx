@@ -6,8 +6,8 @@ import { AuthLayout } from "@/components/auth/AuthLayout";
 export const Route = createFileRoute("/signin")({
   head: () => ({
     meta: [
-      { title: "Sign in — Chelsea Bank" },
-      { name: "description", content: "Sign in to your Chelsea Bank workspace." },
+      { title: "Sign in — Oware" },
+      { name: "description", content: "Sign in to your Oware workspace." },
     ],
   }),
   component: SignInPage,

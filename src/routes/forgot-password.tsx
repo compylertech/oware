@@ -6,8 +6,8 @@ import { AuthLayout } from "@/components/auth/AuthLayout";
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({
     meta: [
-      { title: "Reset password — Chelsea Bank" },
-      { name: "description", content: "Reset your Chelsea Bank account password." },
+      { title: "Reset password — Oware" },
+      { name: "description", content: "Reset your Oware account password." },
     ],
   }),
   component: ForgotPasswordPage,

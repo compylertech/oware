@@ -119,7 +119,7 @@ export function Sidebar({
               className="text-white"
               style={{ fontFamily: "Sora, 'DM Sans', sans-serif", fontSize: 13, fontWeight: 700 }}
             >
-              Chelsea Bank
+              Oware
             </span>
             <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>
               Head Office
