@@ -380,8 +380,8 @@ function GovernancePage() {
   }
 
   return (
-    <div style={{ background: tokens.bg, minHeight: "100%", padding: 28, fontFamily: FONTS.body }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+    <div style={{ background: tokens.bg, minHeight: "100%", padding: "24px 28px", fontFamily: FONTS.body }}>
+      <div>
         <Link to="/cooperative" style={{ color: tokens.navy, fontSize: 13, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none", cursor: "pointer" }}>
           <ArrowLeft size={14} /> Back to Cooperative
         </Link>

@@ -22,6 +22,9 @@ import { Route as AuthCooperativeIndexRouteImport } from './routes/_auth/coopera
 import { Route as AuthClientsIndexRouteImport } from './routes/_auth/clients/index'
 import { Route as AuthAdministrationIndexRouteImport } from './routes/_auth/administration/index'
 import { Route as AuthProductsSharesRouteImport } from './routes/_auth/products/shares'
+import { Route as AuthProductsSavingsRouteImport } from './routes/_auth/products/savings'
+import { Route as AuthProductsPrepaidRouteImport } from './routes/_auth/products/prepaid'
+import { Route as AuthProductsLoansRouteImport } from './routes/_auth/products/loans'
 import { Route as AuthLoansRepaymentsRouteImport } from './routes/_auth/loans/repayments'
 import { Route as AuthLoansProductsRouteImport } from './routes/_auth/loans/products'
 import { Route as AuthLoansDisbursementsRouteImport } from './routes/_auth/loans/disbursements'
@@ -100,6 +103,21 @@ const AuthAdministrationIndexRoute = AuthAdministrationIndexRouteImport.update({
 const AuthProductsSharesRoute = AuthProductsSharesRouteImport.update({
   id: '/products/shares',
   path: '/products/shares',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthProductsSavingsRoute = AuthProductsSavingsRouteImport.update({
+  id: '/products/savings',
+  path: '/products/savings',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthProductsPrepaidRoute = AuthProductsPrepaidRouteImport.update({
+  id: '/products/prepaid',
+  path: '/products/prepaid',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthProductsLoansRoute = AuthProductsLoansRouteImport.update({
+  id: '/products/loans',
+  path: '/products/loans',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthLoansRepaymentsRoute = AuthLoansRepaymentsRouteImport.update({
@@ -203,6 +221,9 @@ export interface FileRoutesByFullPath {
   '/loans/disbursements': typeof AuthLoansDisbursementsRoute
   '/loans/products': typeof AuthLoansProductsRoute
   '/loans/repayments': typeof AuthLoansRepaymentsRoute
+  '/products/loans': typeof AuthProductsLoansRoute
+  '/products/prepaid': typeof AuthProductsPrepaidRoute
+  '/products/savings': typeof AuthProductsSavingsRoute
   '/products/shares': typeof AuthProductsSharesRoute
   '/administration/': typeof AuthAdministrationIndexRoute
   '/clients/': typeof AuthClientsIndexRoute
@@ -232,6 +253,9 @@ export interface FileRoutesByTo {
   '/loans/disbursements': typeof AuthLoansDisbursementsRoute
   '/loans/products': typeof AuthLoansProductsRoute
   '/loans/repayments': typeof AuthLoansRepaymentsRoute
+  '/products/loans': typeof AuthProductsLoansRoute
+  '/products/prepaid': typeof AuthProductsPrepaidRoute
+  '/products/savings': typeof AuthProductsSavingsRoute
   '/products/shares': typeof AuthProductsSharesRoute
   '/administration': typeof AuthAdministrationIndexRoute
   '/clients': typeof AuthClientsIndexRoute
@@ -263,6 +287,9 @@ export interface FileRoutesById {
   '/_auth/loans/disbursements': typeof AuthLoansDisbursementsRoute
   '/_auth/loans/products': typeof AuthLoansProductsRoute
   '/_auth/loans/repayments': typeof AuthLoansRepaymentsRoute
+  '/_auth/products/loans': typeof AuthProductsLoansRoute
+  '/_auth/products/prepaid': typeof AuthProductsPrepaidRoute
+  '/_auth/products/savings': typeof AuthProductsSavingsRoute
   '/_auth/products/shares': typeof AuthProductsSharesRoute
   '/_auth/administration/': typeof AuthAdministrationIndexRoute
   '/_auth/clients/': typeof AuthClientsIndexRoute
@@ -294,6 +321,9 @@ export interface FileRouteTypes {
     | '/loans/disbursements'
     | '/loans/products'
     | '/loans/repayments'
+    | '/products/loans'
+    | '/products/prepaid'
+    | '/products/savings'
     | '/products/shares'
     | '/administration/'
     | '/clients/'
@@ -323,6 +353,9 @@ export interface FileRouteTypes {
     | '/loans/disbursements'
     | '/loans/products'
     | '/loans/repayments'
+    | '/products/loans'
+    | '/products/prepaid'
+    | '/products/savings'
     | '/products/shares'
     | '/administration'
     | '/clients'
@@ -353,6 +386,9 @@ export interface FileRouteTypes {
     | '/_auth/loans/disbursements'
     | '/_auth/loans/products'
     | '/_auth/loans/repayments'
+    | '/_auth/products/loans'
+    | '/_auth/products/prepaid'
+    | '/_auth/products/savings'
     | '/_auth/products/shares'
     | '/_auth/administration/'
     | '/_auth/clients/'
@@ -460,6 +496,27 @@ declare module '@tanstack/react-router' {
       path: '/products/shares'
       fullPath: '/products/shares'
       preLoaderRoute: typeof AuthProductsSharesRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/products/savings': {
+      id: '/_auth/products/savings'
+      path: '/products/savings'
+      fullPath: '/products/savings'
+      preLoaderRoute: typeof AuthProductsSavingsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/products/prepaid': {
+      id: '/_auth/products/prepaid'
+      path: '/products/prepaid'
+      fullPath: '/products/prepaid'
+      preLoaderRoute: typeof AuthProductsPrepaidRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/products/loans': {
+      id: '/_auth/products/loans'
+      path: '/products/loans'
+      fullPath: '/products/loans'
+      preLoaderRoute: typeof AuthProductsLoansRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/loans/repayments': {
@@ -588,6 +645,9 @@ interface AuthRouteChildren {
   AuthLoansDisbursementsRoute: typeof AuthLoansDisbursementsRoute
   AuthLoansProductsRoute: typeof AuthLoansProductsRoute
   AuthLoansRepaymentsRoute: typeof AuthLoansRepaymentsRoute
+  AuthProductsLoansRoute: typeof AuthProductsLoansRoute
+  AuthProductsPrepaidRoute: typeof AuthProductsPrepaidRoute
+  AuthProductsSavingsRoute: typeof AuthProductsSavingsRoute
   AuthProductsSharesRoute: typeof AuthProductsSharesRoute
   AuthAdministrationIndexRoute: typeof AuthAdministrationIndexRoute
   AuthClientsIndexRoute: typeof AuthClientsIndexRoute
@@ -615,6 +675,9 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthLoansDisbursementsRoute: AuthLoansDisbursementsRoute,
   AuthLoansProductsRoute: AuthLoansProductsRoute,
   AuthLoansRepaymentsRoute: AuthLoansRepaymentsRoute,
+  AuthProductsLoansRoute: AuthProductsLoansRoute,
+  AuthProductsPrepaidRoute: AuthProductsPrepaidRoute,
+  AuthProductsSavingsRoute: AuthProductsSavingsRoute,
   AuthProductsSharesRoute: AuthProductsSharesRoute,
   AuthAdministrationIndexRoute: AuthAdministrationIndexRoute,
   AuthClientsIndexRoute: AuthClientsIndexRoute,

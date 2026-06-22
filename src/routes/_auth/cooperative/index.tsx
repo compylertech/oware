@@ -134,8 +134,8 @@ function CooperativeHub() {
   ];
 
   return (
-    <div style={{ background: tokens.bg, minHeight: "100%", padding: 28, fontFamily: FONTS.body }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+    <div style={{ background: tokens.bg, minHeight: "100%", padding: "24px 28px", fontFamily: FONTS.body }}>
+      <div>
         <div
           style={{
             fontSize: 11,
