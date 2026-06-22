@@ -69,6 +69,15 @@ export function Sidebar({
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  // Longest-match wins so /clients/account-lookup never activates /clients.
+  const allPaths = SECTIONS.flatMap((s) =>
+    s.items.filter((i) => i.to).map((i) => i.to as string),
+  ).sort((a, b) => b.length - a.length);
+  const activePath =
+    allPaths.find((p) => pathname === p) ??
+    allPaths.find((p) => pathname.startsWith(p + "/")) ??
+    null;
+
   return (
     <aside
       className="relative flex h-screen flex-col overflow-hidden text-white"
@@ -142,7 +151,7 @@ export function Sidebar({
                 <li key={item.label}>
                   <NavRow
                     item={item}
-                    active={!!item.to && pathname.startsWith(item.to)}
+                    active={!!item.to && item.to === activePath}
                     collapsed={collapsed}
                   />
                 </li>
