@@ -43,7 +43,7 @@ const SECTIONS: NavSection[] = [
     label: "Admin",
     items: [
       { label: "Clients", to: "/clients", icon: Users },
-      { label: "Account", icon: Wallet, disabled: true },
+      { label: "Account Lookup", to: "/clients/account-lookup", icon: Wallet },
       { label: "Loan Management", to: "/loans", icon: Landmark },
       { label: "Cooperative", to: "/cooperative", icon: Building2 },
       { label: "Reports", to: "/reports", icon: FileBarChart },
