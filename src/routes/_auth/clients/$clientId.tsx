@@ -345,7 +345,7 @@ function ClientDetail() {
           borderRadius: 16,
           background:
             "linear-gradient(135deg, #002663 0%, #002663 55%, #1a4080 100%)",
-          boxShadow: "0 8px 24px rgba(0,38,99,0.25)",
+          
         }}
       >
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: tokens.gold }} />
@@ -369,7 +369,7 @@ function ClientDetail() {
                   borderRadius: 999,
                   background: "rgba(255,255,255,0.1)",
                   border: `2px solid ${tokens.gold}`,
-                  boxShadow: `0 0 24px rgba(201,168,76,0.35)`,
+                  
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -436,7 +436,7 @@ function ClientDetail() {
                     right: 0,
                     border: `1px solid ${tokens.border}`,
                     borderRadius: 8,
-                    boxShadow: "0 8px 24px rgba(0,38,99,0.18)",
+                    
                     minWidth: 180,
                     padding: 4,
                   }}

@@ -312,7 +312,7 @@ function ClientsPage() {
               style={{
                 border: "1px solid #DDE4EF",
                 borderRadius: 8,
-                boxShadow: "0 8px 24px rgba(0,38,99,0.12)",
+                
                 minWidth: 180,
                 padding: 4,
               }}
@@ -517,7 +517,7 @@ function ClientsPage() {
                           style={{
                             border: "1px solid #DDE4EF",
                             borderRadius: 8,
-                            boxShadow: "0 8px 24px rgba(0,38,99,0.12)",
+                            
                             minWidth: 140,
                             padding: 4,
                           }}
@@ -586,7 +586,7 @@ function ClientsPage() {
               borderRadius: 12,
               padding: 24,
               width: 380,
-              boxShadow: "0 24px 48px rgba(0,0,0,0.2)",
+              
             }}
           >
             <h3
