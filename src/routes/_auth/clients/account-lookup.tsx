@@ -851,13 +851,15 @@ function AccountLookupPage() {
                 }
                 className="inline-flex items-center gap-1.5 cursor-pointer"
                 style={{
-                  background: tokens.tealBg,
-                  color: tokens.teal,
-                  border: `1px solid rgba(15,110,86,0.25)`,
+                  background: tokens.navy,
+                  color: "#fff",
+                  border: "none",
                   borderRadius: 8,
-                  padding: "6px 12px",
-                  fontSize: 12,
+                  padding: "8px 16px",
+                  height: 36,
+                  fontSize: 13,
                   fontWeight: 600,
+                  lineHeight: 1.2,
                 }}
               >
                 <Plus size={14} />
