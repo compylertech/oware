@@ -276,20 +276,20 @@ function VolumeChart() {
       <AreaChart data={volumeData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
         <defs>
           <linearGradient id="gradDep" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#002663" stopOpacity={0.25} />
-            <stop offset="100%" stopColor="#002663" stopOpacity={0} />
+            <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.32} />
+            <stop offset="100%" stopColor="#3B82F6" stopOpacity={0} />
           </linearGradient>
           <linearGradient id="gradWit" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#93c5fd" stopOpacity={0.4} />
-            <stop offset="100%" stopColor="#93c5fd" stopOpacity={0} />
+            <stop offset="0%" stopColor="#0F6E56" stopOpacity={0.22} />
+            <stop offset="100%" stopColor="#0F6E56" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid stroke="#f0f0f0" strokeDasharray="3 3" vertical={false} />
         <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
         <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
         <Tooltip content={<ChartTooltip currency />} cursor={{ stroke: "#e5e7eb" }} />
-        <Area type="monotone" dataKey="deposits" name="Deposits" stroke="#002663" strokeWidth={2.5} fill="url(#gradDep)" dot={false} activeDot={false} />
-        <Area type="monotone" dataKey="withdrawals" name="Withdrawals" stroke="#93c5fd" strokeWidth={2} fill="url(#gradWit)" dot={false} activeDot={false} />
+        <Area type="monotone" dataKey="deposits" name="Deposits" stroke="#3B82F6" strokeWidth={2.5} fill="url(#gradDep)" dot={false} activeDot={false} />
+        <Area type="monotone" dataKey="withdrawals" name="Withdrawals" stroke="#0F6E56" strokeWidth={2} fill="url(#gradWit)" dot={false} activeDot={false} />
       </AreaChart>
     </ResponsiveContainer>
   );
