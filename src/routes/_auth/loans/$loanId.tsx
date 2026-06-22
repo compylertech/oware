@@ -5,7 +5,8 @@ import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
 import { Panel, PanelHead, Ava, Th, Td, fontDisplay, fontMono } from "@/components/loans/ui";
 import { StagePill } from "@/components/loans/StagePill";
-import { ACTIVE_LOANS, fmtGHS } from "@/lib/loanMock";
+import { ACTIVE_LOANS, fmtGHS } from "@/api/loans";
+import { Tabs } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/loans/$loanId")({
   component: LoanDetail,
@@ -20,7 +21,11 @@ function LoanDetail() {
     const status = i < 4 ? "Paid" : i === 4 ? "Due" : "Upcoming";
     return {
       no: i + 1,
-      date: new Date(2025, 4 + i, 5).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
+      date: new Date(2025, 4 + i, 5).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
       principal: 7200,
       interest: 2338,
       total: 9538,
@@ -30,7 +35,11 @@ function LoanDetail() {
 
   return (
     <LoansShell>
-      <Link to="/loans/active" className="inline-flex items-center gap-2" style={{ color: LOAN.blue, fontSize: 12, fontWeight: 600, marginBottom: 14 }}>
+      <Link
+        to="/loans/active"
+        className="inline-flex items-center gap-2"
+        style={{ color: LOAN.blue, fontSize: 12, fontWeight: 600, marginBottom: 14 }}
+      >
         <ArrowLeft size={14} /> Back to Active Loans
       </Link>
 
@@ -38,40 +47,51 @@ function LoanDetail() {
         <div className="flex items-center gap-3">
           <Ava name={loan.client} bg={loan.avatar} size={48} />
           <div>
-            <div style={{ ...fontDisplay, fontSize: 20, fontWeight: 800, color: LOAN.ink }}>{loan.client}</div>
-            <div style={{ ...fontMono, fontSize: 12, color: LOAN.muted }}>{loan.id} · {loan.product}</div>
+            <div style={{ ...fontDisplay, fontSize: 20, fontWeight: 800, color: LOAN.ink }}>
+              {loan.client}
+            </div>
+            <div style={{ ...fontMono, fontSize: 12, color: LOAN.muted }}>
+              {loan.id} · {loan.product}
+            </div>
           </div>
-          <div className="ml-auto"><StagePill stage={loan.status} /></div>
+          <div className="ml-auto">
+            <StagePill stage={loan.status} />
+          </div>
         </div>
       </Panel>
 
-      <div className="flex gap-1 mb-3" style={{ borderBottom: `1px solid ${LOAN.border}` }}>
-        {(["schedule", "transactions", "documents"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            style={{
-              padding: "10px 16px",
-              background: "transparent",
-              border: "none",
-              borderBottom: `2px solid ${tab === t ? LOAN.navy : "transparent"}`,
-              color: tab === t ? LOAN.navy : LOAN.muted,
-              fontWeight: tab === t ? 700 : 500,
-              fontSize: 13,
-              textTransform: "capitalize",
-            }}
-          >
-            {t === "schedule" ? "Repayment Schedule" : t}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        style={{ marginBottom: 12 }}
+        value={tab}
+        onChange={setTab}
+        items={[
+          { key: "schedule", label: "Repayment Schedule" },
+          { key: "transactions", label: "Transactions" },
+          { key: "documents", label: "Documents" },
+        ]}
+      />
 
       <Panel>
-        <PanelHead title={tab === "schedule" ? "Repayment Schedule" : tab === "transactions" ? "Transactions" : "Documents"} />
+        <PanelHead
+          title={
+            tab === "schedule"
+              ? "Repayment Schedule"
+              : tab === "transactions"
+                ? "Transactions"
+                : "Documents"
+          }
+        />
         {tab === "schedule" && (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr><Th>No.</Th><Th>Date</Th><Th>Principal</Th><Th>Interest</Th><Th>Total</Th><Th>Status</Th></tr>
+              <tr>
+                <Th>No.</Th>
+                <Th>Date</Th>
+                <Th>Principal</Th>
+                <Th>Interest</Th>
+                <Th>Total</Th>
+                <Th>Status</Th>
+              </tr>
             </thead>
             <tbody>
               {schedule.map((r) => (
@@ -82,9 +102,21 @@ function LoanDetail() {
                   <Td>{fmtGHS(r.interest)}</Td>
                   <Td style={{ fontWeight: 700 }}>{fmtGHS(r.total)}</Td>
                   <Td>
-                    {r.status === "Paid" && <Pill c={LOAN.green} bg={LOAN.greenBg}>Paid</Pill>}
-                    {r.status === "Due" && <Pill c={LOAN.amber} bg={LOAN.amberBg}>Due</Pill>}
-                    {r.status === "Upcoming" && <Pill c={LOAN.muted} bg="#EEF1F6">Upcoming</Pill>}
+                    {r.status === "Paid" && (
+                      <Pill c={LOAN.green} bg={LOAN.greenBg}>
+                        Paid
+                      </Pill>
+                    )}
+                    {r.status === "Due" && (
+                      <Pill c={LOAN.amber} bg={LOAN.amberBg}>
+                        Due
+                      </Pill>
+                    )}
+                    {r.status === "Upcoming" && (
+                      <Pill c={LOAN.muted} bg="#EEF1F6">
+                        Upcoming
+                      </Pill>
+                    )}
                   </Td>
                 </tr>
               ))}
@@ -103,7 +135,16 @@ function LoanDetail() {
 
 function Pill({ c, bg, children }: { c: string; bg: string; children: React.ReactNode }) {
   return (
-    <span style={{ padding: "2px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, color: c, background: bg }}>
+    <span
+      style={{
+        padding: "2px 10px",
+        borderRadius: 999,
+        fontSize: 11,
+        fontWeight: 600,
+        color: c,
+        background: bg,
+      }}
+    >
       {children}
     </span>
   );

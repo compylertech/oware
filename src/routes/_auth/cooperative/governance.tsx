@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
+import { Tabs } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/cooperative/governance")({
   component: GovernancePage,
@@ -61,22 +62,178 @@ type Resolution = {
 
 // ---------- Mock data ----------
 const SEED_MEETINGS: Meeting[] = [
-  { id: "m1", title: "2026 Annual General Meeting", type: "AGM", date: "28 Mar 2026", location: "Accra International Conference Centre", chair: "D. Quaidoo", attendance: 412, eligible: 1840, quorumRequired: 120, status: "Completed", agendaItems: 9, resolutions: 5 },
-  { id: "m2", title: "Q2 Board Meeting", type: "Board", date: "14 May 2026", location: "Head Office Boardroom", chair: "A. Owusu", attendance: 9, eligible: 9, quorumRequired: 7, status: "Completed", agendaItems: 5, resolutions: 3 },
-  { id: "m3", title: "Credit Committee — June", type: "Committee", date: "18 Jun 2026", location: "Head Office Room 2", chair: "K. Asante", attendance: 6, eligible: 6, quorumRequired: 4, status: "Completed", agendaItems: 3, resolutions: 2 },
-  { id: "m4", title: "Special Resolution — Bylaw Amendment", type: "Special", date: "09 Jul 2026", location: "Virtual (Zoom)", chair: "D. Quaidoo", attendance: null, eligible: 400, quorumRequired: 200, status: "Scheduled", agendaItems: 2, resolutions: 1 },
-  { id: "m5", title: "Q3 Board Meeting", type: "Board", date: "13 Aug 2026", location: "Head Office Boardroom", chair: "A. Owusu", attendance: null, eligible: 9, quorumRequired: 7, status: "Scheduled", agendaItems: 4, resolutions: 0 },
+  {
+    id: "m1",
+    title: "2026 Annual General Meeting",
+    type: "AGM",
+    date: "28 Mar 2026",
+    location: "Accra International Conference Centre",
+    chair: "D. Quaidoo",
+    attendance: 412,
+    eligible: 1840,
+    quorumRequired: 120,
+    status: "Completed",
+    agendaItems: 9,
+    resolutions: 5,
+  },
+  {
+    id: "m2",
+    title: "Q2 Board Meeting",
+    type: "Board",
+    date: "14 May 2026",
+    location: "Head Office Boardroom",
+    chair: "A. Owusu",
+    attendance: 9,
+    eligible: 9,
+    quorumRequired: 7,
+    status: "Completed",
+    agendaItems: 5,
+    resolutions: 3,
+  },
+  {
+    id: "m3",
+    title: "Credit Committee — June",
+    type: "Committee",
+    date: "18 Jun 2026",
+    location: "Head Office Room 2",
+    chair: "K. Asante",
+    attendance: 6,
+    eligible: 6,
+    quorumRequired: 4,
+    status: "Completed",
+    agendaItems: 3,
+    resolutions: 2,
+  },
+  {
+    id: "m4",
+    title: "Special Resolution — Bylaw Amendment",
+    type: "Special",
+    date: "09 Jul 2026",
+    location: "Virtual (Zoom)",
+    chair: "D. Quaidoo",
+    attendance: null,
+    eligible: 400,
+    quorumRequired: 200,
+    status: "Scheduled",
+    agendaItems: 2,
+    resolutions: 1,
+  },
+  {
+    id: "m5",
+    title: "Q3 Board Meeting",
+    type: "Board",
+    date: "13 Aug 2026",
+    location: "Head Office Boardroom",
+    chair: "A. Owusu",
+    attendance: null,
+    eligible: 9,
+    quorumRequired: 7,
+    status: "Scheduled",
+    agendaItems: 4,
+    resolutions: 0,
+  },
 ];
 
 const SEED_RESOLUTIONS: Resolution[] = [
-  { id: "r1", reference: "AGM/2026/01", title: "Approve 2025 audited financial statements", meeting: "2026 AGM", category: "Financial", date: "28 Mar 2026", votesFor: 398, votesAgainst: 6, abstain: 8, status: "Passed" },
-  { id: "r2", reference: "AGM/2026/02", title: "Declare 8.5% dividend on members' shares", meeting: "2026 AGM", category: "Financial", date: "28 Mar 2026", votesFor: 405, votesAgainst: 4, abstain: 3, governedChange: "Dividend rate → 8.5%", status: "Passed" },
-  { id: "r3", reference: "AGM/2026/03", title: "Raise minimum share holding to 100 shares", meeting: "2026 AGM", category: "Membership", date: "28 Mar 2026", votesFor: 351, votesAgainst: 47, abstain: 14, governedChange: "Min. share holding → 100", status: "Passed" },
-  { id: "r4", reference: "AGM/2026/04", title: "Re-elect three board directors", meeting: "2026 AGM", category: "Governance", date: "28 Mar 2026", votesFor: 372, votesAgainst: 22, abstain: 18, status: "Passed" },
-  { id: "r5", reference: "AGM/2026/05", title: "Increase board sitting allowance", meeting: "2026 AGM", category: "Governance", date: "28 Mar 2026", votesFor: 0, votesAgainst: 0, abstain: 0, status: "Tabled" },
-  { id: "r6", reference: "BRD/2026/14", title: "Approve loan loss provision of GH₵ 240,000", meeting: "Q2 Board Meeting", category: "Financial", date: "14 May 2026", votesFor: 8, votesAgainst: 1, abstain: 0, status: "Passed" },
-  { id: "r7", reference: "BRD/2026/15", title: "Raise single-borrower exposure cap to GH₵ 150k", meeting: "Q2 Board Meeting", category: "Policy", date: "14 May 2026", votesFor: 7, votesAgainst: 2, abstain: 0, governedChange: "Exposure cap → GH₵ 150,000", status: "Passed" },
-  { id: "r8", reference: "BRD/2026/16", title: "Adopt revised arrears classification", meeting: "Q2 Board Meeting", category: "Policy", date: "14 May 2026", votesFor: 3, votesAgainst: 6, abstain: 0, status: "Rejected" },
+  {
+    id: "r1",
+    reference: "AGM/2026/01",
+    title: "Approve 2025 audited financial statements",
+    meeting: "2026 AGM",
+    category: "Financial",
+    date: "28 Mar 2026",
+    votesFor: 398,
+    votesAgainst: 6,
+    abstain: 8,
+    status: "Passed",
+  },
+  {
+    id: "r2",
+    reference: "AGM/2026/02",
+    title: "Declare 8.5% dividend on members' shares",
+    meeting: "2026 AGM",
+    category: "Financial",
+    date: "28 Mar 2026",
+    votesFor: 405,
+    votesAgainst: 4,
+    abstain: 3,
+    governedChange: "Dividend rate → 8.5%",
+    status: "Passed",
+  },
+  {
+    id: "r3",
+    reference: "AGM/2026/03",
+    title: "Raise minimum share holding to 100 shares",
+    meeting: "2026 AGM",
+    category: "Membership",
+    date: "28 Mar 2026",
+    votesFor: 351,
+    votesAgainst: 47,
+    abstain: 14,
+    governedChange: "Min. share holding → 100",
+    status: "Passed",
+  },
+  {
+    id: "r4",
+    reference: "AGM/2026/04",
+    title: "Re-elect three board directors",
+    meeting: "2026 AGM",
+    category: "Governance",
+    date: "28 Mar 2026",
+    votesFor: 372,
+    votesAgainst: 22,
+    abstain: 18,
+    status: "Passed",
+  },
+  {
+    id: "r5",
+    reference: "AGM/2026/05",
+    title: "Increase board sitting allowance",
+    meeting: "2026 AGM",
+    category: "Governance",
+    date: "28 Mar 2026",
+    votesFor: 0,
+    votesAgainst: 0,
+    abstain: 0,
+    status: "Tabled",
+  },
+  {
+    id: "r6",
+    reference: "BRD/2026/14",
+    title: "Approve loan loss provision of GH₵ 240,000",
+    meeting: "Q2 Board Meeting",
+    category: "Financial",
+    date: "14 May 2026",
+    votesFor: 8,
+    votesAgainst: 1,
+    abstain: 0,
+    status: "Passed",
+  },
+  {
+    id: "r7",
+    reference: "BRD/2026/15",
+    title: "Raise single-borrower exposure cap to GH₵ 150k",
+    meeting: "Q2 Board Meeting",
+    category: "Policy",
+    date: "14 May 2026",
+    votesFor: 7,
+    votesAgainst: 2,
+    abstain: 0,
+    governedChange: "Exposure cap → GH₵ 150,000",
+    status: "Passed",
+  },
+  {
+    id: "r8",
+    reference: "BRD/2026/16",
+    title: "Adopt revised arrears classification",
+    meeting: "Q2 Board Meeting",
+    category: "Policy",
+    date: "14 May 2026",
+    votesFor: 3,
+    votesAgainst: 6,
+    abstain: 0,
+    status: "Rejected",
+  },
 ];
 
 // ---------- Styling maps ----------
@@ -98,7 +255,18 @@ const CATEGORY_STYLE: Record<ResolutionCategory, { bg: string; fg: string }> = {
 function TypePill({ type }: { type: MeetingType }) {
   const s = TYPE_STYLE[type];
   return (
-    <span style={{ background: s.bg, color: s.fg, fontSize: 10, fontWeight: 700, padding: "3px 9px", borderRadius: 999, letterSpacing: 0.3, textTransform: "uppercase" }}>
+    <span
+      style={{
+        background: s.bg,
+        color: s.fg,
+        fontSize: 10,
+        fontWeight: 700,
+        padding: "3px 9px",
+        borderRadius: 999,
+        letterSpacing: 0.3,
+        textTransform: "uppercase",
+      }}
+    >
       {type}
     </span>
   );
@@ -107,7 +275,18 @@ function TypePill({ type }: { type: MeetingType }) {
 function CategoryPill({ cat }: { cat: ResolutionCategory }) {
   const s = CATEGORY_STYLE[cat];
   return (
-    <span style={{ background: s.bg, color: s.fg, fontSize: 10, fontWeight: 700, padding: "3px 9px", borderRadius: 999, letterSpacing: 0.3, textTransform: "uppercase" }}>
+    <span
+      style={{
+        background: s.bg,
+        color: s.fg,
+        fontSize: 10,
+        fontWeight: 700,
+        padding: "3px 9px",
+        borderRadius: 999,
+        letterSpacing: 0.3,
+        textTransform: "uppercase",
+      }}
+    >
       {cat}
     </span>
   );
@@ -121,7 +300,19 @@ function MeetingStatusPill({ status }: { status: MeetingStatus }) {
   } as const;
   const { Icon, bg, fg } = map[status];
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: bg, color: fg, fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 999 }}>
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5,
+        background: bg,
+        color: fg,
+        fontSize: 11,
+        fontWeight: 700,
+        padding: "4px 10px",
+        borderRadius: 999,
+      }}
+    >
       <Icon size={12} /> {status}
     </span>
   );
@@ -136,13 +327,33 @@ function ResolutionStatusPill({ status }: { status: ResolutionStatus }) {
   } as const;
   const { Icon, bg, fg } = map[status];
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, background: bg, color: fg, fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 999 }}>
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5,
+        background: bg,
+        color: fg,
+        fontSize: 11,
+        fontWeight: 700,
+        padding: "4px 10px",
+        borderRadius: 999,
+      }}
+    >
       <Icon size={12} /> {status}
     </span>
   );
 }
 
-function FilterPill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function FilterPill({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <button
       onClick={onClick}
@@ -163,7 +374,17 @@ function FilterPill({ active, onClick, children }: { active: boolean; onClick: (
   );
 }
 
-function IconToggle({ active, onClick, children, title }: { active: boolean; onClick: () => void; children: React.ReactNode; title: string }) {
+function IconToggle({
+  active,
+  onClick,
+  children,
+  title,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  title: string;
+}) {
   return (
     <button
       title={title}
@@ -234,7 +455,15 @@ function OutlineButton({ onClick, children }: { onClick?: () => void; children: 
 }
 
 // ---------- Quorum bar ----------
-function QuorumBar({ attendance, eligible, quorumRequired }: { attendance: number | null; eligible: number; quorumRequired: number }) {
+function QuorumBar({
+  attendance,
+  eligible,
+  quorumRequired,
+}: {
+  attendance: number | null;
+  eligible: number;
+  quorumRequired: number;
+}) {
   const att = attendance ?? 0;
   const pct = eligible > 0 ? Math.min(100, (att / eligible) * 100) : 0;
   const markerPct = eligible > 0 ? Math.min(100, (quorumRequired / eligible) * 100) : 0;
@@ -244,11 +473,39 @@ function QuorumBar({ attendance, eligible, quorumRequired }: { attendance: numbe
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-      <div style={{ position: "relative", width: 120, height: 8, background: "#EEF1F6", borderRadius: 999, overflow: "visible" }}>
-        <div style={{ width: `${pct}%`, height: "100%", background: fillColor, borderRadius: 999 }} />
-        <div style={{ position: "absolute", left: `${markerPct}%`, top: -2, width: 2, height: 12, background: tokens.navy, transform: "translateX(-1px)" }} />
+      <div
+        style={{
+          position: "relative",
+          width: 120,
+          height: 8,
+          background: "#EEF1F6",
+          borderRadius: 999,
+          overflow: "visible",
+        }}
+      >
+        <div
+          style={{ width: `${pct}%`, height: "100%", background: fillColor, borderRadius: 999 }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            left: `${markerPct}%`,
+            top: -2,
+            width: 2,
+            height: 12,
+            background: tokens.navy,
+            transform: "translateX(-1px)",
+          }}
+        />
       </div>
-      <div style={{ fontSize: 12, fontWeight: 800, color: textColor, fontVariantNumeric: "tabular-nums" }}>
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 800,
+          color: textColor,
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
         {attendance ?? "—"} / {eligible}
       </div>
       <span
@@ -275,7 +532,16 @@ function VoteBar({ f, a, ab }: { f: number; a: number; ab: number }) {
   const abp = total ? (ab / total) * 100 : 0;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-      <div style={{ width: 130, height: 8, background: "#EEF1F6", borderRadius: 999, overflow: "hidden", display: "flex" }}>
+      <div
+        style={{
+          width: 130,
+          height: 8,
+          background: "#EEF1F6",
+          borderRadius: 999,
+          overflow: "hidden",
+          display: "flex",
+        }}
+      >
         <div style={{ width: `${fp}%`, background: "#067647" }} />
         <div style={{ width: `${ap}%`, background: "#D92D20" }} />
         <div style={{ width: `${abp}%`, background: "#9AA4B8" }} />
@@ -292,30 +558,95 @@ function VoteBar({ f, a, ab }: { f: number; a: number; ab: number }) {
 }
 
 // ---------- Modal ----------
-function Modal({ open, onClose, title, subtitle, children, footer }: {
-  open: boolean; onClose: () => void; title: string; subtitle?: string; children: React.ReactNode; footer: React.ReactNode;
+function Modal({
+  open,
+  onClose,
+  title,
+  subtitle,
+  children,
+  footer,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  footer: React.ReactNode;
 }) {
   if (!open) return null;
   return (
     <div
       onClick={onClose}
-      style={{ position: "fixed", inset: 0, background: "rgba(0,24,68,0.45)", display: "grid", placeItems: "center", zIndex: 50, padding: 24 }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,24,68,0.45)",
+        display: "grid",
+        placeItems: "center",
+        zIndex: 50,
+        padding: 24,
+      }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{ background: "#fff", borderRadius: 16, border: `1px solid ${tokens.border}`, maxWidth: 540, width: "100%", boxShadow: "none", fontFamily: FONTS.body }}
+        style={{
+          background: "#fff",
+          borderRadius: 16,
+          border: `1px solid ${tokens.border}`,
+          maxWidth: 540,
+          width: "100%",
+          boxShadow: "none",
+          fontFamily: FONTS.body,
+        }}
       >
-        <div style={{ padding: "16px 20px", borderBottom: `1px solid ${tokens.border}`, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+        <div
+          style={{
+            padding: "16px 20px",
+            borderBottom: `1px solid ${tokens.border}`,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 10,
+          }}
+        >
           <div>
-            <div style={{ fontFamily: FONTS.display, fontSize: 15, fontWeight: 700, color: tokens.text }}>{title}</div>
-            {subtitle && <div style={{ fontSize: 12, color: tokens.textMuted, marginTop: 2 }}>{subtitle}</div>}
+            <div
+              style={{
+                fontFamily: FONTS.display,
+                fontSize: 15,
+                fontWeight: 700,
+                color: tokens.text,
+              }}
+            >
+              {title}
+            </div>
+            {subtitle && (
+              <div style={{ fontSize: 12, color: tokens.textMuted, marginTop: 2 }}>{subtitle}</div>
+            )}
           </div>
-          <button onClick={onClose} style={{ background: "transparent", border: "none", cursor: "pointer", color: tokens.textMuted, padding: 4 }}>
+          <button
+            onClick={onClose}
+            style={{
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              color: tokens.textMuted,
+              padding: 4,
+            }}
+          >
             <X size={18} />
           </button>
         </div>
         <div style={{ padding: 20 }}>{children}</div>
-        <div style={{ padding: "12px 20px", borderTop: `1px solid ${tokens.border}`, display: "flex", justifyContent: "flex-end", gap: 8 }}>
+        <div
+          style={{
+            padding: "12px 20px",
+            borderTop: `1px solid ${tokens.border}`,
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 8,
+          }}
+        >
           {footer}
         </div>
       </div>
@@ -323,8 +654,26 @@ function Modal({ open, onClose, title, subtitle, children, footer }: {
   );
 }
 
-const labelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 700, color: tokens.textMuted, letterSpacing: 0.5, textTransform: "uppercase", display: "block", marginBottom: 6 };
-const inputStyle: React.CSSProperties = { width: "100%", border: `1px solid ${tokens.border}`, borderRadius: 8, padding: "8px 10px", fontSize: 13, fontFamily: FONTS.body, color: tokens.text, outline: "none", background: "#fff" };
+const labelStyle: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 700,
+  color: tokens.textMuted,
+  letterSpacing: 0.5,
+  textTransform: "uppercase",
+  display: "block",
+  marginBottom: 6,
+};
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  border: `1px solid ${tokens.border}`,
+  borderRadius: 8,
+  padding: "8px 10px",
+  fontSize: 13,
+  fontFamily: FONTS.body,
+  color: tokens.text,
+  outline: "none",
+  background: "#fff",
+};
 
 // ---------- Page ----------
 function GovernancePage() {
@@ -335,13 +684,18 @@ function GovernancePage() {
   const [mFilter, setMFilter] = useState<"All" | "Scheduled" | "Completed">("All");
   const [mView, setMView] = useState<"card" | "table">("card");
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["m1", "m2"]));
-  const [meetingModal, setMeetingModal] = useState<{ mode: "create" | "edit"; data: Partial<Meeting> } | null>(null);
+  const [meetingModal, setMeetingModal] = useState<{
+    mode: "create" | "edit";
+    data: Partial<Meeting>;
+  } | null>(null);
 
   // Resolutions state
   const [resolutions, setResolutions] = useState<Resolution[]>(SEED_RESOLUTIONS);
   const [rFilter, setRFilter] = useState<"All" | "Passed" | "Pending" | "Changed config">("All");
   const [rView, setRView] = useState<"card" | "table">("card");
-  const [resModal, setResModal] = useState<{ mode: "create"; data: Partial<Resolution> } | null>(null);
+  const [resModal, setResModal] = useState<{ mode: "create"; data: Partial<Resolution> } | null>(
+    null,
+  );
 
   const upcomingCount = meetings.filter((m) => m.status === "Scheduled").length;
   const changedConfigCount = resolutions.filter((r) => r.governedChange).length;
@@ -360,7 +714,8 @@ function GovernancePage() {
   function toggleExpand(id: string) {
     setExpanded((s) => {
       const next = new Set(s);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   }
@@ -380,61 +735,121 @@ function GovernancePage() {
   }
 
   return (
-    <div style={{ background: tokens.bg, minHeight: "100%", padding: "24px 28px", fontFamily: FONTS.body }}>
+    <div
+      style={{
+        background: tokens.bg,
+        minHeight: "100%",
+        padding: "24px 28px",
+        fontFamily: FONTS.body,
+      }}
+    >
       <div>
-        <Link to="/cooperative" style={{ color: tokens.navy, fontSize: 13, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none", cursor: "pointer" }}>
+        <Link
+          to="/cooperative"
+          style={{
+            color: tokens.navy,
+            fontSize: 13,
+            fontWeight: 600,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            textDecoration: "none",
+            cursor: "pointer",
+          }}
+        >
           <ArrowLeft size={14} /> Back to Cooperative
         </Link>
 
         {/* Header */}
         <div style={{ marginTop: 14 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: tokens.textMuted }}>COOPERATIVE</div>
-          <h1 style={{ fontFamily: FONTS.display, fontSize: 26, fontWeight: 800, color: tokens.text, margin: "6px 0 6px" }}>Governance</h1>
+          <div
+            style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: tokens.textMuted }}
+          >
+            COOPERATIVE
+          </div>
+          <h1
+            style={{
+              fontFamily: FONTS.display,
+              fontSize: 26,
+              fontWeight: 800,
+              color: tokens.text,
+              margin: "6px 0 6px",
+            }}
+          >
+            Governance
+          </h1>
           <p style={{ color: tokens.textSub, fontSize: 13, margin: 0 }}>
             Meetings, quorum and resolutions of the cooperative.
           </p>
         </div>
 
         {/* Tabs */}
-        <div style={{ marginTop: 22, display: "inline-flex", background: "#EEF1F6", borderRadius: 10, padding: 4, gap: 4 }}>
-          {(["Meetings", "Resolutions"] as const).map((t) => {
-            const active = tab === t;
-            return (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                style={{
-                  background: active ? "#fff" : "transparent",
-                  border: active ? `1px solid ${tokens.border}` : "1px solid transparent",
-                  borderRadius: 8,
-                  padding: "7px 16px",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: active ? tokens.text : tokens.textSub,
-                  cursor: "pointer",
-                  fontFamily: FONTS.body,
-                }}
-              >
-                {t}
-              </button>
-            );
-          })}
-        </div>
+        <Tabs
+          style={{ marginTop: 22 }}
+          value={tab}
+          onChange={setTab}
+          items={[
+            { key: "Meetings", label: "Meetings" },
+            { key: "Resolutions", label: "Resolutions" },
+          ]}
+        />
 
         {tab === "Meetings" ? (
           <>
             {/* Meetings toolbar */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 18, gap: 12, flexWrap: "wrap" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginTop: 18,
+                gap: 12,
+                flexWrap: "wrap",
+              }}
+            >
               <div style={{ display: "flex", gap: 8 }}>
-                <FilterPill active={mFilter === "All"} onClick={() => setMFilter("All")}>All meetings</FilterPill>
-                <FilterPill active={mFilter === "Scheduled"} onClick={() => setMFilter("Scheduled")}>Scheduled</FilterPill>
-                <FilterPill active={mFilter === "Completed"} onClick={() => setMFilter("Completed")}>Completed</FilterPill>
+                <FilterPill active={mFilter === "All"} onClick={() => setMFilter("All")}>
+                  All meetings
+                </FilterPill>
+                <FilterPill
+                  active={mFilter === "Scheduled"}
+                  onClick={() => setMFilter("Scheduled")}
+                >
+                  Scheduled
+                </FilterPill>
+                <FilterPill
+                  active={mFilter === "Completed"}
+                  onClick={() => setMFilter("Completed")}
+                >
+                  Completed
+                </FilterPill>
               </div>
               <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                <span style={{ fontSize: 12, color: tokens.textMuted }}>{upcomingCount} upcoming</span>
-                <IconToggle title="Card view" active={mView === "card"} onClick={() => setMView("card")}><LayoutGrid size={14} /></IconToggle>
-                <IconToggle title="Table view" active={mView === "table"} onClick={() => setMView("table")}><List size={14} /></IconToggle>
-                <NavyButton onClick={() => setMeetingModal({ mode: "create", data: { type: "Board", status: "Scheduled" } })}>
+                <span style={{ fontSize: 12, color: tokens.textMuted }}>
+                  {upcomingCount} upcoming
+                </span>
+                <IconToggle
+                  title="Card view"
+                  active={mView === "card"}
+                  onClick={() => setMView("card")}
+                >
+                  <LayoutGrid size={14} />
+                </IconToggle>
+                <IconToggle
+                  title="Table view"
+                  active={mView === "table"}
+                  onClick={() => setMView("table")}
+                >
+                  <List size={14} />
+                </IconToggle>
+                <NavyButton
+                  onClick={() =>
+                    setMeetingModal({
+                      mode: "create",
+                      data: { type: "Board", status: "Scheduled" },
+                    })
+                  }
+                >
                   <Plus size={14} /> Schedule meeting
                 </NavyButton>
               </div>
@@ -446,47 +861,142 @@ function GovernancePage() {
                   const ts = TYPE_STYLE[m.type];
                   const isOpen = expanded.has(m.id);
                   return (
-                    <div key={m.id} style={{ background: "#fff", border: `1px solid ${tokens.border}`, borderRadius: 14, overflow: "hidden" }}>
+                    <div
+                      key={m.id}
+                      style={{
+                        background: "#fff",
+                        border: `1px solid ${tokens.border}`,
+                        borderRadius: 14,
+                        overflow: "hidden",
+                      }}
+                    >
                       {/* Header row */}
                       <div
                         onClick={() => toggleExpand(m.id)}
-                        style={{ padding: "15px 18px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}
+                        style={{
+                          padding: "15px 18px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 14,
+                          cursor: "pointer",
+                        }}
                       >
-                        <div style={{ width: 44, height: 44, borderRadius: 12, background: ts.bg, color: ts.fg, display: "grid", placeItems: "center", flexShrink: 0 }}>
+                        <div
+                          style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: 12,
+                            background: ts.bg,
+                            color: ts.fg,
+                            display: "grid",
+                            placeItems: "center",
+                            flexShrink: 0,
+                          }}
+                        >
                           <Calendar size={20} />
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                            <div style={{ fontSize: 14, fontWeight: 800, color: tokens.text }}>{m.title}</div>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 10,
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            <div style={{ fontSize: 14, fontWeight: 800, color: tokens.text }}>
+                              {m.title}
+                            </div>
                             <TypePill type={m.type} />
                           </div>
-                          <div style={{ display: "flex", gap: 14, marginTop: 4, color: tokens.textMuted, fontSize: 12, flexWrap: "wrap" }}>
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Calendar size={12} /> {m.date}</span>
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><MapPin size={12} /> {m.location}</span>
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Users size={12} /> Chair: {m.chair}</span>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 14,
+                              marginTop: 4,
+                              color: tokens.textMuted,
+                              fontSize: 12,
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                              <Calendar size={12} /> {m.date}
+                            </span>
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                              <MapPin size={12} /> {m.location}
+                            </span>
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                              <Users size={12} /> Chair: {m.chair}
+                            </span>
                           </div>
                         </div>
                         <MeetingStatusPill status={m.status} />
-                        <ChevronDown size={18} color={tokens.textMuted} style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.15s" }} />
+                        <ChevronDown
+                          size={18}
+                          color={tokens.textMuted}
+                          style={{
+                            transform: isOpen ? "rotate(180deg)" : "rotate(0)",
+                            transition: "transform 0.15s",
+                          }}
+                        />
                       </div>
 
                       {isOpen && (
-                        <div style={{ background: "#FAFBFD", borderTop: `1px solid ${tokens.border}`, padding: "16px 18px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+                        <div
+                          style={{
+                            background: "#FAFBFD",
+                            borderTop: `1px solid ${tokens.border}`,
+                            padding: "16px 18px",
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: 24,
+                          }}
+                        >
                           <div>
                             <div style={{ ...labelStyle, fontSize: 10 }}>Quorum & Attendance</div>
-                            <QuorumBar attendance={m.attendance} eligible={m.eligible} quorumRequired={m.quorumRequired} />
+                            <QuorumBar
+                              attendance={m.attendance}
+                              eligible={m.eligible}
+                              quorumRequired={m.quorumRequired}
+                            />
                           </div>
-                          <div style={{ display: "flex", gap: 20, alignItems: "center", justifyContent: "flex-end" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 20,
+                              alignItems: "center",
+                              justifyContent: "flex-end",
+                            }}
+                          >
                             <div>
                               <div style={{ ...labelStyle, fontSize: 10 }}>Agenda items</div>
-                              <div style={{ fontFamily: FONTS.display, fontSize: 18, fontWeight: 800, color: tokens.text }}>{m.agendaItems}</div>
+                              <div
+                                style={{
+                                  fontFamily: FONTS.display,
+                                  fontSize: 18,
+                                  fontWeight: 800,
+                                  color: tokens.text,
+                                }}
+                              >
+                                {m.agendaItems}
+                              </div>
                             </div>
                             <div>
                               <div style={{ ...labelStyle, fontSize: 10 }}>Resolutions</div>
-                              <div style={{ fontFamily: FONTS.display, fontSize: 18, fontWeight: 800, color: tokens.text }}>{m.resolutions}</div>
+                              <div
+                                style={{
+                                  fontFamily: FONTS.display,
+                                  fontSize: 18,
+                                  fontWeight: 800,
+                                  color: tokens.text,
+                                }}
+                              >
+                                {m.resolutions}
+                              </div>
                             </div>
                             <OutlineButton>
-                              <FileText size={12} /> {m.status === "Completed" ? "View minutes" : "View agenda"}
+                              <FileText size={12} />{" "}
+                              {m.status === "Completed" ? "View minutes" : "View agenda"}
                             </OutlineButton>
                           </div>
                         </div>
@@ -496,12 +1006,33 @@ function GovernancePage() {
                 })}
               </div>
             ) : (
-              <div style={{ marginTop: 16, background: "#fff", border: `1px solid ${tokens.border}`, borderRadius: 14, overflow: "hidden" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: FONTS.body }}>
+              <div
+                style={{
+                  marginTop: 16,
+                  background: "#fff",
+                  border: `1px solid ${tokens.border}`,
+                  borderRadius: 14,
+                  overflow: "hidden",
+                }}
+              >
+                <table
+                  style={{ width: "100%", borderCollapse: "collapse", fontFamily: FONTS.body }}
+                >
                   <thead>
                     <tr style={{ borderBottom: `2px solid ${tokens.navy}` }}>
                       {["Meeting", "Type", "Date", "Location", "Quorum", "Status", ""].map((h) => (
-                        <th key={h} style={{ textAlign: "left", padding: "11px 16px", fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: "#7A879F" }}>
+                        <th
+                          key={h}
+                          style={{
+                            textAlign: "left",
+                            padding: "11px 16px",
+                            fontSize: 11,
+                            fontWeight: 700,
+                            letterSpacing: 0.5,
+                            textTransform: "uppercase",
+                            color: "#7A879F",
+                          }}
+                        >
                           {h}
                         </th>
                       ))}
@@ -510,24 +1041,57 @@ function GovernancePage() {
                   <tbody>
                     {filteredMeetings.map((m) => {
                       const met = m.attendance !== null && m.attendance >= m.quorumRequired;
-                      const color = m.attendance === null ? tokens.textMuted : met ? "#067647" : "#B45309";
+                      const color =
+                        m.attendance === null ? tokens.textMuted : met ? "#067647" : "#B45309";
                       return (
-                        <tr key={m.id} style={{ borderBottom: `1px solid ${tokens.border}` }}
+                        <tr
+                          key={m.id}
+                          style={{ borderBottom: `1px solid ${tokens.border}` }}
                           onMouseEnter={(e) => (e.currentTarget.style.background = "#F7FAFF")}
-                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                        >
                           <td style={{ padding: "13px 16px", fontSize: 13 }}>
                             <div style={{ fontWeight: 700, color: tokens.text }}>{m.title}</div>
-                            <div style={{ fontFamily: FONTS.mono, fontSize: 11, color: "#4A5878", marginTop: 2 }}>{m.id.toUpperCase()}</div>
+                            <div
+                              style={{
+                                fontFamily: FONTS.mono,
+                                fontSize: 11,
+                                color: "#4A5878",
+                                marginTop: 2,
+                              }}
+                            >
+                              {m.id.toUpperCase()}
+                            </div>
                           </td>
-                          <td style={{ padding: "13px 16px" }}><TypePill type={m.type} /></td>
-                          <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>{m.date}</td>
-                          <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>{m.location}</td>
-                          <td style={{ padding: "13px 16px", fontSize: 13, fontWeight: 700, color, fontVariantNumeric: "tabular-nums" }}>
+                          <td style={{ padding: "13px 16px" }}>
+                            <TypePill type={m.type} />
+                          </td>
+                          <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>
+                            {m.date}
+                          </td>
+                          <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>
+                            {m.location}
+                          </td>
+                          <td
+                            style={{
+                              padding: "13px 16px",
+                              fontSize: 13,
+                              fontWeight: 700,
+                              color,
+                              fontVariantNumeric: "tabular-nums",
+                            }}
+                          >
                             {m.attendance ?? "—"} / {m.quorumRequired}
                           </td>
-                          <td style={{ padding: "13px 16px" }}><MeetingStatusPill status={m.status} /></td>
+                          <td style={{ padding: "13px 16px" }}>
+                            <MeetingStatusPill status={m.status} />
+                          </td>
                           <td style={{ padding: "13px 16px", textAlign: "right" }}>
-                            <OutlineButton onClick={() => setMeetingModal({ mode: "edit", data: m })}>Edit</OutlineButton>
+                            <OutlineButton
+                              onClick={() => setMeetingModal({ mode: "edit", data: m })}
+                            >
+                              Edit
+                            </OutlineButton>
                           </td>
                         </tr>
                       );
@@ -540,17 +1104,53 @@ function GovernancePage() {
         ) : (
           <>
             {/* Resolutions toolbar */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 18, gap: 12, flexWrap: "wrap" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginTop: 18,
+                gap: 12,
+                flexWrap: "wrap",
+              }}
+            >
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <FilterPill active={rFilter === "All"} onClick={() => setRFilter("All")}>All</FilterPill>
-                <FilterPill active={rFilter === "Passed"} onClick={() => setRFilter("Passed")}>Passed</FilterPill>
-                <FilterPill active={rFilter === "Pending"} onClick={() => setRFilter("Pending")}>Pending</FilterPill>
-                <FilterPill active={rFilter === "Changed config"} onClick={() => setRFilter("Changed config")}>Changed config ({changedConfigCount})</FilterPill>
+                <FilterPill active={rFilter === "All"} onClick={() => setRFilter("All")}>
+                  All
+                </FilterPill>
+                <FilterPill active={rFilter === "Passed"} onClick={() => setRFilter("Passed")}>
+                  Passed
+                </FilterPill>
+                <FilterPill active={rFilter === "Pending"} onClick={() => setRFilter("Pending")}>
+                  Pending
+                </FilterPill>
+                <FilterPill
+                  active={rFilter === "Changed config"}
+                  onClick={() => setRFilter("Changed config")}
+                >
+                  Changed config ({changedConfigCount})
+                </FilterPill>
               </div>
               <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                <IconToggle title="Card view" active={rView === "card"} onClick={() => setRView("card")}><LayoutGrid size={14} /></IconToggle>
-                <IconToggle title="Table view" active={rView === "table"} onClick={() => setRView("table")}><List size={14} /></IconToggle>
-                <NavyButton onClick={() => setResModal({ mode: "create", data: { category: "Policy", status: "Pending" } })}>
+                <IconToggle
+                  title="Card view"
+                  active={rView === "card"}
+                  onClick={() => setRView("card")}
+                >
+                  <LayoutGrid size={14} />
+                </IconToggle>
+                <IconToggle
+                  title="Table view"
+                  active={rView === "table"}
+                  onClick={() => setRView("table")}
+                >
+                  <List size={14} />
+                </IconToggle>
+                <NavyButton
+                  onClick={() =>
+                    setResModal({ mode: "create", data: { category: "Policy", status: "Pending" } })
+                  }
+                >
                   <Plus size={14} /> Table resolution
                 </NavyButton>
               </div>
@@ -559,20 +1159,73 @@ function GovernancePage() {
             {rView === "card" ? (
               <div style={{ marginTop: 16, display: "grid", gap: 10 }}>
                 {filteredResolutions.map((r) => (
-                  <div key={r.id} style={{ background: "#fff", border: `1px solid ${tokens.border}`, borderRadius: 12, padding: "14px 18px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+                  <div
+                    key={r.id}
+                    style={{
+                      background: "#fff",
+                      border: `1px solid ${tokens.border}`,
+                      borderRadius: 12,
+                      padding: "14px 18px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: 12,
+                      }}
+                    >
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                          <span style={{ fontFamily: FONTS.mono, fontSize: 12, color: tokens.navy, fontWeight: 600 }}>{r.reference}</span>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontFamily: FONTS.mono,
+                              fontSize: 12,
+                              color: tokens.navy,
+                              fontWeight: 600,
+                            }}
+                          >
+                            {r.reference}
+                          </span>
                           <CategoryPill cat={r.category} />
                           <span style={{ fontSize: 12, color: tokens.textMuted }}>{r.date}</span>
                         </div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: tokens.text, marginTop: 6 }}>{r.title}</div>
+                        <div
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 700,
+                            color: tokens.text,
+                            marginTop: 6,
+                          }}
+                        >
+                          {r.title}
+                        </div>
                         <div style={{ marginTop: 10 }}>
                           <VoteBar f={r.votesFor} a={r.votesAgainst} ab={r.abstain} />
                         </div>
                         {r.governedChange && (
-                          <div style={{ marginTop: 10, background: "#FAEEDA", color: "#854F0B", borderRadius: 8, padding: "8px 12px", fontSize: 12, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 8 }}>
+                          <div
+                            style={{
+                              marginTop: 10,
+                              background: "#FAEEDA",
+                              color: "#854F0B",
+                              borderRadius: 8,
+                              padding: "8px 12px",
+                              fontSize: 12,
+                              fontWeight: 600,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 8,
+                            }}
+                          >
                             <SlidersHorizontal size={14} />
                             Applied to governed config: {r.governedChange}
                           </div>
@@ -584,41 +1237,116 @@ function GovernancePage() {
                 ))}
               </div>
             ) : (
-              <div style={{ marginTop: 16, background: "#fff", border: `1px solid ${tokens.border}`, borderRadius: 14, overflow: "hidden" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: FONTS.body }}>
+              <div
+                style={{
+                  marginTop: 16,
+                  background: "#fff",
+                  border: `1px solid ${tokens.border}`,
+                  borderRadius: 14,
+                  overflow: "hidden",
+                }}
+              >
+                <table
+                  style={{ width: "100%", borderCollapse: "collapse", fontFamily: FONTS.body }}
+                >
                   <thead>
                     <tr style={{ borderBottom: `2px solid ${tokens.navy}` }}>
-                      {["Reference", "Resolution", "Category", "Date", "Votes", "Governed change", "Status"].map((h) => (
-                        <th key={h} style={{ textAlign: "left", padding: "11px 16px", fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", color: "#7A879F" }}>{h}</th>
+                      {[
+                        "Reference",
+                        "Resolution",
+                        "Category",
+                        "Date",
+                        "Votes",
+                        "Governed change",
+                        "Status",
+                      ].map((h) => (
+                        <th
+                          key={h}
+                          style={{
+                            textAlign: "left",
+                            padding: "11px 16px",
+                            fontSize: 11,
+                            fontWeight: 700,
+                            letterSpacing: 0.5,
+                            textTransform: "uppercase",
+                            color: "#7A879F",
+                          }}
+                        >
+                          {h}
+                        </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {filteredResolutions.map((r) => (
-                      <tr key={r.id} style={{ borderBottom: `1px solid ${tokens.border}` }}
+                      <tr
+                        key={r.id}
+                        style={{ borderBottom: `1px solid ${tokens.border}` }}
                         onMouseEnter={(e) => (e.currentTarget.style.background = "#F7FAFF")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
-                        <td style={{ padding: "13px 16px", fontFamily: FONTS.mono, fontSize: 12, color: tokens.navy, fontWeight: 600 }}>{r.reference}</td>
-                        <td style={{ padding: "13px 16px", fontSize: 13, fontWeight: 600, color: tokens.text }}>{r.title}</td>
-                        <td style={{ padding: "13px 16px" }}><CategoryPill cat={r.category} /></td>
-                        <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>{r.date}</td>
-                        <td style={{ padding: "13px 16px", fontSize: 12, fontVariantNumeric: "tabular-nums" }}>
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      >
+                        <td
+                          style={{
+                            padding: "13px 16px",
+                            fontFamily: FONTS.mono,
+                            fontSize: 12,
+                            color: tokens.navy,
+                            fontWeight: 600,
+                          }}
+                        >
+                          {r.reference}
+                        </td>
+                        <td
+                          style={{
+                            padding: "13px 16px",
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: tokens.text,
+                          }}
+                        >
+                          {r.title}
+                        </td>
+                        <td style={{ padding: "13px 16px" }}>
+                          <CategoryPill cat={r.category} />
+                        </td>
+                        <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>
+                          {r.date}
+                        </td>
+                        <td
+                          style={{
+                            padding: "13px 16px",
+                            fontSize: 12,
+                            fontVariantNumeric: "tabular-nums",
+                          }}
+                        >
                           <span style={{ color: "#067647", fontWeight: 700 }}>{r.votesFor}</span>
                           {" / "}
-                          <span style={{ color: "#D92D20", fontWeight: 700 }}>{r.votesAgainst}</span>
+                          <span style={{ color: "#D92D20", fontWeight: 700 }}>
+                            {r.votesAgainst}
+                          </span>
                           {" / "}
                           <span style={{ color: tokens.textMuted }}>{r.abstain}</span>
                         </td>
                         <td style={{ padding: "13px 16px", fontSize: 12 }}>
                           {r.governedChange ? (
-                            <span style={{ color: "#854F0B", display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 600 }}>
+                            <span
+                              style={{
+                                color: "#854F0B",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 6,
+                                fontWeight: 600,
+                              }}
+                            >
                               <SlidersHorizontal size={12} /> {r.governedChange}
                             </span>
                           ) : (
                             <span style={{ color: tokens.textMuted }}>—</span>
                           )}
                         </td>
-                        <td style={{ padding: "13px 16px" }}><ResolutionStatusPill status={r.status} /></td>
+                        <td style={{ padding: "13px 16px" }}>
+                          <ResolutionStatusPill status={r.status} />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -652,7 +1380,17 @@ function GovernancePage() {
 }
 
 // ---------- Meeting form ----------
-function MeetingForm({ mode, initial, onCancel, onSubmit }: { mode: "create" | "edit"; initial: Partial<Meeting>; onCancel: () => void; onSubmit: (m: Meeting) => void }) {
+function MeetingForm({
+  mode,
+  initial,
+  onCancel,
+  onSubmit,
+}: {
+  mode: "create" | "edit";
+  initial: Partial<Meeting>;
+  onCancel: () => void;
+  onSubmit: (m: Meeting) => void;
+}) {
   const [f, setF] = useState<Partial<Meeting>>({
     title: "",
     type: "Board",
@@ -681,56 +1419,102 @@ function MeetingForm({ mode, initial, onCancel, onSubmit }: { mode: "create" | "
       footer={
         <>
           <OutlineButton onClick={onCancel}>Cancel</OutlineButton>
-          <NavyButton onClick={() => onSubmit(f as Meeting)}>{mode === "create" ? "Schedule Meeting" : "Save Changes"}</NavyButton>
+          <NavyButton onClick={() => onSubmit(f as Meeting)}>
+            {mode === "create" ? "Schedule Meeting" : "Save Changes"}
+          </NavyButton>
         </>
       }
     >
       <div style={{ display: "grid", gap: 12 }}>
         <div>
           <label style={labelStyle}>Title</label>
-          <input style={inputStyle} value={f.title || ""} onChange={(e) => set("title", e.target.value)} />
+          <input
+            style={inputStyle}
+            value={f.title || ""}
+            onChange={(e) => set("title", e.target.value)}
+          />
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <div>
             <label style={labelStyle}>Type</label>
-            <select style={inputStyle} value={f.type} onChange={(e) => set("type", e.target.value as MeetingType)}>
-              {(["AGM", "Board", "Committee", "Special"] as MeetingType[]).map((t) => <option key={t}>{t}</option>)}
+            <select
+              style={inputStyle}
+              value={f.type}
+              onChange={(e) => set("type", e.target.value as MeetingType)}
+            >
+              {(["AGM", "Board", "Committee", "Special"] as MeetingType[]).map((t) => (
+                <option key={t}>{t}</option>
+              ))}
             </select>
           </div>
           <div>
             <label style={labelStyle}>Date</label>
-            <input style={inputStyle} value={f.date || ""} onChange={(e) => set("date", e.target.value)} placeholder="e.g. 14 May 2026" />
+            <input
+              style={inputStyle}
+              value={f.date || ""}
+              onChange={(e) => set("date", e.target.value)}
+              placeholder="e.g. 14 May 2026"
+            />
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <div>
             <label style={labelStyle}>Location</label>
-            <input style={inputStyle} value={f.location || ""} onChange={(e) => set("location", e.target.value)} />
+            <input
+              style={inputStyle}
+              value={f.location || ""}
+              onChange={(e) => set("location", e.target.value)}
+            />
           </div>
           <div>
             <label style={labelStyle}>Chair</label>
-            <input style={inputStyle} value={f.chair || ""} onChange={(e) => set("chair", e.target.value)} />
+            <input
+              style={inputStyle}
+              value={f.chair || ""}
+              onChange={(e) => set("chair", e.target.value)}
+            />
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
           <div>
             <label style={labelStyle}>Quorum required</label>
-            <input type="number" style={inputStyle} value={f.quorumRequired ?? 0} onChange={(e) => set("quorumRequired", Number(e.target.value))} />
+            <input
+              type="number"
+              style={inputStyle}
+              value={f.quorumRequired ?? 0}
+              onChange={(e) => set("quorumRequired", Number(e.target.value))}
+            />
           </div>
           <div>
             <label style={labelStyle}>Members eligible</label>
-            <input type="number" style={inputStyle} value={f.eligible ?? 0} onChange={(e) => set("eligible", Number(e.target.value))} />
+            <input
+              type="number"
+              style={inputStyle}
+              value={f.eligible ?? 0}
+              onChange={(e) => set("eligible", Number(e.target.value))}
+            />
           </div>
           <div>
             <label style={labelStyle}>Agenda items</label>
-            <input type="number" style={inputStyle} value={f.agendaItems ?? 0} onChange={(e) => set("agendaItems", Number(e.target.value))} />
+            <input
+              type="number"
+              style={inputStyle}
+              value={f.agendaItems ?? 0}
+              onChange={(e) => set("agendaItems", Number(e.target.value))}
+            />
           </div>
         </div>
         {mode === "edit" && (
           <div>
             <label style={labelStyle}>Status</label>
-            <select style={inputStyle} value={f.status} onChange={(e) => set("status", e.target.value as MeetingStatus)}>
-              {(["Scheduled", "Completed", "Cancelled"] as MeetingStatus[]).map((s) => <option key={s}>{s}</option>)}
+            <select
+              style={inputStyle}
+              value={f.status}
+              onChange={(e) => set("status", e.target.value as MeetingStatus)}
+            >
+              {(["Scheduled", "Completed", "Cancelled"] as MeetingStatus[]).map((s) => (
+                <option key={s}>{s}</option>
+              ))}
             </select>
           </div>
         )}
@@ -740,7 +1524,17 @@ function MeetingForm({ mode, initial, onCancel, onSubmit }: { mode: "create" | "
 }
 
 // ---------- Resolution form ----------
-function ResolutionForm({ initial, onCancel, onSubmit, meetings }: { initial: Partial<Resolution>; onCancel: () => void; onSubmit: (r: Resolution) => void; meetings: string[] }) {
+function ResolutionForm({
+  initial,
+  onCancel,
+  onSubmit,
+  meetings,
+}: {
+  initial: Partial<Resolution>;
+  onCancel: () => void;
+  onSubmit: (r: Resolution) => void;
+  meetings: string[];
+}) {
   const [f, setF] = useState<Partial<Resolution>>({
     title: "",
     reference: "",
@@ -775,55 +1569,109 @@ function ResolutionForm({ initial, onCancel, onSubmit, meetings }: { initial: Pa
       <div style={{ display: "grid", gap: 12 }}>
         <div>
           <label style={labelStyle}>Title</label>
-          <input style={inputStyle} value={f.title || ""} onChange={(e) => set("title", e.target.value)} />
+          <input
+            style={inputStyle}
+            value={f.title || ""}
+            onChange={(e) => set("title", e.target.value)}
+          />
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <div>
             <label style={labelStyle}>Meeting</label>
-            <select style={inputStyle} value={f.meeting} onChange={(e) => set("meeting", e.target.value)}>
-              {meetings.map((m) => <option key={m}>{m}</option>)}
+            <select
+              style={inputStyle}
+              value={f.meeting}
+              onChange={(e) => set("meeting", e.target.value)}
+            >
+              {meetings.map((m) => (
+                <option key={m}>{m}</option>
+              ))}
             </select>
           </div>
           <div>
             <label style={labelStyle}>Reference (optional)</label>
-            <input style={inputStyle} value={f.reference || ""} onChange={(e) => set("reference", e.target.value)} placeholder="e.g. AGM/2026/06" />
+            <input
+              style={inputStyle}
+              value={f.reference || ""}
+              onChange={(e) => set("reference", e.target.value)}
+              placeholder="e.g. AGM/2026/06"
+            />
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
           <div>
             <label style={labelStyle}>Category</label>
-            <select style={inputStyle} value={f.category} onChange={(e) => set("category", e.target.value as ResolutionCategory)}>
-              {(["Policy", "Financial", "Membership", "Governance"] as ResolutionCategory[]).map((c) => <option key={c}>{c}</option>)}
+            <select
+              style={inputStyle}
+              value={f.category}
+              onChange={(e) => set("category", e.target.value as ResolutionCategory)}
+            >
+              {(["Policy", "Financial", "Membership", "Governance"] as ResolutionCategory[]).map(
+                (c) => (
+                  <option key={c}>{c}</option>
+                ),
+              )}
             </select>
           </div>
           <div>
             <label style={labelStyle}>Status</label>
-            <select style={inputStyle} value={f.status} onChange={(e) => set("status", e.target.value as ResolutionStatus)}>
-              {(["Pending", "Passed", "Rejected", "Tabled"] as ResolutionStatus[]).map((s) => <option key={s}>{s}</option>)}
+            <select
+              style={inputStyle}
+              value={f.status}
+              onChange={(e) => set("status", e.target.value as ResolutionStatus)}
+            >
+              {(["Pending", "Passed", "Rejected", "Tabled"] as ResolutionStatus[]).map((s) => (
+                <option key={s}>{s}</option>
+              ))}
             </select>
           </div>
           <div>
             <label style={labelStyle}>Date</label>
-            <input style={inputStyle} value={f.date || ""} onChange={(e) => set("date", e.target.value)} placeholder="e.g. 14 May 2026" />
+            <input
+              style={inputStyle}
+              value={f.date || ""}
+              onChange={(e) => set("date", e.target.value)}
+              placeholder="e.g. 14 May 2026"
+            />
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
           <div>
             <label style={labelStyle}>Votes for</label>
-            <input type="number" style={inputStyle} value={f.votesFor ?? 0} onChange={(e) => set("votesFor", Number(e.target.value))} />
+            <input
+              type="number"
+              style={inputStyle}
+              value={f.votesFor ?? 0}
+              onChange={(e) => set("votesFor", Number(e.target.value))}
+            />
           </div>
           <div>
             <label style={labelStyle}>Votes against</label>
-            <input type="number" style={inputStyle} value={f.votesAgainst ?? 0} onChange={(e) => set("votesAgainst", Number(e.target.value))} />
+            <input
+              type="number"
+              style={inputStyle}
+              value={f.votesAgainst ?? 0}
+              onChange={(e) => set("votesAgainst", Number(e.target.value))}
+            />
           </div>
           <div>
             <label style={labelStyle}>Abstentions</label>
-            <input type="number" style={inputStyle} value={f.abstain ?? 0} onChange={(e) => set("abstain", Number(e.target.value))} />
+            <input
+              type="number"
+              style={inputStyle}
+              value={f.abstain ?? 0}
+              onChange={(e) => set("abstain", Number(e.target.value))}
+            />
           </div>
         </div>
         <div>
           <label style={labelStyle}>Governed change (optional)</label>
-          <input style={inputStyle} value={f.governedChange || ""} onChange={(e) => set("governedChange", e.target.value)} placeholder="e.g. Dividend rate → 8.5%" />
+          <input
+            style={inputStyle}
+            value={f.governedChange || ""}
+            onChange={(e) => set("governedChange", e.target.value)}
+            placeholder="e.g. Dividend rate → 8.5%"
+          />
         </div>
       </div>
     </Modal>
