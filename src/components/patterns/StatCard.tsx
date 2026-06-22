@@ -73,7 +73,7 @@ export function StatCard({
       </div>
       {delta != null ? (
         <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3, fontSize: 12 }}>
-          <span style={{ color: up ? tokens.success : "#DC2626", fontWeight: 700 }}>
+          <span style={{ color: up ? tokens.success : tokens.danger, fontWeight: 700 }}>
             {up ? "▲" : "▼"} {Math.abs(delta)}%
           </span>
           <span style={{ color: tokens.textMuted }}>vs last month</span>
