@@ -253,7 +253,7 @@ function QuickActions({ onCashTx }: { onCashTx: (t: CashTxType) => void }) {
               background: t.disabled ? "transparent" : "#EFF4FE",
             }}
           >
-            <t.Icon className={`${t.disabled ? "text-gray-300" : "text-[#002663]"}`} style={{ width: 20, height: 20 }} />
+            <t.Icon className={`h-5 w-5 ${t.disabled ? "text-gray-300" : "text-[#002663]"}`} />
           </div>
           <span className={`text-[12px] font-medium text-center leading-tight ${t.disabled ? "text-gray-400" : "text-[#101828]"}`}>
             {t.label}
