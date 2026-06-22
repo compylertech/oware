@@ -381,13 +381,13 @@ function MembershipPage() {
                         <button
                           onClick={() => toggleStatus(m.id)}
                           style={{
-                            background: "#fff",
-                            border: `1px solid ${tokens.border}`,
+                            background: m.status === "Active" ? "#DC2626" : "#059669",
+                            border: "none",
                             borderRadius: 7,
                             padding: "5px 12px",
                             fontSize: 12,
-                            fontWeight: 700,
-                            color: m.status === "Active" ? "#DC2626" : "#059669",
+                            fontWeight: 600,
+                            color: "#fff",
                             cursor: "pointer",
                             fontFamily: FONTS.body,
                           }}
