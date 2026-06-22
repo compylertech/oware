@@ -388,10 +388,10 @@ function UserMenuItem({ icon, label }: { icon: React.ReactNode; label: string })
     <button
       type="button"
       style={{
-        display: "flex", alignItems: "center", gap: 12,
-        width: "100%", padding: "11px 16px",
+        display: "flex", alignItems: "center", gap: 10,
+        width: "100%", padding: "9px 14px",
         background: "transparent", border: "none", cursor: "pointer",
-        color: INK, fontSize: 14, textAlign: "left",
+        color: INK, fontSize: 13, textAlign: "left",
       }}
       onMouseEnter={(e) => ((e.currentTarget.style.background = "#F4F6FB"))}
       onMouseLeave={(e) => ((e.currentTarget.style.background = "transparent"))}
