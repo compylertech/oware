@@ -26,6 +26,7 @@ import { Route as AuthCooperativeMembershipRouteImport } from './routes/_auth/co
 import { Route as AuthCooperativeGovernanceRouteImport } from './routes/_auth/cooperative/governance'
 import { Route as AuthCooperativeConfigurationsRouteImport } from './routes/_auth/cooperative/configurations'
 import { Route as AuthClientsAddRouteImport } from './routes/_auth/clients/add'
+import { Route as AuthClientsAccountLookupRouteImport } from './routes/_auth/clients/account-lookup'
 import { Route as AuthClientsClientIdRouteImport } from './routes/_auth/clients/$clientId'
 
 const SigninRoute = SigninRouteImport.update({
@@ -115,6 +116,12 @@ const AuthClientsAddRoute = AuthClientsAddRouteImport.update({
   path: '/clients/add',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthClientsAccountLookupRoute =
+  AuthClientsAccountLookupRouteImport.update({
+    id: '/clients/account-lookup',
+    path: '/clients/account-lookup',
+    getParentRoute: () => AuthRoute,
+  } as any)
 const AuthClientsClientIdRoute = AuthClientsClientIdRouteImport.update({
   id: '/clients/$clientId',
   path: '/clients/$clientId',
@@ -128,6 +135,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthDashboardRoute
   '/transactions': typeof AuthTransactionsRoute
   '/clients/$clientId': typeof AuthClientsClientIdRoute
+  '/clients/account-lookup': typeof AuthClientsAccountLookupRoute
   '/clients/add': typeof AuthClientsAddRoute
   '/cooperative/configurations': typeof AuthCooperativeConfigurationsRoute
   '/cooperative/governance': typeof AuthCooperativeGovernanceRoute
@@ -147,6 +155,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthDashboardRoute
   '/transactions': typeof AuthTransactionsRoute
   '/clients/$clientId': typeof AuthClientsClientIdRoute
+  '/clients/account-lookup': typeof AuthClientsAccountLookupRoute
   '/clients/add': typeof AuthClientsAddRoute
   '/cooperative/configurations': typeof AuthCooperativeConfigurationsRoute
   '/cooperative/governance': typeof AuthCooperativeGovernanceRoute
@@ -168,6 +177,7 @@ export interface FileRoutesById {
   '/_auth/dashboard': typeof AuthDashboardRoute
   '/_auth/transactions': typeof AuthTransactionsRoute
   '/_auth/clients/$clientId': typeof AuthClientsClientIdRoute
+  '/_auth/clients/account-lookup': typeof AuthClientsAccountLookupRoute
   '/_auth/clients/add': typeof AuthClientsAddRoute
   '/_auth/cooperative/configurations': typeof AuthCooperativeConfigurationsRoute
   '/_auth/cooperative/governance': typeof AuthCooperativeGovernanceRoute
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/transactions'
     | '/clients/$clientId'
+    | '/clients/account-lookup'
     | '/clients/add'
     | '/cooperative/configurations'
     | '/cooperative/governance'
@@ -208,6 +219,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/transactions'
     | '/clients/$clientId'
+    | '/clients/account-lookup'
     | '/clients/add'
     | '/cooperative/configurations'
     | '/cooperative/governance'
@@ -228,6 +240,7 @@ export interface FileRouteTypes {
     | '/_auth/dashboard'
     | '/_auth/transactions'
     | '/_auth/clients/$clientId'
+    | '/_auth/clients/account-lookup'
     | '/_auth/clients/add'
     | '/_auth/cooperative/configurations'
     | '/_auth/cooperative/governance'
@@ -369,6 +382,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthClientsAddRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/clients/account-lookup': {
+      id: '/_auth/clients/account-lookup'
+      path: '/clients/account-lookup'
+      fullPath: '/clients/account-lookup'
+      preLoaderRoute: typeof AuthClientsAccountLookupRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/clients/$clientId': {
       id: '/_auth/clients/$clientId'
       path: '/clients/$clientId'
@@ -383,6 +403,7 @@ interface AuthRouteChildren {
   AuthDashboardRoute: typeof AuthDashboardRoute
   AuthTransactionsRoute: typeof AuthTransactionsRoute
   AuthClientsClientIdRoute: typeof AuthClientsClientIdRoute
+  AuthClientsAccountLookupRoute: typeof AuthClientsAccountLookupRoute
   AuthClientsAddRoute: typeof AuthClientsAddRoute
   AuthCooperativeConfigurationsRoute: typeof AuthCooperativeConfigurationsRoute
   AuthCooperativeGovernanceRoute: typeof AuthCooperativeGovernanceRoute
@@ -400,6 +421,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthDashboardRoute: AuthDashboardRoute,
   AuthTransactionsRoute: AuthTransactionsRoute,
   AuthClientsClientIdRoute: AuthClientsClientIdRoute,
+  AuthClientsAccountLookupRoute: AuthClientsAccountLookupRoute,
   AuthClientsAddRoute: AuthClientsAddRoute,
   AuthCooperativeConfigurationsRoute: AuthCooperativeConfigurationsRoute,
   AuthCooperativeGovernanceRoute: AuthCooperativeGovernanceRoute,

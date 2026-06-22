@@ -21,6 +21,21 @@ import {
 } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
 import { tokens } from "@/lib/tokens";
+
+function TxnStatusPill({ status }: { status: "Completed" | "Reversed" }) {
+  const isOk = status === "Completed";
+  const color = isOk ? "#067647" : "#475467";
+  const bg = isOk ? "#ECFDF3" : "#F2F4F7";
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full"
+      style={{ color, background: bg, padding: "2px 10px", fontSize: 11, fontWeight: 600 }}
+    >
+      <span style={{ width: 6, height: 6, borderRadius: 999, background: color }} />
+      {status}
+    </span>
+  );
+}
 import { getClients, type Client } from "@/lib/mockStore";
 
 export const Route = createFileRoute("/_auth/clients/account-lookup")({
