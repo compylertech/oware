@@ -158,7 +158,7 @@ function ShareCapitalPage() {
               </tr>
             </thead>
             <tbody>
-              {SEED.map((m) => {
+              {holders.map((m) => {
                 const k = KLASS_STYLE[m.klass];
                 const total = m.shares * m.shareValue;
                 return (
@@ -203,6 +203,27 @@ function ShareCapitalPage() {
           </div>
         </div>
       </div>
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Issue Shares"
+        maxWidth={500}
+        footer={<><MCancelBtn onClick={() => setOpen(false)} /><MNavyBtn onClick={issue}>Issue Shares</MNavyBtn></>}
+      >
+        <MField label="Member"><MInput value={f.member} onChange={(e) => setF({ ...f, member: e.target.value })} placeholder="Search member name or ID…" /></MField>
+        <MField label="Share Class"><MSelect value={f.klass} onChange={(e) => setF({ ...f, klass: e.target.value })} options={["Class A", "Class B", "Class C"]} /></MField>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <MField label="Number of Shares"><MInput type="number" min={1} value={f.count} onChange={(e) => setF({ ...f, count: e.target.value })} /></MField>
+          <MField label="Price per Share (GHS)"><MInput type="number" step="0.01" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} /></MField>
+        </div>
+        <MField label="Issue Date"><MInput type="date" value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /></MField>
+        <MField label="Payment Method"><MSelect value={f.method} onChange={(e) => setF({ ...f, method: e.target.value })} options={["Cash", "Deduction", "Bank Transfer"]} /></MField>
+        <MField label="Notes"><MTextarea rows={2} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} /></MField>
+        <div style={{ textAlign: "right", fontSize: 13, color: "#16233F", fontFamily: FONTS.body, paddingTop: 4, borderTop: `1px solid ${tokens.border}` }}>
+          Total Value: <span style={{ fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>GHS {total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+      </Modal>
     </div>
   );
 }
