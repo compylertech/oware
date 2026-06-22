@@ -19,5 +19,6 @@ export const tokens = {
   gold: "#C9A84C",
 } as const;
 
-export const cardShadow =
-  "0 1px 4px rgba(0,38,99,0.08), 0 4px 16px rgba(0,38,99,0.06)";
+// Global rule: no shadows anywhere. Kept as an exported "none" so existing
+// consumers using `boxShadow: cardShadow` continue to compile but render flat.
+export const cardShadow = "none";
