@@ -261,7 +261,6 @@ const SECTIONS: Section[] = [
 
 function ClientDetail() {
   const { clientId } = Route.useParams();
-  const navigate = useNavigate();
   const client = useMemo(
     () => CLIENT_SEED.find((c) => c.id === clientId) ?? CLIENT_SEED[0],
     [clientId],
