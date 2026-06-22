@@ -135,7 +135,7 @@ function ClientsPage() {
                   fontWeight: 600,
                 }}
               >
-                Chelsea Bank
+                Oware
               </div>
               <h1
                 style={{

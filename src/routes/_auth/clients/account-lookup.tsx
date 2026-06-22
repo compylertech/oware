@@ -302,7 +302,7 @@ function AccountLookupPage() {
               textTransform: "uppercase",
             }}
           >
-            Chelsea Bank
+            Oware
           </div>
           <h1
             style={{
