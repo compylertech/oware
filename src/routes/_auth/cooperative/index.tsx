@@ -49,7 +49,7 @@ function HubCard({ card }: { card: NavCard }) {
   const navigate = useNavigate();
   return (
     <button
-      onClick={() => navigate({ to: card.route })}
+      onClick={() => navigate({ to: card.route as never })}
       style={{
         cursor: "pointer",
         textAlign: "left",
