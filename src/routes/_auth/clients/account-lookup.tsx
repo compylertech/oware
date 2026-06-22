@@ -177,27 +177,6 @@ function Card({
   );
 }
 
-function EntryPill({ entry }: { entry: TxnEntry }) {
-  const isCredit = entry === "Credit";
-  const color = isCredit ? "#067647" : "#D92D20";
-  const bg = isCredit ? "#ECFDF3" : "#FEF3F2";
-  const Icon = isCredit ? ArrowDown : ArrowUp;
-  return (
-    <span
-      className="inline-flex items-center gap-1 rounded-full"
-      style={{
-        color,
-        background: bg,
-        padding: "2px 10px",
-        fontSize: 11,
-        fontWeight: 600,
-      }}
-    >
-      <Icon size={12} strokeWidth={2.5} />
-      {entry}
-    </span>
-  );
-}
 
 function LayerTag({ label, tone = "teal" }: { label: string; tone?: "teal" | "navy" }) {
   const c = tone === "teal"
@@ -749,24 +728,27 @@ function AccountLookupPage() {
                           {t.type}
                         </td>
                         <td style={{ padding: "12px 18px" }}>
-                          <EntryPill entry={t.entry} />
+                          <StatusPill status={t.entry} />
                         </td>
                         <td
                           style={{
                             padding: "12px 18px",
-                            fontFamily: "'Sora', sans-serif",
-                            fontWeight: 600,
+                            fontFamily: "'DM Sans', sans-serif",
+                            fontWeight: 700,
                             fontSize: 13,
+                            fontVariantNumeric: "tabular-nums",
                             color: t.entry === "Credit" ? "#067647" : "#D92D20",
                           }}
                         >
-                          {t.entry === "Credit" ? "+" : "−"} {fmtGHS(t.amount).replace("GHS ", "GHS ")}
+                          {t.entry === "Credit" ? "+" : "−"} {fmtGHS(t.amount)}
                         </td>
                         <td
                           style={{
                             padding: "12px 18px",
-                            fontFamily: "'Sora', sans-serif",
+                            fontFamily: "'DM Sans', sans-serif",
+                            fontWeight: 500,
                             fontSize: 13,
+                            fontVariantNumeric: "tabular-nums",
                             color: tokens.text,
                           }}
                         >
@@ -919,9 +901,10 @@ function AccountLookupPage() {
                       <td
                         style={{
                           padding: "12px 22px",
-                          fontFamily: "'Sora', sans-serif",
-                          fontWeight: 600,
+                          fontFamily: "'DM Sans', sans-serif",
+                          fontWeight: 700,
                           fontSize: 13,
+                          fontVariantNumeric: "tabular-nums",
                           color: tokens.text,
                         }}
                       >

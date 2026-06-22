@@ -90,7 +90,7 @@ function ClientsPage() {
   return (
     <div
       ref={rootRef}
-      style={{ backgroundColor: "#EEF2F8", minHeight: "100%" }}
+      style={{ backgroundColor: "#F4F6FB", minHeight: "100%" }}
       className="p-7"
     >
       {/* Hero */}
