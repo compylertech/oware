@@ -55,10 +55,10 @@ const growthData = [
 ];
 
 const activity = [
-  { name: "Pearl Adzoko", action: "Account activated", time: "2 min ago", dot: "bg-emerald-500" },
-  { name: "Kwame Mensah", action: "KYC documents submitted", time: "18 min ago", dot: "bg-blue-500" },
-  { name: "Ama Boateng", action: "Deposit · GHS 4,500", time: "1 hr ago", dot: "bg-emerald-500" },
-  { name: "Kofi Asare", action: "Loan application pending", time: "2 hr ago", dot: "bg-orange-500" },
+  { name: "Pearl Adzoko", action: "Account activated", time: "2 min ago" },
+  { name: "Kwame Mensah", action: "KYC documents submitted", time: "18 min ago" },
+  { name: "Ama Boateng", action: "Deposit · GHS 4,500", time: "1 hr ago" },
+  { name: "Kofi Asare", action: "Loan application pending", time: "2 hr ago" },
 ];
 
 function DashboardPage() {
@@ -95,15 +95,15 @@ function DashboardPage() {
           </Panel>
 
           {/* B - Transaction Volume */}
-          <Panel className="col-span-2">
+          <Panel className="col-span-2" style={{ paddingBottom: 16 }}>
             <div className="flex items-start justify-between mb-4">
               <div>
                 <div className="text-[15px] font-bold text-[#101828]">Transaction Volume</div>
                 <div className="text-xs text-gray-400 mt-0.5">Deposits vs withdrawals · last 7 months</div>
               </div>
               <div className="flex items-center gap-4 text-xs text-gray-600">
-                <LegendItem color="#002663" label="Deposits" />
-                <LegendItem color="#93c5fd" label="Withdrawals" />
+                <LegendItem color="#3B82F6" label="Deposits" />
+                <LegendItem color="#0F6E56" label="Withdrawals" />
               </div>
             </div>
             <VolumeChart />
@@ -142,8 +142,7 @@ function DashboardPage() {
                     <div className="text-xs text-gray-500 truncate">{a.action}</div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className={`h-1.5 w-1.5 rounded-full ${a.dot}`} />
-                    <span className="text-xs text-gray-400">{a.time}</span>
+                    <span className="text-xs" style={{ color: "#7A879F" }}>{a.time}</span>
                   </div>
                 </li>
               ))}
@@ -157,9 +156,9 @@ function DashboardPage() {
   );
 }
 
-function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Panel({ children, className = "", style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
-    <div className={`bg-white rounded-2xl border border-[#DDE4EF] p-5 ${className}`}>{children}</div>
+    <div className={`bg-white rounded-2xl border border-[#DDE4EF] p-5 ${className}`} style={style}>{children}</div>
   );
 }
 
@@ -241,11 +240,22 @@ function QuickActions({ onCashTx }: { onCashTx: (t: CashTxType) => void }) {
           onClick={t.onClick}
           disabled={t.disabled}
           className={`aspect-square rounded-xl border border-gray-100 bg-gray-50 flex flex-col items-center justify-center gap-2 transition-colors ${
-            t.disabled ? "opacity-[0.35] cursor-not-allowed" : "hover:bg-gray-100"
+            t.disabled ? "opacity-[0.35] cursor-not-allowed" : "hover:bg-gray-100 cursor-pointer"
           }`}
+          style={{ padding: 16 }}
         >
-          <t.Icon className={`h-5 w-5 ${t.disabled ? "text-gray-300" : "text-[#002663]"}`} />
-          <span className={`text-[12px] font-medium text-center px-1 leading-tight ${t.disabled ? "text-gray-400" : "text-[#101828]"}`}>
+          <div
+            className="flex items-center justify-center"
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 10,
+              background: t.disabled ? "transparent" : "#EFF4FE",
+            }}
+          >
+            <t.Icon className={`h-5 w-5 ${t.disabled ? "text-gray-300" : "text-[#002663]"}`} />
+          </div>
+          <span className={`text-[12px] font-medium text-center leading-tight ${t.disabled ? "text-gray-400" : "text-[#101828]"}`}>
             {t.label}
           </span>
         </button>
@@ -277,20 +287,20 @@ function VolumeChart() {
       <AreaChart data={volumeData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
         <defs>
           <linearGradient id="gradDep" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#002663" stopOpacity={0.25} />
-            <stop offset="100%" stopColor="#002663" stopOpacity={0} />
+            <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.32} />
+            <stop offset="100%" stopColor="#3B82F6" stopOpacity={0} />
           </linearGradient>
           <linearGradient id="gradWit" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#93c5fd" stopOpacity={0.4} />
-            <stop offset="100%" stopColor="#93c5fd" stopOpacity={0} />
+            <stop offset="0%" stopColor="#0F6E56" stopOpacity={0.22} />
+            <stop offset="100%" stopColor="#0F6E56" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid stroke="#f0f0f0" strokeDasharray="3 3" vertical={false} />
         <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
         <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
         <Tooltip content={<ChartTooltip currency />} cursor={{ stroke: "#e5e7eb" }} />
-        <Area type="monotone" dataKey="deposits" name="Deposits" stroke="#002663" strokeWidth={2.5} fill="url(#gradDep)" dot={false} activeDot={false} />
-        <Area type="monotone" dataKey="withdrawals" name="Withdrawals" stroke="#93c5fd" strokeWidth={2} fill="url(#gradWit)" dot={false} activeDot={false} />
+        <Area type="monotone" dataKey="deposits" name="Deposits" stroke="#3B82F6" strokeWidth={2.5} fill="url(#gradDep)" dot={false} activeDot={false} />
+        <Area type="monotone" dataKey="withdrawals" name="Withdrawals" stroke="#0F6E56" strokeWidth={2} fill="url(#gradWit)" dot={false} activeDot={false} />
       </AreaChart>
     </ResponsiveContainer>
   );

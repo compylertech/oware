@@ -313,7 +313,7 @@ function AccountLookupPage() {
               marginTop: 6,
             }}
           >
-            Account Lookup
+            Accounts
           </h1>
           <p style={{ fontSize: 13, color: tokens.textSub, marginTop: 4 }}>
             Search an account number to view details and transaction history.
@@ -550,11 +550,11 @@ function AccountLookupPage() {
             />
             <StatCard
               icon={<Wallet size={18} />}
-              iconBg="#F4EEFE"
-              iconColor="#6938EF"
+              iconBg="#F2F4F7"
+              iconColor="#475467"
               label="Net"
               value={fmtGHS(totalCredits - totalDebits)}
-              valueColor="#6938EF"
+              valueColor={tokens.text}
             />
           </div>
         )}
@@ -851,13 +851,15 @@ function AccountLookupPage() {
                 }
                 className="inline-flex items-center gap-1.5 cursor-pointer"
                 style={{
-                  background: tokens.tealBg,
-                  color: tokens.teal,
-                  border: `1px solid rgba(15,110,86,0.25)`,
+                  background: tokens.navy,
+                  color: "#fff",
+                  border: "none",
                   borderRadius: 8,
-                  padding: "6px 12px",
-                  fontSize: 12,
+                  padding: "8px 16px",
+                  height: 36,
+                  fontSize: 13,
                   fontWeight: 600,
+                  lineHeight: 1.2,
                 }}
               >
                 <Plus size={14} />

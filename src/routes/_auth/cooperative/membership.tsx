@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   Plus,
@@ -9,6 +9,11 @@ import {
   Clock,
   Sigma,
   Info,
+  MoreVertical,
+  CheckCircle,
+  Ban,
+  User,
+  Trash2,
 } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
@@ -117,6 +122,16 @@ function MembershipPage() {
   const [members, setMembers] = useState<Member[]>(SEED);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"All" | MemberStatus>("All");
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpenMenu(null);
+    }
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -140,16 +155,13 @@ function MembershipPage() {
     };
   }, [members]);
 
-  function toggleStatus(id: string) {
-    setMembers((ms) =>
-      ms.map((m) => {
-        if (m.id !== id) return m;
-        if (m.status === "Active") return { ...m, status: "Suspended" };
-        if (m.status === "Suspended") return { ...m, status: "Active" };
-        if (m.status === "Pending") return { ...m, status: "Active" };
-        return m;
-      }),
-    );
+  function setStatus(id: string, status: MemberStatus) {
+    setMembers((ms) => ms.map((m) => (m.id === id ? { ...m, status } : m)));
+  }
+
+  function removeMember(id: string) {
+    if (typeof window !== "undefined" && !window.confirm("Remove this member? This cannot be undone.")) return;
+    setMembers((ms) => ms.filter((m) => m.id !== id));
   }
 
   return (
@@ -376,24 +388,35 @@ function MembershipPage() {
                     <td style={{ padding: "13px 16px" }}>
                       <StatusPill status={m.status} />
                     </td>
-                    <td style={{ padding: "13px 16px", textAlign: "right" }}>
-                      {m.status !== "Withdrawn" && (
-                        <button
-                          onClick={() => toggleStatus(m.id)}
+                    <td style={{ padding: "13px 16px", textAlign: "right", position: "relative" }}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === m.id ? null : m.id); }}
+                        aria-label="Actions"
+                        style={{
+                          background: "transparent", border: "none", cursor: "pointer",
+                          color: "#7A879F", padding: 4,
+                        }}
+                      >
+                        <MoreVertical size={18} />
+                      </button>
+                      {openMenu === m.id && (
+                        <div
+                          ref={menuRef}
                           style={{
-                            background: m.status === "Active" ? "#DC2626" : "#059669",
-                            border: "none",
-                            borderRadius: 7,
-                            padding: "5px 12px",
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: "#fff",
-                            cursor: "pointer",
-                            fontFamily: FONTS.body,
+                            position: "absolute", top: "100%", right: 16, zIndex: 30,
+                            background: "#fff", border: `1px solid ${tokens.border}`,
+                            borderRadius: 8, padding: 4, minWidth: 180, textAlign: "left",
                           }}
                         >
-                          {m.status === "Active" ? "Suspend" : "Activate"}
-                        </button>
+                          {(m.status === "Pending" || m.status === "Suspended") && (
+                            <MenuRow icon={<CheckCircle size={14} />} color="#067647" onClick={() => { setOpenMenu(null); setStatus(m.id, "Active"); }}>Activate</MenuRow>
+                          )}
+                          {m.status === "Active" && (
+                            <MenuRow icon={<Ban size={14} />} color="#D92D20" onClick={() => { setOpenMenu(null); setStatus(m.id, "Suspended"); }}>Suspend</MenuRow>
+                          )}
+                          <MenuRow icon={<User size={14} />} color="#16233F" onClick={() => { setOpenMenu(null); }}>View profile</MenuRow>
+                          <MenuRow icon={<Trash2 size={14} />} color="#D92D20" onClick={() => { setOpenMenu(null); removeMember(m.id); }}>Remove member</MenuRow>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -411,5 +434,25 @@ function MembershipPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function MenuRow({ icon, color, onClick, children }: { icon: React.ReactNode; color: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: "flex", alignItems: "center", gap: 8, width: "100%",
+        background: "transparent", border: "none", cursor: "pointer",
+        padding: "8px 14px", fontSize: 13, color, fontFamily: FONTS.body,
+        textAlign: "left", borderRadius: 6,
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = "#F4F6FB")}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+    >
+      <span style={{ display: "flex" }}>{icon}</span>
+      {children}
+    </button>
   );
 }
