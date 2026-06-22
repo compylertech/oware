@@ -21,6 +21,7 @@ import { Route as AuthLoansIndexRouteImport } from './routes/_auth/loans/index'
 import { Route as AuthCooperativeIndexRouteImport } from './routes/_auth/cooperative/index'
 import { Route as AuthClientsIndexRouteImport } from './routes/_auth/clients/index'
 import { Route as AuthAdministrationIndexRouteImport } from './routes/_auth/administration/index'
+import { Route as AuthProductsSharesRouteImport } from './routes/_auth/products/shares'
 import { Route as AuthLoansRepaymentsRouteImport } from './routes/_auth/loans/repayments'
 import { Route as AuthLoansProductsRouteImport } from './routes/_auth/loans/products'
 import { Route as AuthLoansDisbursementsRouteImport } from './routes/_auth/loans/disbursements'
@@ -94,6 +95,11 @@ const AuthClientsIndexRoute = AuthClientsIndexRouteImport.update({
 const AuthAdministrationIndexRoute = AuthAdministrationIndexRouteImport.update({
   id: '/administration/',
   path: '/administration/',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthProductsSharesRoute = AuthProductsSharesRouteImport.update({
+  id: '/products/shares',
+  path: '/products/shares',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthLoansRepaymentsRoute = AuthLoansRepaymentsRouteImport.update({
@@ -197,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/loans/disbursements': typeof AuthLoansDisbursementsRoute
   '/loans/products': typeof AuthLoansProductsRoute
   '/loans/repayments': typeof AuthLoansRepaymentsRoute
+  '/products/shares': typeof AuthProductsSharesRoute
   '/administration/': typeof AuthAdministrationIndexRoute
   '/clients/': typeof AuthClientsIndexRoute
   '/cooperative/': typeof AuthCooperativeIndexRoute
@@ -225,6 +232,7 @@ export interface FileRoutesByTo {
   '/loans/disbursements': typeof AuthLoansDisbursementsRoute
   '/loans/products': typeof AuthLoansProductsRoute
   '/loans/repayments': typeof AuthLoansRepaymentsRoute
+  '/products/shares': typeof AuthProductsSharesRoute
   '/administration': typeof AuthAdministrationIndexRoute
   '/clients': typeof AuthClientsIndexRoute
   '/cooperative': typeof AuthCooperativeIndexRoute
@@ -255,6 +263,7 @@ export interface FileRoutesById {
   '/_auth/loans/disbursements': typeof AuthLoansDisbursementsRoute
   '/_auth/loans/products': typeof AuthLoansProductsRoute
   '/_auth/loans/repayments': typeof AuthLoansRepaymentsRoute
+  '/_auth/products/shares': typeof AuthProductsSharesRoute
   '/_auth/administration/': typeof AuthAdministrationIndexRoute
   '/_auth/clients/': typeof AuthClientsIndexRoute
   '/_auth/cooperative/': typeof AuthCooperativeIndexRoute
@@ -285,6 +294,7 @@ export interface FileRouteTypes {
     | '/loans/disbursements'
     | '/loans/products'
     | '/loans/repayments'
+    | '/products/shares'
     | '/administration/'
     | '/clients/'
     | '/cooperative/'
@@ -313,6 +323,7 @@ export interface FileRouteTypes {
     | '/loans/disbursements'
     | '/loans/products'
     | '/loans/repayments'
+    | '/products/shares'
     | '/administration'
     | '/clients'
     | '/cooperative'
@@ -342,6 +353,7 @@ export interface FileRouteTypes {
     | '/_auth/loans/disbursements'
     | '/_auth/loans/products'
     | '/_auth/loans/repayments'
+    | '/_auth/products/shares'
     | '/_auth/administration/'
     | '/_auth/clients/'
     | '/_auth/cooperative/'
@@ -441,6 +453,13 @@ declare module '@tanstack/react-router' {
       path: '/administration'
       fullPath: '/administration/'
       preLoaderRoute: typeof AuthAdministrationIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/products/shares': {
+      id: '/_auth/products/shares'
+      path: '/products/shares'
+      fullPath: '/products/shares'
+      preLoaderRoute: typeof AuthProductsSharesRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/loans/repayments': {
@@ -569,6 +588,7 @@ interface AuthRouteChildren {
   AuthLoansDisbursementsRoute: typeof AuthLoansDisbursementsRoute
   AuthLoansProductsRoute: typeof AuthLoansProductsRoute
   AuthLoansRepaymentsRoute: typeof AuthLoansRepaymentsRoute
+  AuthProductsSharesRoute: typeof AuthProductsSharesRoute
   AuthAdministrationIndexRoute: typeof AuthAdministrationIndexRoute
   AuthClientsIndexRoute: typeof AuthClientsIndexRoute
   AuthCooperativeIndexRoute: typeof AuthCooperativeIndexRoute
@@ -595,6 +615,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthLoansDisbursementsRoute: AuthLoansDisbursementsRoute,
   AuthLoansProductsRoute: AuthLoansProductsRoute,
   AuthLoansRepaymentsRoute: AuthLoansRepaymentsRoute,
+  AuthProductsSharesRoute: AuthProductsSharesRoute,
   AuthAdministrationIndexRoute: AuthAdministrationIndexRoute,
   AuthClientsIndexRoute: AuthClientsIndexRoute,
   AuthCooperativeIndexRoute: AuthCooperativeIndexRoute,
