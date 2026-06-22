@@ -153,8 +153,8 @@ function MembershipPage() {
   }
 
   return (
-    <div style={{ background: tokens.bg, minHeight: "100%", padding: 28, fontFamily: FONTS.body }}>
-      <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+    <div style={{ background: tokens.bg, minHeight: "100%", padding: "24px 28px", fontFamily: FONTS.body }}>
+      <div>
         <Link
           to="/cooperative"
           style={{
