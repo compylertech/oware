@@ -313,7 +313,7 @@ function AccountLookupPage() {
               marginTop: 6,
             }}
           >
-            Account Lookup
+            Accounts
           </h1>
           <p style={{ fontSize: 13, color: tokens.textSub, marginTop: 4 }}>
             Search an account number to view details and transaction history.
