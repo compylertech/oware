@@ -436,3 +436,23 @@ function MembershipPage() {
     </div>
   );
 }
+
+function MenuRow({ icon, color, onClick, children }: { icon: React.ReactNode; color: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: "flex", alignItems: "center", gap: 8, width: "100%",
+        background: "transparent", border: "none", cursor: "pointer",
+        padding: "8px 14px", fontSize: 13, color, fontFamily: FONTS.body,
+        textAlign: "left", borderRadius: 6,
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = "#F4F6FB")}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+    >
+      <span style={{ display: "flex" }}>{icon}</span>
+      {children}
+    </button>
+  );
+}
