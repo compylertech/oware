@@ -388,24 +388,35 @@ function MembershipPage() {
                     <td style={{ padding: "13px 16px" }}>
                       <StatusPill status={m.status} />
                     </td>
-                    <td style={{ padding: "13px 16px", textAlign: "right" }}>
-                      {m.status !== "Withdrawn" && (
-                        <button
-                          onClick={() => toggleStatus(m.id)}
+                    <td style={{ padding: "13px 16px", textAlign: "right", position: "relative" }}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === m.id ? null : m.id); }}
+                        aria-label="Actions"
+                        style={{
+                          background: "transparent", border: "none", cursor: "pointer",
+                          color: "#7A879F", padding: 4,
+                        }}
+                      >
+                        <MoreVertical size={18} />
+                      </button>
+                      {openMenu === m.id && (
+                        <div
+                          ref={menuRef}
                           style={{
-                            background: m.status === "Active" ? "#DC2626" : "#059669",
-                            border: "none",
-                            borderRadius: 7,
-                            padding: "5px 12px",
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: "#fff",
-                            cursor: "pointer",
-                            fontFamily: FONTS.body,
+                            position: "absolute", top: "100%", right: 16, zIndex: 30,
+                            background: "#fff", border: `1px solid ${tokens.border}`,
+                            borderRadius: 8, padding: 4, minWidth: 180, textAlign: "left",
                           }}
                         >
-                          {m.status === "Active" ? "Suspend" : "Activate"}
-                        </button>
+                          {(m.status === "Pending" || m.status === "Suspended") && (
+                            <MenuRow icon={<CheckCircle size={14} />} color="#067647" onClick={() => { setOpenMenu(null); setStatus(m.id, "Active"); }}>Activate</MenuRow>
+                          )}
+                          {m.status === "Active" && (
+                            <MenuRow icon={<Ban size={14} />} color="#D92D20" onClick={() => { setOpenMenu(null); setStatus(m.id, "Suspended"); }}>Suspend</MenuRow>
+                          )}
+                          <MenuRow icon={<User size={14} />} color="#16233F" onClick={() => { setOpenMenu(null); }}>View profile</MenuRow>
+                          <MenuRow icon={<Trash2 size={14} />} color="#D92D20" onClick={() => { setOpenMenu(null); removeMember(m.id); }}>Remove member</MenuRow>
+                        </div>
                       )}
                     </td>
                   </tr>
