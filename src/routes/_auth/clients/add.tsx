@@ -218,7 +218,7 @@ function AddClientPage() {
   const stepLabel = STEPS[step - 1].label;
 
   return (
-    <div style={{ background: "#f8f9fc", minHeight: "100%" }} className="p-7">
+    <div style={{ background: "#F4F6FB", minHeight: "100%" }} className="p-7">
       {/* Header */}
       <Link
         to="/clients"

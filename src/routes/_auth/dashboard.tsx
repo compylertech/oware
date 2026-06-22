@@ -65,7 +65,7 @@ function DashboardPage() {
   const [cashTxType, setCashTxType] = useState<CashTxType | null>(null);
 
   return (
-    <div className="min-h-full" style={{ backgroundColor: "#f8f9fc" }}>
+    <div className="min-h-full" style={{ backgroundColor: "#F4F6FB" }}>
       <div className="p-7">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
@@ -159,7 +159,7 @@ function DashboardPage() {
 
 function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-white rounded-2xl border border-gray-100 p-5 ${className}`}>{children}</div>
+    <div className={`bg-white rounded-2xl border border-[#DDE4EF] p-5 ${className}`}>{children}</div>
   );
 }
 
@@ -196,7 +196,7 @@ function KpiCard({
   const Arrow = up ? ArrowUpRight : ArrowDownRight;
   const color = up ? "#10b981" : "#f87171";
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4">
+    <div className="bg-white rounded-2xl border border-[#DDE4EF] p-5 flex items-center gap-4">
       <div className={`h-11 w-11 rounded-xl ${tileBg} flex items-center justify-center shrink-0`}>
         <Icon className={`h-5 w-5 ${iconColor}`} />
       </div>

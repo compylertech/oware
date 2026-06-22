@@ -50,7 +50,7 @@ export function StatusPill({
           color: s.text,
           backgroundColor: s.bg,
           border: `1px solid ${s.border}`,
-          padding: "2px 10px",
+          padding: "3px 10px",
           fontSize: 11,
           fontWeight: 600,
         }}
@@ -67,7 +67,7 @@ export function StatusPill({
       style={{
         color: s.text,
         backgroundColor: s.bg,
-        padding: "2px 10px",
+        padding: "3px 10px",
         fontSize: 11,
         fontWeight: 600,
       }}

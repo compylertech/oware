@@ -731,15 +731,16 @@ function ClientDetail() {
                           <td
                             style={{
                               padding: 14,
-                              fontFamily: "DM Mono, monospace",
+                              fontFamily: "'DM Sans', sans-serif",
                               fontSize: 13,
                               color: isCredit ? "#067647" : "#D92D20",
-                              fontWeight: 600,
+                              fontWeight: 700,
+                              fontVariantNumeric: "tabular-nums",
                             }}
                           >
                             {isCredit ? "+" : "−"} GHS {t.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </td>
-                          <td style={{ padding: 14, fontFamily: "DM Mono, monospace", fontSize: 13, color: tokens.text }}>
+                          <td style={{ padding: 14, fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: 13, fontVariantNumeric: "tabular-nums", color: tokens.text }}>
                             GHS {t.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </td>
                           <td style={{ padding: 14, fontFamily: "DM Mono, monospace", fontSize: 12, color: tokens.textSub }}>

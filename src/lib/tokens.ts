@@ -8,7 +8,7 @@ export const tokens = {
   navy: "#002663",
   navyLight: "#1a4080",
   accent: "#1565C0",
-  bg: "#EEF2F8",
+  bg: "#F4F6FB",
   surface: "#FFFFFF",
   border: "#DDE4EF",
   text: "#0D1B3E",
