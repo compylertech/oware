@@ -1,9 +1,25 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Download, Plus } from "lucide-react";
+import { Download, Plus, Bell } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { LOAN } from "@/lib/tokens";
 import { fontDisplay, NavyBtn, OutlineBtn } from "./ui";
 import { NewApplicationDrawer } from "./NewApplicationDrawer";
+
+function AmberBtn({ children, icon, onClick }: { children: ReactNode; icon?: ReactNode; onClick?: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 6, height: 36,
+        padding: "0 16px", borderRadius: 10, background: "#B45309",
+        color: "#fff", fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer",
+      }}
+    >
+      {icon}
+      {children}
+    </button>
+  );
+}
 
 type Tab = { label: string; to: string; badge?: number };
 
@@ -113,13 +129,33 @@ export function LoansShell({ children }: { children: ReactNode }) {
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          <OutlineBtn icon={<Download size={14} />}>Export</OutlineBtn>
-          <NavyBtn
-            icon={<Plus size={14} />}
-            onClick={() => setOpenWizard(true)}
-          >
-            New Application
-          </NavyBtn>
+          {(() => {
+            const path = activeTab.to;
+            const showExport = ["/loans", "/loans/applications", "/loans/active", "/loans/arrears"].includes(path);
+            const showNewApp = ["/loans", "/loans/applications"].includes(path);
+            const showReminders = path === "/loans/arrears";
+            const showNewProduct = path === "/loans/products";
+            const showRegisterCollat = path === "/loans/collateral";
+            return (
+              <>
+                {showExport && <OutlineBtn icon={<Download size={14} />}>Export</OutlineBtn>}
+                {showNewApp && (
+                  <NavyBtn icon={<Plus size={14} />} onClick={() => setOpenWizard(true)}>
+                    New Application
+                  </NavyBtn>
+                )}
+                {showReminders && (
+                  <AmberBtn icon={<Bell size={14} />}>Send Reminders</AmberBtn>
+                )}
+                {showNewProduct && (
+                  <NavyBtn icon={<Plus size={14} />}>New Product</NavyBtn>
+                )}
+                {showRegisterCollat && (
+                  <NavyBtn icon={<Plus size={14} />}>Register Collateral</NavyBtn>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
 
