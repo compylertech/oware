@@ -197,12 +197,13 @@ export function Topbar() {
                 position: "absolute",
                 top: "calc(100% + 8px)",
                 right: 0,
-                width: 360,
+                width: 340,
                 background: "#fff",
                 border: `1px solid ${BORDER}`,
                 borderRadius: 12,
                 zIndex: 50,
                 overflow: "hidden",
+                fontSize: 13,
               }}
             >
               <div
@@ -210,12 +211,12 @@ export function Topbar() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  padding: "14px 16px",
+                  padding: "11px 14px",
                   borderBottom: `1px solid ${BORDER}`,
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontFamily: "Sora, sans-serif", fontSize: 16, fontWeight: 700, color: INK }}>
+                  <span style={{ fontFamily: "Sora, sans-serif", fontSize: 14, fontWeight: 700, color: INK }}>
                     Notifications
                   </span>
                   <span
@@ -224,7 +225,7 @@ export function Topbar() {
                       color: "#D92D20",
                       border: "1px solid #FECDCA",
                       borderRadius: 999,
-                      padding: "2px 8px",
+                      padding: "1px 7px",
                       fontSize: 11,
                       fontWeight: 700,
                     }}
@@ -235,7 +236,7 @@ export function Topbar() {
                 <button
                   type="button"
                   style={{
-                    color: NAVY, fontSize: 13, fontWeight: 600,
+                    color: NAVY, fontSize: 12, fontWeight: 600,
                     background: "transparent", border: "none", cursor: "pointer",
                   }}
                 >
@@ -248,14 +249,14 @@ export function Topbar() {
                     key={i}
                     style={{
                       display: "flex",
-                      gap: 12,
-                      padding: "14px 16px",
+                      gap: 10,
+                      padding: "11px 14px",
                       borderBottom: i < NOTIFS.length - 1 ? `1px solid ${BORDER}` : "none",
                     }}
                   >
                     <div
                       style={{
-                        width: 40, height: 40, borderRadius: 999,
+                        width: 36, height: 36, borderRadius: 999,
                         background: n.iconBg, color: n.iconColor,
                         display: "flex", alignItems: "center", justifyContent: "center",
                         flexShrink: 0,
@@ -265,22 +266,22 @@ export function Topbar() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: INK }}>{n.title}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>{n.title}</span>
                         {n.unread && (
-                          <span style={{ width: 7, height: 7, borderRadius: 999, background: "#1E40AF" }} />
+                          <span style={{ width: 6, height: 6, borderRadius: 999, background: "#1E40AF" }} />
                         )}
                       </div>
-                      <div style={{ fontSize: 13, color: MUTED, marginTop: 2 }}>{n.desc}</div>
-                      <div style={{ fontSize: 12, color: MUTED, marginTop: 4 }}>{n.time}</div>
+                      <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>{n.desc}</div>
+                      <div style={{ fontSize: 11, color: MUTED, marginTop: 3 }}>{n.time}</div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div style={{ padding: "12px 16px", textAlign: "center", borderTop: `1px solid ${BORDER}` }}>
+              <div style={{ padding: "10px 14px", textAlign: "center", borderTop: `1px solid ${BORDER}` }}>
                 <button
                   type="button"
                   style={{
-                    color: NAVY, fontSize: 13, fontWeight: 600,
+                    color: NAVY, fontSize: 12, fontWeight: 600,
                     background: "transparent", border: "none", cursor: "pointer",
                   }}
                 >
