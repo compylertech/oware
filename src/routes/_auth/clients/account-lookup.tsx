@@ -21,21 +21,6 @@ import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
 import { tokens } from "@/lib/tokens";
 import { getClients } from "@/lib/mockStore";
 
-function TxnStatusPill({ status }: { status: "Completed" | "Reversed" }) {
-  const isOk = status === "Completed";
-  const color = isOk ? "#067647" : "#475467";
-  const bg = isOk ? "#ECFDF3" : "#F2F4F7";
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-full"
-      style={{ color, background: bg, padding: "2px 10px", fontSize: 11, fontWeight: 600 }}
-    >
-      <span style={{ width: 6, height: 6, borderRadius: 999, background: color }} />
-      {status}
-    </span>
-  );
-}
-
 export const Route = createFileRoute("/_auth/clients/account-lookup")({
   component: AccountLookupPage,
 });
@@ -175,11 +160,11 @@ function Card({
   );
 }
 
-
 function LayerTag({ label, tone = "teal" }: { label: string; tone?: "teal" | "navy" }) {
-  const c = tone === "teal"
-    ? { color: tokens.teal, bg: tokens.tealBg, border: "rgba(15,110,86,0.25)" }
-    : { color: tokens.navy, bg: "#EEF2F8", border: tokens.border };
+  const c =
+    tone === "teal"
+      ? { color: tokens.teal, bg: tokens.tealBg, border: "rgba(15,110,86,0.25)" }
+      : { color: tokens.navy, bg: "#EEF2F8", border: tokens.border };
   return (
     <span
       className="inline-flex items-center rounded-full uppercase"
@@ -399,8 +384,7 @@ function AccountLookupPage() {
         {account && (
           <div
             style={{
-              background:
-                "linear-gradient(135deg, #001844 0%, #002663 55%, #1a4080 100%)",
+              background: "linear-gradient(135deg, #001844 0%, #002663 55%, #1a4080 100%)",
               borderRadius: 16,
               position: "relative",
               overflow: "hidden",
@@ -412,8 +396,7 @@ function AccountLookupPage() {
               style={{
                 position: "absolute",
                 inset: 0,
-                backgroundImage:
-                  "radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)",
+                backgroundImage: "radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)",
                 backgroundSize: "16px 16px",
                 pointerEvents: "none",
               }}
@@ -708,7 +691,15 @@ function AccountLookupPage() {
                 <tbody>
                   {pageRows.length === 0 ? (
                     <tr>
-                      <td colSpan={6} style={{ padding: 36, textAlign: "center", color: tokens.textMuted, fontSize: 13 }}>
+                      <td
+                        colSpan={6}
+                        style={{
+                          padding: 36,
+                          textAlign: "center",
+                          color: tokens.textMuted,
+                          fontSize: 13,
+                        }}
+                      >
                         No transactions found
                       </td>
                     </tr>
@@ -753,7 +744,7 @@ function AccountLookupPage() {
                           {fmtGHS(t.runningBalance)}
                         </td>
                         <td style={{ padding: "12px 18px" }}>
-                          <TxnStatusPill status={t.status} />
+                          <StatusPill status={t.status} />
                         </td>
                       </tr>
                     ))
@@ -775,7 +766,10 @@ function AccountLookupPage() {
                   <PageBtn onClick={() => setPage(1)} disabled={currentPage === 1}>
                     <ChevronsLeft size={14} />
                   </PageBtn>
-                  <PageBtn onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}>
+                  <PageBtn
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
                     <ChevronLeft size={14} />
                   </PageBtn>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
@@ -803,7 +797,10 @@ function AccountLookupPage() {
                   >
                     <ChevronRight size={14} />
                   </PageBtn>
-                  <PageBtn onClick={() => setPage(totalPages)} disabled={currentPage === totalPages}>
+                  <PageBtn
+                    onClick={() => setPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                  >
                     <ChevronsRight size={14} />
                   </PageBtn>
                 </div>
@@ -867,7 +864,9 @@ function AccountLookupPage() {
               </button>
             </div>
             {notices.length === 0 ? (
-              <div style={{ padding: 28, textAlign: "center", color: tokens.textMuted, fontSize: 13 }}>
+              <div
+                style={{ padding: 28, textAlign: "center", color: tokens.textMuted, fontSize: 13 }}
+              >
                 No withdrawal notices.
               </div>
             ) : (
@@ -976,7 +975,14 @@ function AccountLookupPage() {
 function MetaItem({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div>
-      <div style={{ fontSize: 10, letterSpacing: 1.2, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>
+      <div
+        style={{
+          fontSize: 10,
+          letterSpacing: 1.2,
+          color: "rgba(255,255,255,0.55)",
+          fontWeight: 700,
+        }}
+      >
         {label}
       </div>
       <div
@@ -1278,7 +1284,11 @@ function TxnDialog({
               />
             </Field>
             <Field label="Payment Type">
-              <select value={payType} onChange={(e) => setPayType(e.target.value)} style={inputStyle}>
+              <select
+                value={payType}
+                onChange={(e) => setPayType(e.target.value)}
+                style={inputStyle}
+              >
                 <option>Cash</option>
                 <option>Mobile Money</option>
                 <option>Cheque</option>
@@ -1287,7 +1297,12 @@ function TxnDialog({
             </Field>
           </div>
           <Field label="Transaction Date">
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              style={inputStyle}
+            />
           </Field>
           <Field label="Note">
             <textarea

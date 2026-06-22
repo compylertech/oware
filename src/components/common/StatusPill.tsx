@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { Pill } from "@/components/patterns/Pill";
 
 export type StatusKind =
   | "Active"
@@ -19,16 +19,22 @@ export type StatusKind =
   | "Ineligible"
   | "Needs review"
   | "Regulatory"
-  | "Membership";
+  | "Membership"
+  | "Scheduled"
+  | "Cancelled"
+  | "Rejected"
+  | "Tabled"
+  | "Reversed";
 
-type Tone = "green" | "amber" | "red" | "gray" | "blue";
+export type Tone = "green" | "amber" | "red" | "orange" | "gray" | "blue";
 
-const TONE: Record<Tone, { text: string; bg: string; border: string; dot: string }> = {
-  green: { text: "#067647", bg: "#ECFDF3", border: "#ABEFC6", dot: "#067647" },
-  amber: { text: "#B45309", bg: "#FFFBEB", border: "#FEDF89", dot: "#D97706" },
-  red:   { text: "#D92D20", bg: "#FEF3F2", border: "#FECDCA", dot: "#D92D20" },
-  gray:  { text: "#475467", bg: "#F2F4F7", border: "#D0D5DD", dot: "#475467" },
-  blue:  { text: "#3551A4", bg: "#EEF2FB", border: "#C7D3F0", dot: "#3551A4" },
+const TONE: Record<Tone, { text: string; bg: string; border: string }> = {
+  green: { text: "#067647", bg: "#ECFDF3", border: "#ABEFC6" },
+  amber: { text: "#B45309", bg: "#FFFBEB", border: "#FEDF89" },
+  red: { text: "#D92D20", bg: "#FEF3F2", border: "#FECDCA" },
+  orange: { text: "#C2410C", bg: "#FFF3EA", border: "#FED7AA" },
+  gray: { text: "#475467", bg: "#F2F4F7", border: "#D0D5DD" },
+  blue: { text: "#3551A4", bg: "#EEF2FB", border: "#C7D3F0" },
 };
 
 const STATUS_TONE: Record<StatusKind, Tone> = {
@@ -46,64 +52,51 @@ const STATUS_TONE: Record<StatusKind, Tone> = {
   Withdrawal: "red",
   Overdue: "red",
   Ineligible: "red",
+  Rejected: "red",
+  Cancelled: "red",
   Withdrawn: "gray",
   Inactive: "gray",
   Draft: "gray",
+  Tabled: "gray",
+  Reversed: "gray",
   Regulatory: "blue",
   Membership: "blue",
+  Scheduled: "blue",
 };
 
-const ON_DARK: Partial<Record<StatusKind, { text: string; bg: string; border: string; dot: string }>> = {
-  Active:    { text: "#86EFAC", bg: "rgba(16,185,129,0.15)", border: "rgba(134,239,172,0.35)", dot: "#86EFAC" },
-  Pending:   { text: "#FCD34D", bg: "rgba(245,158,11,0.18)", border: "rgba(252,211,77,0.35)", dot: "#FCD34D" },
-  Suspended: { text: "#FCA5A5", bg: "rgba(220,38,38,0.18)", border: "rgba(252,165,165,0.35)", dot: "#FCA5A5" },
-  Withdrawn: { text: "#CBD5E1", bg: "rgba(148,163,184,0.18)", border: "rgba(203,213,225,0.35)", dot: "#CBD5E1" },
+const ON_DARK: Record<string, { text: string; bg: string; border: string }> = {
+  green: { text: "#86EFAC", bg: "rgba(16,185,129,0.15)", border: "rgba(134,239,172,0.35)" },
+  amber: { text: "#FCD34D", bg: "rgba(245,158,11,0.18)", border: "rgba(252,211,77,0.35)" },
+  red: { text: "#FCA5A5", bg: "rgba(220,38,38,0.18)", border: "rgba(252,165,165,0.35)" },
+  gray: { text: "#CBD5E1", bg: "rgba(148,163,184,0.18)", border: "rgba(203,213,225,0.35)" },
+  orange: { text: "#FDBA74", bg: "rgba(234,88,12,0.18)", border: "rgba(253,186,116,0.35)" },
+  blue: { text: "#93C5FD", bg: "rgba(59,91,219,0.18)", border: "rgba(147,197,253,0.35)" },
 };
 
+/**
+ * Semantic status badge — a special {@link Pill} that always has a border and a
+ * status dot. Pass a known `status` (mapped to a tone) or an explicit `tone` +
+ * `label` for domain-specific statuses (e.g. loan stages).
+ */
 export function StatusPill({
   status,
+  tone,
+  label,
   variant = "default",
   className,
 }: {
-  status: StatusKind;
+  status?: StatusKind;
+  tone?: Tone;
+  label?: React.ReactNode;
   variant?: "default" | "onDark";
   className?: string;
 }) {
-  if (variant === "onDark") {
-    const s = ON_DARK[status] ?? ON_DARK.Active!;
-    return (
-      <span
-        className={cn("inline-flex items-center gap-1.5 rounded-full", className)}
-        style={{
-          color: s.text,
-          backgroundColor: s.bg,
-          border: `1px solid ${s.border}`,
-          padding: "3px 10px",
-          fontSize: 11,
-          fontWeight: 600,
-        }}
-      >
-        <span style={{ width: 6, height: 6, borderRadius: 999, background: s.dot }} />
-        {status}
-      </span>
-    );
-  }
-  const s = TONE[STATUS_TONE[status] ?? "gray"];
+  const resolvedTone = tone ?? (status ? STATUS_TONE[status] : undefined) ?? "gray";
+  const s = variant === "onDark" ? ON_DARK[resolvedTone] : TONE[resolvedTone];
   return (
-    <span
-      className={cn("inline-flex items-center gap-1.5 rounded-full", className)}
-      style={{
-        color: s.text,
-        backgroundColor: s.bg,
-        border: `1px solid ${s.border}`,
-        padding: "3px 10px",
-        fontSize: 12,
-        fontWeight: 600,
-      }}
-    >
-      <span style={{ width: 6, height: 6, borderRadius: 999, background: s.dot }} />
-      {status}
-    </span>
+    <Pill color={s.text} bg={s.bg} border={s.border} dot className={className}>
+      {label ?? status}
+    </Pill>
   );
 }
 

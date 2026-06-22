@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
 import { Tabs } from "@/components/patterns";
+import { StatusPill } from "@/components/common/StatusPill";
 
 export const Route = createFileRoute("/_auth/cooperative/governance")({
   component: GovernancePage,
@@ -288,59 +289,6 @@ function CategoryPill({ cat }: { cat: ResolutionCategory }) {
       }}
     >
       {cat}
-    </span>
-  );
-}
-
-function MeetingStatusPill({ status }: { status: MeetingStatus }) {
-  const map = {
-    Completed: { Icon: CheckCircle2, bg: "#ECFDF3", fg: "#067647" },
-    Scheduled: { Icon: Clock, bg: "#EFF6FF", fg: "#1D4ED8" },
-    Cancelled: { Icon: XCircle, bg: "#FEF3F2", fg: "#D92D20" },
-  } as const;
-  const { Icon, bg, fg } = map[status];
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 5,
-        background: bg,
-        color: fg,
-        fontSize: 11,
-        fontWeight: 700,
-        padding: "4px 10px",
-        borderRadius: 999,
-      }}
-    >
-      <Icon size={12} /> {status}
-    </span>
-  );
-}
-
-function ResolutionStatusPill({ status }: { status: ResolutionStatus }) {
-  const map = {
-    Passed: { Icon: CheckCircle2, bg: "#ECFDF3", fg: "#067647" },
-    Rejected: { Icon: XCircle, bg: "#FEF3F2", fg: "#D92D20" },
-    Tabled: { Icon: MinusCircle, bg: "#F2F4F7", fg: "#475467" },
-    Pending: { Icon: Clock, bg: "#FFFBEB", fg: "#B45309" },
-  } as const;
-  const { Icon, bg, fg } = map[status];
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 5,
-        background: bg,
-        color: fg,
-        fontSize: 11,
-        fontWeight: 700,
-        padding: "4px 10px",
-        borderRadius: 999,
-      }}
-    >
-      <Icon size={12} /> {status}
     </span>
   );
 }
@@ -930,7 +878,7 @@ function GovernancePage() {
                             </span>
                           </div>
                         </div>
-                        <MeetingStatusPill status={m.status} />
+                        <StatusPill status={m.status} />
                         <ChevronDown
                           size={18}
                           color={tokens.textMuted}
@@ -1084,7 +1032,7 @@ function GovernancePage() {
                             {m.attendance ?? "—"} / {m.quorumRequired}
                           </td>
                           <td style={{ padding: "13px 16px" }}>
-                            <MeetingStatusPill status={m.status} />
+                            <StatusPill status={m.status} />
                           </td>
                           <td style={{ padding: "13px 16px", textAlign: "right" }}>
                             <OutlineButton
@@ -1231,7 +1179,7 @@ function GovernancePage() {
                           </div>
                         )}
                       </div>
-                      <ResolutionStatusPill status={r.status} />
+                      <StatusPill status={r.status} />
                     </div>
                   </div>
                 ))}
@@ -1345,7 +1293,7 @@ function GovernancePage() {
                           )}
                         </td>
                         <td style={{ padding: "13px 16px" }}>
-                          <ResolutionStatusPill status={r.status} />
+                          <StatusPill status={r.status} />
                         </td>
                       </tr>
                     ))}

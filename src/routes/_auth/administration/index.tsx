@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { FONTS, tokens } from "@/lib/tokens";
 import { Modal, MField, MInput, MSelect, MCancelBtn, MNavyBtn } from "@/components/common/Modal";
 import { Tabs } from "@/components/patterns";
+import { StatusPill } from "@/components/common/StatusPill";
 
 export const Route = createFileRoute("/_auth/administration/")({
   component: AdminPage,
@@ -140,31 +141,6 @@ const tdStyle: React.CSSProperties = {
   color: "#16233F",
   borderBottom: `1px solid ${tokens.border}`,
 };
-
-function StatusChip({ kind }: { kind: "Active" | "Suspended" | "Pending" | "Success" | "Failed" }) {
-  const map: Record<string, { fg: string; bg: string }> = {
-    Active: { fg: "#067647", bg: "#ECFDF3" },
-    Success: { fg: "#067647", bg: "#ECFDF3" },
-    Suspended: { fg: "#D92D20", bg: "#FEF3F2" },
-    Failed: { fg: "#D92D20", bg: "#FEF3F2" },
-    Pending: { fg: "#B45309", bg: "#FFFBEB" },
-  };
-  const s = map[kind];
-  return (
-    <span
-      style={{
-        background: s.bg,
-        color: s.fg,
-        fontSize: 11,
-        fontWeight: 700,
-        padding: "3px 9px",
-        borderRadius: 999,
-      }}
-    >
-      {kind}
-    </span>
-  );
-}
 
 function SectionHeader({ title, right }: { title: string; right?: React.ReactNode }) {
   return (
@@ -362,7 +338,7 @@ function UsersTab() {
                 <td style={tdStyle}>{u.branch}</td>
                 <td style={{ ...tdStyle, color: "#4A5878" }}>{u.lastLogin}</td>
                 <td style={tdStyle}>
-                  <StatusChip kind={u.status} />
+                  <StatusPill status={u.status} />
                 </td>
                 <td style={tdStyle}>
                   <button
@@ -819,7 +795,7 @@ function AuditTab() {
                   {r.ip}
                 </td>
                 <td style={tdStyle}>
-                  <StatusChip kind={r.status} />
+                  <StatusPill status={r.status} />
                 </td>
               </tr>
             ))}
