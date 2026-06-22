@@ -55,10 +55,10 @@ const growthData = [
 ];
 
 const activity = [
-  { name: "Pearl Adzoko", action: "Account activated", time: "2 min ago", dot: "bg-emerald-500" },
-  { name: "Kwame Mensah", action: "KYC documents submitted", time: "18 min ago", dot: "bg-blue-500" },
-  { name: "Ama Boateng", action: "Deposit · GHS 4,500", time: "1 hr ago", dot: "bg-emerald-500" },
-  { name: "Kofi Asare", action: "Loan application pending", time: "2 hr ago", dot: "bg-orange-500" },
+  { name: "Pearl Adzoko", action: "Account activated", time: "2 min ago" },
+  { name: "Kwame Mensah", action: "KYC documents submitted", time: "18 min ago" },
+  { name: "Ama Boateng", action: "Deposit · GHS 4,500", time: "1 hr ago" },
+  { name: "Kofi Asare", action: "Loan application pending", time: "2 hr ago" },
 ];
 
 function DashboardPage() {
