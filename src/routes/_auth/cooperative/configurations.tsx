@@ -9,6 +9,7 @@ import {
   Info,
 } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
+import { Modal, MField, MInput, MTextarea, MSelect, MCancelBtn, MNavyBtn } from "@/components/common/Modal";
 
 export const Route = createFileRoute("/_auth/cooperative/configurations")({
   component: ConfigurationsPage,
@@ -99,17 +100,18 @@ function LevelPill({ level }: { level: string }) {
   );
 }
 
-function NavyButton({ icon, label }: { icon: React.ReactNode; label: string }) {
+function NavyButton({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick?: () => void }) {
   return (
     <button
+      onClick={onClick}
       style={{
         background: tokens.navy,
         color: "#fff",
         border: "none",
         borderRadius: 8,
-        padding: "8px 14px",
-        fontSize: 12,
-        fontWeight: 700,
+        padding: "8px 16px",
+        fontSize: 13,
+        fontWeight: 600,
         display: "inline-flex",
         alignItems: "center",
         gap: 6,
