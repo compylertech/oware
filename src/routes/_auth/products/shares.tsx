@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, PieChart, Users2, TrendingUp, DollarSign } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, PieChart, Users2, TrendingUp, DollarSign, Plus } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
+import { Modal, MField, MInput, MTextarea, MSelect, MCancelBtn, MNavyBtn } from "@/components/common/Modal";
 
 export const Route = createFileRoute("/_auth/products/shares")({
   component: ShareCapitalPage,
@@ -59,7 +61,39 @@ function KpiCard({ icon, iconBg, iconFg, label, value, subNote }: {
 }
 
 function ShareCapitalPage() {
-  const totalShares = SEED.reduce((s, m) => s + m.shares, 0);
+  const [holders, setHolders] = useState<ShareHolder[]>(SEED);
+  const totalShares = holders.reduce((s, m) => s + m.shares, 0);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const [open, setOpen] = useState(false);
+  const [f, setF] = useState({
+    member: "",
+    klass: "Class A",
+    count: "",
+    price: "20.00",
+    date: today,
+    method: "Cash",
+    notes: "",
+  });
+  const total = (Number(f.count) || 0) * (Number(f.price) || 0);
+  const issue = () => {
+    if (!f.member || !Number(f.count)) return;
+    const klassMap: Record<string, Klass> = { "Class A": "A", "Class B": "B", "Class C": "C" };
+    setHolders((h) => [
+      ...h,
+      {
+        id: String(Date.now()),
+        name: f.member,
+        branch: "—",
+        klass: klassMap[f.klass],
+        shares: Number(f.count),
+        shareValue: Number(f.price) || 0,
+        joined: new Date(f.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
+      },
+    ]);
+    setF({ member: "", klass: "Class A", count: "", price: "20.00", date: today, method: "Cash", notes: "" });
+    setOpen(false);
+  };
 
   return (
     <div style={{ background: tokens.bg, minHeight: "100%", padding: "24px 28px", fontFamily: FONTS.body }}>
@@ -76,9 +110,21 @@ function ShareCapitalPage() {
               Issued shares, dividend declarations and capital position.
             </p>
           </div>
-          <span style={{ background: "#F5F3FF", color: "#7C3AED", fontSize: 10, fontWeight: 700, padding: "4px 10px", borderRadius: 999, letterSpacing: 0.4, textTransform: "uppercase" }}>
-            AGM-governed
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ background: "#F5F3FF", color: "#7C3AED", fontSize: 10, fontWeight: 700, padding: "4px 10px", borderRadius: 999, letterSpacing: 0.4, textTransform: "uppercase" }}>
+              AGM-governed
+            </span>
+            <button
+              onClick={() => setOpen(true)}
+              style={{
+                background: "#002663", color: "#fff", border: "none", borderRadius: 8,
+                padding: "8px 16px", fontSize: 13, fontWeight: 600, display: "inline-flex",
+                alignItems: "center", gap: 6, cursor: "pointer", fontFamily: FONTS.body,
+              }}
+            >
+              <Plus size={14} /> Issue Shares
+            </button>
+          </div>
         </div>
 
         {/* KPIs */}
