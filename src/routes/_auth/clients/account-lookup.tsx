@@ -1445,6 +1445,3 @@ function TransferDialog({
     </DialogShell>
   );
 }
-
-// Suppress unused warning for Client import
-export type _Client = Client;
