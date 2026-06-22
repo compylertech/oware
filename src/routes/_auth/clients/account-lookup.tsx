@@ -550,11 +550,11 @@ function AccountLookupPage() {
             />
             <StatCard
               icon={<Wallet size={18} />}
-              iconBg="#F4EEFE"
-              iconColor="#6938EF"
+              iconBg="#F2F4F7"
+              iconColor="#475467"
               label="Net"
               value={fmtGHS(totalCredits - totalDebits)}
-              valueColor="#6938EF"
+              valueColor={tokens.text}
             />
           </div>
         )}
