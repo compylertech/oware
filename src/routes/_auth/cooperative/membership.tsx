@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   Plus,
@@ -9,6 +9,11 @@ import {
   Clock,
   Sigma,
   Info,
+  MoreVertical,
+  CheckCircle,
+  Ban,
+  User,
+  Trash2,
 } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
