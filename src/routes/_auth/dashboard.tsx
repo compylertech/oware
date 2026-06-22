@@ -240,11 +240,22 @@ function QuickActions({ onCashTx }: { onCashTx: (t: CashTxType) => void }) {
           onClick={t.onClick}
           disabled={t.disabled}
           className={`aspect-square rounded-xl border border-gray-100 bg-gray-50 flex flex-col items-center justify-center gap-2 transition-colors ${
-            t.disabled ? "opacity-[0.35] cursor-not-allowed" : "hover:bg-gray-100"
+            t.disabled ? "opacity-[0.35] cursor-not-allowed" : "hover:bg-gray-100 cursor-pointer"
           }`}
+          style={{ padding: 16 }}
         >
-          <t.Icon className={`h-5 w-5 ${t.disabled ? "text-gray-300" : "text-[#002663]"}`} />
-          <span className={`text-[12px] font-medium text-center px-1 leading-tight ${t.disabled ? "text-gray-400" : "text-[#101828]"}`}>
+          <div
+            className="flex items-center justify-center"
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 10,
+              background: t.disabled ? "transparent" : "#EFF4FE",
+            }}
+          >
+            <t.Icon className={`${t.disabled ? "text-gray-300" : "text-[#002663]"}`} style={{ width: 20, height: 20 }} />
+          </div>
+          <span className={`text-[12px] font-medium text-center leading-tight ${t.disabled ? "text-gray-400" : "text-[#101828]"}`}>
             {t.label}
           </span>
         </button>
