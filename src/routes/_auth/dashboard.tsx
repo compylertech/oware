@@ -95,15 +95,15 @@ function DashboardPage() {
           </Panel>
 
           {/* B - Transaction Volume */}
-          <Panel className="col-span-2">
+          <Panel className="col-span-2" style={{ paddingBottom: 16 }}>
             <div className="flex items-start justify-between mb-4">
               <div>
                 <div className="text-[15px] font-bold text-[#101828]">Transaction Volume</div>
                 <div className="text-xs text-gray-400 mt-0.5">Deposits vs withdrawals · last 7 months</div>
               </div>
               <div className="flex items-center gap-4 text-xs text-gray-600">
-                <LegendItem color="#002663" label="Deposits" />
-                <LegendItem color="#93c5fd" label="Withdrawals" />
+                <LegendItem color="#3B82F6" label="Deposits" />
+                <LegendItem color="#0F6E56" label="Withdrawals" />
               </div>
             </div>
             <VolumeChart />
