@@ -338,26 +338,27 @@ export function Topbar() {
                 position: "absolute",
                 top: "calc(100% + 8px)",
                 right: 0,
-                width: 280,
+                width: 260,
                 background: "#fff",
                 border: `1px solid ${BORDER}`,
                 borderRadius: 12,
                 zIndex: 50,
                 overflow: "hidden",
+                fontSize: 13,
               }}
             >
-              <div style={{ padding: 16, borderBottom: `1px solid ${BORDER}` }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: INK, fontFamily: "DM Sans, sans-serif" }}>
+              <div style={{ padding: "12px 14px", borderBottom: `1px solid ${BORDER}` }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: INK, fontFamily: "DM Sans, sans-serif" }}>
                   Daniel Quaidoo
                 </div>
-                <div style={{ fontSize: 13, color: MUTED, marginTop: 2 }}>daniel.quaidoo@gmail.com</div>
+                <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>daniel.quaidoo@gmail.com</div>
               </div>
-              <div style={{ padding: "6px 0" }}>
-                <UserMenuItem icon={<User size={18} />} label="My Profile" />
-                <UserMenuItem icon={<Settings size={18} />} label="Settings" />
-                <UserMenuItem icon={<Shield size={18} />} label="Security" />
-                <div style={{ height: 1, background: BORDER, margin: "6px 0" }} />
-                <UserMenuItem icon={<HelpCircle size={18} />} label="Help & Support" />
+              <div style={{ padding: "4px 0" }}>
+                <UserMenuItem icon={<User size={16} />} label="My Profile" />
+                <UserMenuItem icon={<Settings size={16} />} label="Settings" />
+                <UserMenuItem icon={<Shield size={16} />} label="Security" />
+                <div style={{ height: 1, background: BORDER, margin: "4px 0" }} />
+                <UserMenuItem icon={<HelpCircle size={16} />} label="Help & Support" />
               </div>
             </div>
           )}
