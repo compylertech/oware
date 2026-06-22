@@ -122,6 +122,16 @@ function MembershipPage() {
   const [members, setMembers] = useState<Member[]>(SEED);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"All" | MemberStatus>("All");
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpenMenu(null);
+    }
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -145,16 +155,13 @@ function MembershipPage() {
     };
   }, [members]);
 
-  function toggleStatus(id: string) {
-    setMembers((ms) =>
-      ms.map((m) => {
-        if (m.id !== id) return m;
-        if (m.status === "Active") return { ...m, status: "Suspended" };
-        if (m.status === "Suspended") return { ...m, status: "Active" };
-        if (m.status === "Pending") return { ...m, status: "Active" };
-        return m;
-      }),
-    );
+  function setStatus(id: string, status: MemberStatus) {
+    setMembers((ms) => ms.map((m) => (m.id === id ? { ...m, status } : m)));
+  }
+
+  function removeMember(id: string) {
+    if (typeof window !== "undefined" && !window.confirm("Remove this member? This cannot be undone.")) return;
+    setMembers((ms) => ms.filter((m) => m.id !== id));
   }
 
   return (
