@@ -1,7 +1,7 @@
 import { LOAN } from "@/lib/tokens";
 import { FONTS } from "@/lib/tokens";
 import type { CSSProperties, ReactNode } from "react";
-import { Button } from "@/components/patterns";
+import { Button, Pill } from "@/components/patterns";
 
 export const fontBody = { fontFamily: FONTS.body };
 export const fontDisplay = { fontFamily: FONTS.display };
@@ -183,19 +183,9 @@ export function Td({ children, style }: { children: ReactNode; style?: CSSProper
 
 export function TypePill({ label, color, bg }: { label: string; color: string; bg: string }) {
   return (
-    <span
-      style={{
-        display: "inline-block",
-        padding: "2px 10px",
-        borderRadius: 999,
-        fontSize: 11,
-        fontWeight: 600,
-        color,
-        background: bg,
-      }}
-    >
+    <Pill color={color} bg={bg} size="sm">
       {label}
-    </span>
+    </Pill>
   );
 }
 

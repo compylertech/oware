@@ -18,6 +18,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
+import { Pill } from "@/components/patterns";
 import { tokens } from "@/lib/tokens";
 import { getClients } from "@/lib/mockStore";
 
@@ -166,20 +167,9 @@ function LayerTag({ label, tone = "teal" }: { label: string; tone?: "teal" | "na
       ? { color: tokens.teal, bg: tokens.tealBg, border: "rgba(15,110,86,0.25)" }
       : { color: tokens.navy, bg: "#EEF2F8", border: tokens.border };
   return (
-    <span
-      className="inline-flex items-center rounded-full uppercase"
-      style={{
-        color: c.color,
-        background: c.bg,
-        border: `1px solid ${c.border}`,
-        padding: "2px 8px",
-        fontSize: 10,
-        fontWeight: 700,
-        letterSpacing: 0.5,
-      }}
-    >
+    <Pill color={c.color} bg={c.bg} border={c.border} uppercase>
       {label}
-    </span>
+    </Pill>
   );
 }
 

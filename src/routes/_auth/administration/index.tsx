@@ -4,7 +4,7 @@ import { Settings, Shield, Plus, Search, Download, Calendar } from "lucide-react
 import { toast } from "sonner";
 import { FONTS, tokens } from "@/lib/tokens";
 import { Modal, MField, MInput, MSelect, MCancelBtn, MNavyBtn } from "@/components/common/Modal";
-import { Tabs } from "@/components/patterns";
+import { Tabs, Pill } from "@/components/patterns";
 import { StatusPill } from "@/components/common/StatusPill";
 
 export const Route = createFileRoute("/_auth/administration/")({
@@ -90,18 +90,9 @@ function AdminPage() {
             </div>
           </div>
         </div>
-        <span
-          style={{
-            background: "#EAF0FB",
-            color: "#002663",
-            fontSize: 11,
-            fontWeight: 700,
-            padding: "5px 10px",
-            borderRadius: 999,
-          }}
-        >
+        <Pill color="#002663" bg="#EAF0FB" style={{ fontWeight: 700, padding: "5px 10px" }}>
           Core layer
-        </span>
+        </Pill>
       </div>
 
       {/* Tabs */}

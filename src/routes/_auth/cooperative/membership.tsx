@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
-import { StatCard, StatGrid, Button } from "@/components/patterns";
+import { StatCard, StatGrid, Button, Pill } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/cooperative/membership")({
   component: MembershipPage,
@@ -465,18 +465,9 @@ function MembershipPage() {
                       {m.group}
                     </td>
                     <td style={{ padding: "13px 16px" }}>
-                      <span
-                        style={{
-                          background: k.bg,
-                          color: k.fg,
-                          fontSize: 11,
-                          fontWeight: 700,
-                          padding: "3px 10px",
-                          borderRadius: 999,
-                        }}
-                      >
+                      <Pill color={k.fg} bg={k.bg} size="sm" style={{ fontWeight: 700 }}>
                         Class {m.klass}
-                      </span>
+                      </Pill>
                     </td>
                     <td
                       style={{

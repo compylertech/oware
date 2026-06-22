@@ -18,7 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
-import { Tabs } from "@/components/patterns";
+import { Tabs, Pill } from "@/components/patterns";
 import { StatusPill } from "@/components/common/StatusPill";
 
 export const Route = createFileRoute("/_auth/cooperative/governance")({
@@ -256,40 +256,18 @@ const CATEGORY_STYLE: Record<ResolutionCategory, { bg: string; fg: string }> = {
 function TypePill({ type }: { type: MeetingType }) {
   const s = TYPE_STYLE[type];
   return (
-    <span
-      style={{
-        background: s.bg,
-        color: s.fg,
-        fontSize: 10,
-        fontWeight: 700,
-        padding: "3px 9px",
-        borderRadius: 999,
-        letterSpacing: 0.3,
-        textTransform: "uppercase",
-      }}
-    >
+    <Pill color={s.fg} bg={s.bg} uppercase>
       {type}
-    </span>
+    </Pill>
   );
 }
 
 function CategoryPill({ cat }: { cat: ResolutionCategory }) {
   const s = CATEGORY_STYLE[cat];
   return (
-    <span
-      style={{
-        background: s.bg,
-        color: s.fg,
-        fontSize: 10,
-        fontWeight: 700,
-        padding: "3px 9px",
-        borderRadius: 999,
-        letterSpacing: 0.3,
-        textTransform: "uppercase",
-      }}
-    >
+    <Pill color={s.fg} bg={s.bg} uppercase>
       {cat}
-    </span>
+    </Pill>
   );
 }
 
