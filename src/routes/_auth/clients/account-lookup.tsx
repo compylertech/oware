@@ -7,8 +7,6 @@ import {
   Activity,
   TrendingUp,
   TrendingDown,
-  ArrowDown,
-  ArrowUp,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
