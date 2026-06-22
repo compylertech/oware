@@ -316,17 +316,17 @@ function MembershipPage() {
         >
           <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: FONTS.body }}>
             <thead>
-              <tr style={{ borderBottom: `2px solid ${tokens.navy}` }}>
+              <tr style={{ borderBottom: `2px solid #002663` }}>
                 {["Member", "ID", "Common bond group", "Class", "Shares", "Contributions", "Status", ""].map((h) => (
                   <th
                     key={h}
                     style={{
                       textAlign: h === "Shares" || h === "Contributions" ? "right" : "left",
-                      padding: "12px 16px",
+                      padding: "11px 16px",
                       fontSize: 11,
                       fontWeight: 700,
-                      color: tokens.textMuted,
-                      letterSpacing: 0.5,
+                      color: "#7A879F",
+                      letterSpacing: "0.05em",
                       textTransform: "uppercase",
                     }}
                   >
@@ -345,15 +345,15 @@ function MembershipPage() {
                     onMouseEnter={(e) => (e.currentTarget.style.background = "#F7FAFF")}
                     onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   >
-                    <td style={{ padding: "14px 16px" }}>
+                    <td style={{ padding: "13px 16px", fontSize: 13 }}>
                       <div style={{ fontSize: 13, fontWeight: 700, color: tokens.text }}>{m.name}</div>
                       <div style={{ fontSize: 11, color: tokens.textMuted, marginTop: 2 }}>{m.branch}</div>
                     </td>
-                    <td style={{ padding: "14px 16px", fontFamily: FONTS.mono, fontSize: 12, color: "#4A5878" }}>
+                    <td style={{ padding: "13px 16px", fontFamily: FONTS.mono, fontSize: 12, color: "#4A5878" }}>
                       {m.memberId}
                     </td>
-                    <td style={{ padding: "14px 16px", fontSize: 13, color: tokens.textSub }}>{m.group}</td>
-                    <td style={{ padding: "14px 16px" }}>
+                    <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>{m.group}</td>
+                    <td style={{ padding: "13px 16px" }}>
                       <span
                         style={{
                           background: k.bg,
@@ -367,27 +367,27 @@ function MembershipPage() {
                         Class {m.klass}
                       </span>
                     </td>
-                    <td style={{ padding: "14px 16px", textAlign: "right", fontWeight: 700, fontVariantNumeric: "tabular-nums", color: tokens.text }}>
+                    <td style={{ padding: "13px 16px", textAlign: "right", fontFamily: FONTS.body, fontWeight: 500, fontVariantNumeric: "tabular-nums", color: "#4A5878", fontSize: 13 }}>
                       {m.shares.toLocaleString()}
                     </td>
-                    <td style={{ padding: "14px 16px", textAlign: "right", fontWeight: 700, fontVariantNumeric: "tabular-nums", color: tokens.text }}>
+                    <td style={{ padding: "13px 16px", textAlign: "right", fontFamily: FONTS.body, fontWeight: 500, fontVariantNumeric: "tabular-nums", color: "#4A5878", fontSize: 13 }}>
                       {fmtMoney(m.contributions)}
                     </td>
-                    <td style={{ padding: "14px 16px" }}>
+                    <td style={{ padding: "13px 16px" }}>
                       <StatusPill status={m.status} />
                     </td>
-                    <td style={{ padding: "14px 16px", textAlign: "right" }}>
+                    <td style={{ padding: "13px 16px", textAlign: "right" }}>
                       {m.status !== "Withdrawn" && (
                         <button
                           onClick={() => toggleStatus(m.id)}
                           style={{
-                            background: tokens.surface,
+                            background: "#fff",
                             border: `1px solid ${tokens.border}`,
-                            borderRadius: 8,
-                            padding: "6px 12px",
+                            borderRadius: 7,
+                            padding: "5px 12px",
                             fontSize: 12,
                             fontWeight: 700,
-                            color: m.status === "Active" ? "#D92D20" : "#067647",
+                            color: m.status === "Active" ? "#DC2626" : "#059669",
                             cursor: "pointer",
                             fontFamily: FONTS.body,
                           }}
