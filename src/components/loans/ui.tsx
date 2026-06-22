@@ -1,6 +1,7 @@
 import { LOAN } from "@/lib/tokens";
 import { FONTS } from "@/lib/tokens";
 import type { CSSProperties, ReactNode } from "react";
+import { Button } from "@/components/patterns";
 
 export const fontBody = { fontFamily: FONTS.body };
 export const fontDisplay = { fontFamily: FONTS.display };
@@ -30,13 +31,7 @@ export function Panel({
   );
 }
 
-export function PanelHead({
-  title,
-  action,
-}: {
-  title: ReactNode;
-  action?: ReactNode;
-}) {
+export function PanelHead({ title, action }: { title: ReactNode; action?: ReactNode }) {
   return (
     <div
       className="flex items-center justify-between px-5"
@@ -45,13 +40,9 @@ export function PanelHead({
         borderBottom: `1px solid ${LOAN.border}`,
       }}
     >
-      <div style={{ fontSize: 14, fontWeight: 700, color: LOAN.ink }}>
-        {title}
-      </div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: LOAN.ink }}>{title}</div>
       {action ? (
-        <div style={{ fontSize: 12, color: LOAN.blue, fontWeight: 600 }}>
-          {action}
-        </div>
+        <div style={{ fontSize: 12, color: LOAN.blue, fontWeight: 600 }}>{action}</div>
       ) : null}
     </div>
   );
@@ -88,13 +79,7 @@ export function Ava({
   );
 }
 
-export function MiniBar({
-  pct,
-  color = LOAN.green,
-}: {
-  pct: number;
-  color?: string;
-}) {
+export function MiniBar({ pct, color = LOAN.green }: { pct: number; color?: string }) {
   return (
     <div className="flex items-center gap-2">
       <div
@@ -114,9 +99,7 @@ export function MiniBar({
           }}
         />
       </div>
-      <span style={{ fontSize: 12, color: LOAN.muted, fontWeight: 600 }}>
-        {pct}%
-      </span>
+      <span style={{ fontSize: 12, color: LOAN.muted, fontWeight: 600 }}>{pct}%</span>
     </div>
   );
 }
@@ -134,9 +117,7 @@ export function Chip({
 }) {
   return (
     <Panel style={{ padding: 16 }}>
-      <div style={{ fontSize: 12, color: LOAN.muted, fontWeight: 600 }}>
-        {label}
-      </div>
+      <div style={{ fontSize: 12, color: LOAN.muted, fontWeight: 600 }}>{label}</div>
       <div
         style={{
           ...fontDisplay,
@@ -200,15 +181,7 @@ export function Td({ children, style }: { children: ReactNode; style?: CSSProper
   );
 }
 
-export function TypePill({
-  label,
-  color,
-  bg,
-}: {
-  label: string;
-  color: string;
-  bg: string;
-}) {
+export function TypePill({ label, color, bg }: { label: string; color: string; bg: string }) {
   return (
     <span
       style={{
@@ -226,6 +199,7 @@ export function TypePill({
   );
 }
 
+// Thin wrappers over the shared Button so loans pages share one button style.
 export function OutlineBtn({
   children,
   onClick,
@@ -236,25 +210,9 @@ export function OutlineBtn({
   icon?: ReactNode;
 }) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        height: 36,
-        padding: "0 14px",
-        borderRadius: 10,
-        border: `1px solid ${LOAN.border}`,
-        background: "#fff",
-        color: LOAN.ink,
-        fontSize: 13,
-        fontWeight: 600,
-      }}
-    >
-      {icon}
+    <Button variant="outline" onClick={onClick} icon={icon}>
       {children}
-    </button>
+    </Button>
   );
 }
 
@@ -272,28 +230,8 @@ export function NavyBtn({
   full?: boolean;
 }) {
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 6,
-        height: 36,
-        padding: "0 16px",
-        borderRadius: 10,
-        background: disabled ? "#94A3B8" : LOAN.navy,
-        color: "#fff",
-        fontSize: 13,
-        fontWeight: 600,
-        border: "none",
-        opacity: disabled ? 0.7 : 1,
-        width: full ? "100%" : undefined,
-      }}
-    >
-      {icon}
+    <Button onClick={onClick} icon={icon} disabled={disabled} full={full}>
       {children}
-    </button>
+    </Button>
   );
 }

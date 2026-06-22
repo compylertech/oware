@@ -1,5 +1,6 @@
 // Shared page-building primitives. Prefer these over per-page bespoke versions
 // so headers, stat cards, sections, tables, and pills stay visually consistent.
+export { Button } from "./Button";
 export { PageHeader } from "./PageHeader";
 export { StatCard, StatGrid } from "./StatCard";
 export { SectionCard } from "./SectionCard";

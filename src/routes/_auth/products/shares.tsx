@@ -11,7 +11,7 @@ import {
   MCancelBtn,
   MNavyBtn,
 } from "@/components/common/Modal";
-import { StatCard, StatGrid } from "@/components/patterns";
+import { StatCard, StatGrid, Button } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/products/shares")({
   component: ShareCapitalPage,
@@ -210,25 +210,9 @@ function ShareCapitalPage() {
             >
               AGM-governed
             </span>
-            <button
-              onClick={() => setOpen(true)}
-              style={{
-                background: "#002663",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                padding: "8px 16px",
-                fontSize: 13,
-                fontWeight: 600,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                cursor: "pointer",
-                fontFamily: FONTS.body,
-              }}
-            >
-              <Plus size={14} /> Issue Shares
-            </button>
+            <Button onClick={() => setOpen(true)} icon={<Plus size={14} />}>
+              Issue Shares
+            </Button>
           </div>
         </div>
 

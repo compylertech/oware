@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
-import { StatCard, StatGrid } from "@/components/patterns";
+import { StatCard, StatGrid, Button } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/cooperative/membership")({
   component: MembershipPage,
@@ -254,25 +254,9 @@ function MembershipPage() {
               Share allocations, common-bond groups and membership status.
             </p>
           </div>
-          <button
-            onClick={() => navigate({ to: "/clients/add" })}
-            style={{
-              background: tokens.navy,
-              color: "#fff",
-              border: "none",
-              borderRadius: 10,
-              padding: "10px 16px",
-              fontSize: 13,
-              fontWeight: 700,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              cursor: "pointer",
-              fontFamily: FONTS.body,
-            }}
-          >
-            <Plus size={16} /> Add member via Clients
-          </button>
+          <Button onClick={() => navigate({ to: "/clients/add" })} icon={<Plus size={16} />}>
+            Add member via Clients
+          </Button>
         </div>
 
         {/* Info banner */}
