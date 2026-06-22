@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
 import { tokens } from "@/lib/tokens";
+import { getClients, type Client } from "@/lib/mockStore";
 
 function TxnStatusPill({ status }: { status: "Completed" | "Reversed" }) {
   const isOk = status === "Completed";
@@ -36,7 +37,6 @@ function TxnStatusPill({ status }: { status: "Completed" | "Reversed" }) {
     </span>
   );
 }
-import { getClients, type Client } from "@/lib/mockStore";
 
 export const Route = createFileRoute("/_auth/clients/account-lookup")({
   component: AccountLookupPage,
