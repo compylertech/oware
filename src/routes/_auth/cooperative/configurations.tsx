@@ -167,15 +167,24 @@ const tdRight: React.CSSProperties = { ...td, textAlign: "right" };
 function PolicyEngineTab() {
   const [mod, setMod] = useState<string>("All modules");
   const filters = ["All modules", "Loans", "Savings", "Investments", "Shares"];
-  const rows = [
+  const [rows, setRows] = useState([
     { rule: "Maximum loan-to-value", module: "Loans", value: "70%", eff: "1 Jan 2026", status: "Active" },
     { rule: "Minimum membership before loan", module: "Loans", value: "6 months", eff: "1 Jan 2026", status: "Active" },
     { rule: "Savings withdrawal notice period", module: "Savings", value: "14 days", eff: "1 Jan 2026", status: "Active" },
     { rule: "Maximum loan-to-value", module: "Loans", value: "75%", eff: "1 Jul 2026", status: "Submitted" },
     { rule: "Single-issuer exposure cap", module: "Investments", value: "35%", eff: "1 Jan 2026", status: "Active" },
     { rule: "Minimum shares for dividend", module: "Shares", value: "50 shares", eff: "—", status: "Draft" },
-  ];
+  ]);
   const filtered = mod === "All modules" ? rows : rows.filter((r) => r.module === mod);
+
+  const [open, setOpen] = useState(false);
+  const [f, setF] = useState({ rule: "", module: "Loans", value: "", eff: "", status: "Active" });
+  const save = () => {
+    if (!f.rule) return;
+    setRows((r) => [...r, { rule: f.rule, module: f.module, value: f.value, eff: f.eff || "—", status: f.status }]);
+    setF({ rule: "", module: "Loans", value: "", eff: "", status: "Active" });
+    setOpen(false);
+  };
 
   return (
     <div>
@@ -204,12 +213,12 @@ function PolicyEngineTab() {
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, gap: 12, flexWrap: "wrap" }}>
         <div style={{ display: "inline-flex", background: "#fff", border: `1px solid ${tokens.border}`, borderRadius: 10, padding: 4, gap: 2 }}>
-          {filters.map((f) => {
-            const active = mod === f;
+          {filters.map((fl) => {
+            const active = mod === fl;
             return (
               <button
-                key={f}
-                onClick={() => setMod(f)}
+                key={fl}
+                onClick={() => setMod(fl)}
                 style={{
                   background: active ? "#EEF3FF" : "transparent",
                   color: active ? tokens.navy : tokens.textSub,
@@ -222,12 +231,12 @@ function PolicyEngineTab() {
                   fontFamily: FONTS.body,
                 }}
               >
-                {f}
+                {fl}
               </button>
             );
           })}
         </div>
-        <NavyButton icon={<Plus size={14} />} label="New rule" />
+        <NavyButton icon={<Plus size={14} />} label="New rule" onClick={() => setOpen(true)} />
       </div>
 
       <TableShell headers={["Rule", "Module", "Value", "Effective", "Status"]}>
@@ -241,19 +250,42 @@ function PolicyEngineTab() {
           </tr>
         ))}
       </TableShell>
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="New Policy Rule"
+        footer={<><MCancelBtn onClick={() => setOpen(false)} /><MNavyBtn onClick={save}>Save Rule</MNavyBtn></>}
+      >
+        <MField label="Rule Name"><MInput value={f.rule} onChange={(e) => setF({ ...f, rule: e.target.value })} placeholder="e.g. Maximum loan-to-value" /></MField>
+        <MField label="Module"><MSelect value={f.module} onChange={(e) => setF({ ...f, module: e.target.value })} options={["Loans", "Savings", "Membership", "Shares", "General"]} /></MField>
+        <MField label="Value"><MInput value={f.value} onChange={(e) => setF({ ...f, value: e.target.value })} placeholder="e.g. 70% or 5000" /></MField>
+        <MField label="Effective Date"><MInput type="date" value={f.eff} onChange={(e) => setF({ ...f, eff: e.target.value })} /></MField>
+        <MField label="Status"><MSelect value={f.status} onChange={(e) => setF({ ...f, status: e.target.value })} options={["Active", "Inactive", "Draft"]} /></MField>
+      </Modal>
     </div>
   );
 }
 
 function ApprovalMatrixTab() {
-  const rows = [
+  const [rows, setRows] = useState([
     { module: "Loans", txn: "Salary loan", band: "₵0 – ₵10,000", level: "L1", approvers: 1, status: "Active" },
     { module: "Loans", txn: "Salary loan", band: "₵10,001 – ₵50,000", level: "L2", approvers: 2, status: "Active" },
     { module: "Loans", txn: "Asset loan", band: "₵50,001 +", level: "L3", approvers: 2, status: "Active" },
     { module: "Investments", txn: "Placement", band: "₵100,000 +", level: "Board", approvers: 3, status: "Active" },
     { module: "Policy", txn: "Override", band: "any", level: "L3", approvers: 1, status: "Active" },
     { module: "Mobile money", txn: "Transfer to bank", band: "₵20,000 +", level: "L2", approvers: 1, status: "Active" },
-  ];
+  ]);
+  const [open, setOpen] = useState(false);
+  const [f, setF] = useState({ module: "Loans", txn: "", from: "", to: "", level: "Level 1", approvers: "1" });
+  const save = () => {
+    if (!f.txn) return;
+    const map: Record<string, string> = { "Level 1": "L1", "Level 2": "L2", "Level 3": "L3", "Level 4": "Board" };
+    const band = (f.from || f.to) ? `₵${f.from || "0"} – ₵${f.to || "∞"}` : "any";
+    setRows((r) => [...r, { module: f.module, txn: f.txn, band, level: map[f.level], approvers: Number(f.approvers) || 1, status: "Active" }]);
+    setF({ module: "Loans", txn: "", from: "", to: "", level: "Level 1", approvers: "1" });
+    setOpen(false);
+  };
 
   return (
     <div>
@@ -263,7 +295,7 @@ function ApprovalMatrixTab() {
           <div style={{ fontFamily: FONTS.display, fontSize: 16, fontWeight: 800, color: tokens.text }}>Approval matrix</div>
           <LayerTag label="Governed" tone="governed" />
         </div>
-        <NavyButton icon={<Plus size={14} />} label="Add row" />
+        <NavyButton icon={<Plus size={14} />} label="Add row" onClick={() => setOpen(true)} />
       </div>
       <p style={{ color: tokens.textSub, fontSize: 13, margin: "0 0 14px" }}>
         One matrix drives every approval in the system. Each row maps a module + transaction type + amount band to a required level and number of approvers.
@@ -285,16 +317,41 @@ function ApprovalMatrixTab() {
       <p style={{ color: tokens.textMuted, fontSize: 12, fontStyle: "italic", marginTop: 12 }}>
         The same approval matrix the Approvals surfaces read from — change a band here and routing updates everywhere.
       </p>
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Add Approval Row"
+        maxWidth={520}
+        footer={<><MCancelBtn onClick={() => setOpen(false)} /><MNavyBtn onClick={save}>Add Row</MNavyBtn></>}
+      >
+        <MField label="Module"><MSelect value={f.module} onChange={(e) => setF({ ...f, module: e.target.value })} options={["Loans", "Savings", "Withdrawals", "Transfers", "Shares"]} /></MField>
+        <MField label="Transaction Type"><MInput value={f.txn} onChange={(e) => setF({ ...f, txn: e.target.value })} placeholder="e.g. Loan disbursement" /></MField>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <MField label="From (GHS)"><MInput type="number" value={f.from} onChange={(e) => setF({ ...f, from: e.target.value })} /></MField>
+          <MField label="To (GHS)"><MInput type="number" value={f.to} onChange={(e) => setF({ ...f, to: e.target.value })} /></MField>
+        </div>
+        <MField label="Approval Level"><MSelect value={f.level} onChange={(e) => setF({ ...f, level: e.target.value })} options={["Level 1", "Level 2", "Level 3", "Level 4"]} /></MField>
+        <MField label="Number of Approvers"><MInput type="number" min={1} max={10} value={f.approvers} onChange={(e) => setF({ ...f, approvers: e.target.value })} /></MField>
+      </Modal>
     </div>
   );
 }
 
 function CommonBondsTab() {
-  const rows = [
-    { group: "Teachers", count: "1,204", status: "Active" },
-    { group: "Civil servants", count: "892", status: "Active" },
-    { group: "Traders", count: "611", status: "Active" },
-  ];
+  const [rows, setRows] = useState([
+    { group: "Teachers", count: 1204, status: "Active" },
+    { group: "Civil servants", count: 892, status: "Active" },
+    { group: "Traders", count: 611, status: "Active" },
+  ]);
+  const [open, setOpen] = useState(false);
+  const [f, setF] = useState({ name: "", desc: "", count: "0" });
+  const save = () => {
+    if (!f.name) return;
+    setRows((r) => [...r, { group: f.name, count: Number(f.count) || 0, status: "Active" }]);
+    setF({ name: "", desc: "", count: "0" });
+    setOpen(false);
+  };
 
   return (
     <div>
@@ -304,7 +361,7 @@ function CommonBondsTab() {
           <div style={{ fontFamily: FONTS.display, fontSize: 16, fontWeight: 800, color: tokens.text }}>Common-bond groups</div>
           <LayerTag label="Governed" tone="governed" />
         </div>
-        <NavyButton icon={<Plus size={14} />} label="Add group" />
+        <NavyButton icon={<Plus size={14} />} label="Add group" onClick={() => setOpen(true)} />
       </div>
       <p style={{ color: tokens.textSub, fontSize: 13, margin: "0 0 14px" }}>
         The cooperative grouping a member belongs to — the basis of membership eligibility. Referenced by the Clients cooperative tab when admitting and grouping members.
@@ -314,7 +371,7 @@ function CommonBondsTab() {
         {rows.map((r, i) => (
           <tr key={i} style={{ borderBottom: `1px solid ${tokens.border}` }}>
             <td style={{ ...td, fontWeight: 600 }}>{r.group}</td>
-            <td style={{ ...tdRight, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{r.count}</td>
+            <td style={{ ...tdRight, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{r.count.toLocaleString()}</td>
             <td style={td}><StatusPill status={r.status} /></td>
           </tr>
         ))}
@@ -323,6 +380,17 @@ function CommonBondsTab() {
       <p style={{ color: tokens.textMuted, fontSize: 12, fontStyle: "italic", marginTop: 12 }}>
         Member counts are sourced from the cooperative membership records; the financial customer lives in Fineract.
       </p>
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Add Common Bond Group"
+        footer={<><MCancelBtn onClick={() => setOpen(false)} /><MNavyBtn onClick={save}>Create Group</MNavyBtn></>}
+      >
+        <MField label="Group Name"><MInput value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="e.g. Teaching Staff" /></MField>
+        <MField label="Description"><MTextarea rows={3} value={f.desc} onChange={(e) => setF({ ...f, desc: e.target.value })} placeholder="Describe eligibility criteria" /></MField>
+        <MField label="Initial Member Count"><MInput type="number" min={0} value={f.count} onChange={(e) => setF({ ...f, count: e.target.value })} /></MField>
+      </Modal>
     </div>
   );
 }
