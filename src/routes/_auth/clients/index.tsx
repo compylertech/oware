@@ -620,9 +620,7 @@ function ClientsPage() {
               </button>
               <button
                 onClick={() => {
-                  setClients((prev) =>
-                    prev.filter((x) => x.id !== confirmDelete.id),
-                  );
+                  removeClient(confirmDelete.id);
                   setConfirmDelete(null);
                 }}
                 style={{
