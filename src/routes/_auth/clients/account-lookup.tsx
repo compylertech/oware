@@ -773,12 +773,7 @@ function AccountLookupPage() {
                           {fmtGHS(t.runningBalance)}
                         </td>
                         <td style={{ padding: "12px 18px" }}>
-                          <StatusPill
-                            status={(t.status === "Completed" ? "Active" : "Withdrawn") as StatusKind}
-                            className=""
-                          />
-                          {/* override label to read Completed/Reversed via wrapper */}
-                          <span className="sr-only">{t.status}</span>
+                          <TxnStatusPill status={t.status} />
                         </td>
                       </tr>
                     ))
