@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
+import { StatCard, StatGrid } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/cooperative/membership")({
   component: MembershipPage,
@@ -38,17 +39,103 @@ type Member = {
 };
 
 const SEED: Member[] = [
-  { id: "1", memberId: "MBR-00231", name: "Pearl Adzoko", branch: "Accra Main", group: "Teachers Union", klass: "A", shares: 1200, contributions: 24000, status: "Active" },
-  { id: "2", memberId: "MBR-00198", name: "Kwame Mensah", branch: "Kumasi Central", group: "Market Traders", klass: "B", shares: 540, contributions: 10800, status: "Pending" },
-  { id: "3", memberId: "MBR-00176", name: "Ama Boateng", branch: "Tema", group: "Civil Servants", klass: "A", shares: 2050, contributions: 41000, status: "Active" },
-  { id: "4", memberId: "MBR-00154", name: "Kofi Asare", branch: "Takoradi", group: "Fishermen Coop", klass: "C", shares: 300, contributions: 6000, status: "Suspended" },
-  { id: "5", memberId: "MBR-00131", name: "Esi Tetteh", branch: "Accra Main", group: "Teachers Union", klass: "B", shares: 880, contributions: 17600, status: "Active" },
-  { id: "6", memberId: "MBR-00097", name: "Yaw Darko", branch: "Kumasi Central", group: "Market Traders", klass: "A", shares: 0, contributions: 0, status: "Withdrawn" },
-  { id: "7", memberId: "MBR-00088", name: "Akosua Nyarko", branch: "Tema", group: "Civil Servants", klass: "A", shares: 1450, contributions: 29000, status: "Active" },
-  { id: "8", memberId: "MBR-00072", name: "Nana Owusu", branch: "Accra Main", group: "Teachers Union", klass: "C", shares: 220, contributions: 4400, status: "Pending" },
+  {
+    id: "1",
+    memberId: "MBR-00231",
+    name: "Pearl Adzoko",
+    branch: "Accra Main",
+    group: "Teachers Union",
+    klass: "A",
+    shares: 1200,
+    contributions: 24000,
+    status: "Active",
+  },
+  {
+    id: "2",
+    memberId: "MBR-00198",
+    name: "Kwame Mensah",
+    branch: "Kumasi Central",
+    group: "Market Traders",
+    klass: "B",
+    shares: 540,
+    contributions: 10800,
+    status: "Pending",
+  },
+  {
+    id: "3",
+    memberId: "MBR-00176",
+    name: "Ama Boateng",
+    branch: "Tema",
+    group: "Civil Servants",
+    klass: "A",
+    shares: 2050,
+    contributions: 41000,
+    status: "Active",
+  },
+  {
+    id: "4",
+    memberId: "MBR-00154",
+    name: "Kofi Asare",
+    branch: "Takoradi",
+    group: "Fishermen Coop",
+    klass: "C",
+    shares: 300,
+    contributions: 6000,
+    status: "Suspended",
+  },
+  {
+    id: "5",
+    memberId: "MBR-00131",
+    name: "Esi Tetteh",
+    branch: "Accra Main",
+    group: "Teachers Union",
+    klass: "B",
+    shares: 880,
+    contributions: 17600,
+    status: "Active",
+  },
+  {
+    id: "6",
+    memberId: "MBR-00097",
+    name: "Yaw Darko",
+    branch: "Kumasi Central",
+    group: "Market Traders",
+    klass: "A",
+    shares: 0,
+    contributions: 0,
+    status: "Withdrawn",
+  },
+  {
+    id: "7",
+    memberId: "MBR-00088",
+    name: "Akosua Nyarko",
+    branch: "Tema",
+    group: "Civil Servants",
+    klass: "A",
+    shares: 1450,
+    contributions: 29000,
+    status: "Active",
+  },
+  {
+    id: "8",
+    memberId: "MBR-00072",
+    name: "Nana Owusu",
+    branch: "Accra Main",
+    group: "Teachers Union",
+    klass: "C",
+    shares: 220,
+    contributions: 4400,
+    status: "Pending",
+  },
 ];
 
-const STATUS_FILTERS: ("All" | MemberStatus)[] = ["All", "Active", "Pending", "Suspended", "Withdrawn"];
+const STATUS_FILTERS: ("All" | MemberStatus)[] = [
+  "All",
+  "Active",
+  "Pending",
+  "Suspended",
+  "Withdrawn",
+];
 
 const KLASS_STYLE: Record<Klass, { bg: string; fg: string }> = {
   A: { bg: "#EEF2FF", fg: "#3B5BDB" },
@@ -58,63 +145,6 @@ const KLASS_STYLE: Record<Klass, { bg: string; fg: string }> = {
 
 function fmtMoney(n: number) {
   return `GH₵ ${n.toLocaleString("en-US")}`;
-}
-
-function KpiCard({
-  icon,
-  iconBg,
-  iconFg,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  iconBg: string;
-  iconFg: string;
-  label: string;
-  value: string | number;
-}) {
-  return (
-    <div
-      style={{
-        background: tokens.surface,
-        border: `1px solid ${tokens.border}`,
-        borderRadius: 14,
-        padding: 18,
-        display: "flex",
-        gap: 14,
-        alignItems: "center",
-      }}
-    >
-      <div
-        style={{
-          width: 34,
-          height: 34,
-          borderRadius: 10,
-          background: iconBg,
-          color: iconFg,
-          display: "grid",
-          placeItems: "center",
-          flexShrink: 0,
-        }}
-      >
-        {icon}
-      </div>
-      <div>
-        <div style={{ fontSize: 12, color: tokens.textMuted, fontWeight: 500 }}>{label}</div>
-        <div
-          style={{
-            fontFamily: FONTS.display,
-            fontSize: 22,
-            fontWeight: 800,
-            color: tokens.text,
-            fontVariantNumeric: "tabular-nums",
-          }}
-        >
-          {value}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 function MembershipPage() {
@@ -160,12 +190,23 @@ function MembershipPage() {
   }
 
   function removeMember(id: string) {
-    if (typeof window !== "undefined" && !window.confirm("Remove this member? This cannot be undone.")) return;
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm("Remove this member? This cannot be undone.")
+    )
+      return;
     setMembers((ms) => ms.filter((m) => m.id !== id));
   }
 
   return (
-    <div style={{ background: tokens.bg, minHeight: "100%", padding: "24px 28px", fontFamily: FONTS.body }}>
+    <div
+      style={{
+        background: tokens.bg,
+        minHeight: "100%",
+        padding: "24px 28px",
+        fontFamily: FONTS.body,
+      }}
+    >
       <div>
         <Link
           to="/cooperative"
@@ -183,12 +224,30 @@ function MembershipPage() {
           <ArrowLeft size={14} /> Back to Cooperative
         </Link>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: 14, gap: 16 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-end",
+            marginTop: 14,
+            gap: 16,
+          }}
+        >
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: tokens.textMuted }}>
+            <div
+              style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: tokens.textMuted }}
+            >
               COOPERATIVE
             </div>
-            <h1 style={{ fontFamily: FONTS.display, fontSize: 26, fontWeight: 800, color: tokens.text, margin: "6px 0 6px" }}>
+            <h1
+              style={{
+                fontFamily: FONTS.display,
+                fontSize: 26,
+                fontWeight: 800,
+                color: tokens.text,
+                margin: "6px 0 6px",
+              }}
+            >
               Member Register
             </h1>
             <p style={{ color: tokens.textSub, fontSize: 14, margin: 0 }}>
@@ -240,22 +299,47 @@ function MembershipPage() {
         </div>
 
         {/* KPIs */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: 14,
-            marginTop: 18,
-          }}
-        >
-          <KpiCard icon={<Users2 size={18} />} iconBg="#EEF2FF" iconFg="#3B5BDB" label="Total members" value={totals.total} />
-          <KpiCard icon={<CheckCircle2 size={18} />} iconBg="#ECFDF3" iconFg="#067647" label="Active" value={totals.active} />
-          <KpiCard icon={<Clock size={18} />} iconBg="#FFFBEB" iconFg="#B45309" label="Pending admission" value={totals.pending} />
-          <KpiCard icon={<Sigma size={18} />} iconBg="#F3EEFF" iconFg="#6D28D9" label="Total shares held" value={totals.shares.toLocaleString()} />
-        </div>
+        <StatGrid style={{ marginTop: 18 }}>
+          <StatCard
+            icon={<Users2 size={18} />}
+            iconBg="#EEF2FF"
+            iconColor="#3B5BDB"
+            label="Total members"
+            value={totals.total}
+          />
+          <StatCard
+            icon={<CheckCircle2 size={18} />}
+            iconBg="#ECFDF3"
+            iconColor="#067647"
+            label="Active"
+            value={totals.active}
+          />
+          <StatCard
+            icon={<Clock size={18} />}
+            iconBg="#FFFBEB"
+            iconColor="#B45309"
+            label="Pending admission"
+            value={totals.pending}
+          />
+          <StatCard
+            icon={<Sigma size={18} />}
+            iconBg="#F3EEFF"
+            iconColor="#6D28D9"
+            label="Total shares held"
+            value={totals.shares.toLocaleString()}
+          />
+        </StatGrid>
 
         {/* Filters */}
-        <div style={{ display: "flex", gap: 12, marginTop: 20, flexWrap: "wrap", alignItems: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            marginTop: 20,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
           <div
             style={{
               position: "relative",
@@ -263,7 +347,16 @@ function MembershipPage() {
               maxWidth: 420,
             }}
           >
-            <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: tokens.textMuted }} />
+            <Search
+              size={14}
+              style={{
+                position: "absolute",
+                left: 12,
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: tokens.textMuted,
+              }}
+            />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -329,7 +422,16 @@ function MembershipPage() {
           <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: FONTS.body }}>
             <thead>
               <tr style={{ borderBottom: `2px solid #002663` }}>
-                {["Member", "ID", "Common bond group", "Class", "Shares", "Contributions", "Status", ""].map((h) => (
+                {[
+                  "Member",
+                  "ID",
+                  "Common bond group",
+                  "Class",
+                  "Shares",
+                  "Contributions",
+                  "Status",
+                  "",
+                ].map((h) => (
                   <th
                     key={h}
                     style={{
@@ -358,13 +460,26 @@ function MembershipPage() {
                     onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   >
                     <td style={{ padding: "13px 16px", fontSize: 13 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: tokens.text }}>{m.name}</div>
-                      <div style={{ fontSize: 11, color: tokens.textMuted, marginTop: 2 }}>{m.branch}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: tokens.text }}>
+                        {m.name}
+                      </div>
+                      <div style={{ fontSize: 11, color: tokens.textMuted, marginTop: 2 }}>
+                        {m.branch}
+                      </div>
                     </td>
-                    <td style={{ padding: "13px 16px", fontFamily: FONTS.mono, fontSize: 12, color: "#4A5878" }}>
+                    <td
+                      style={{
+                        padding: "13px 16px",
+                        fontFamily: FONTS.mono,
+                        fontSize: 12,
+                        color: "#4A5878",
+                      }}
+                    >
                       {m.memberId}
                     </td>
-                    <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>{m.group}</td>
+                    <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>
+                      {m.group}
+                    </td>
                     <td style={{ padding: "13px 16px" }}>
                       <span
                         style={{
@@ -379,10 +494,30 @@ function MembershipPage() {
                         Class {m.klass}
                       </span>
                     </td>
-                    <td style={{ padding: "13px 16px", textAlign: "right", fontFamily: FONTS.body, fontWeight: 500, fontVariantNumeric: "tabular-nums", color: "#4A5878", fontSize: 13 }}>
+                    <td
+                      style={{
+                        padding: "13px 16px",
+                        textAlign: "right",
+                        fontFamily: FONTS.body,
+                        fontWeight: 500,
+                        fontVariantNumeric: "tabular-nums",
+                        color: "#4A5878",
+                        fontSize: 13,
+                      }}
+                    >
                       {m.shares.toLocaleString()}
                     </td>
-                    <td style={{ padding: "13px 16px", textAlign: "right", fontFamily: FONTS.body, fontWeight: 500, fontVariantNumeric: "tabular-nums", color: "#4A5878", fontSize: 13 }}>
+                    <td
+                      style={{
+                        padding: "13px 16px",
+                        textAlign: "right",
+                        fontFamily: FONTS.body,
+                        fontWeight: 500,
+                        fontVariantNumeric: "tabular-nums",
+                        color: "#4A5878",
+                        fontSize: 13,
+                      }}
+                    >
                       {fmtMoney(m.contributions)}
                     </td>
                     <td style={{ padding: "13px 16px" }}>
@@ -390,11 +525,17 @@ function MembershipPage() {
                     </td>
                     <td style={{ padding: "13px 16px", textAlign: "right", position: "relative" }}>
                       <button
-                        onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === m.id ? null : m.id); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenu(openMenu === m.id ? null : m.id);
+                        }}
                         aria-label="Actions"
                         style={{
-                          background: "transparent", border: "none", cursor: "pointer",
-                          color: "#7A879F", padding: 4,
+                          background: "transparent",
+                          border: "none",
+                          cursor: "pointer",
+                          color: "#7A879F",
+                          padding: 4,
                         }}
                       >
                         <MoreVertical size={18} />
@@ -403,19 +544,61 @@ function MembershipPage() {
                         <div
                           ref={menuRef}
                           style={{
-                            position: "absolute", top: "100%", right: 16, zIndex: 30,
-                            background: "#fff", border: `1px solid ${tokens.border}`,
-                            borderRadius: 8, padding: 4, minWidth: 180, textAlign: "left",
+                            position: "absolute",
+                            top: "100%",
+                            right: 16,
+                            zIndex: 30,
+                            background: "#fff",
+                            border: `1px solid ${tokens.border}`,
+                            borderRadius: 8,
+                            padding: 4,
+                            minWidth: 180,
+                            textAlign: "left",
                           }}
                         >
                           {(m.status === "Pending" || m.status === "Suspended") && (
-                            <MenuRow icon={<CheckCircle size={14} />} color="#067647" onClick={() => { setOpenMenu(null); setStatus(m.id, "Active"); }}>Activate</MenuRow>
+                            <MenuRow
+                              icon={<CheckCircle size={14} />}
+                              color="#067647"
+                              onClick={() => {
+                                setOpenMenu(null);
+                                setStatus(m.id, "Active");
+                              }}
+                            >
+                              Activate
+                            </MenuRow>
                           )}
                           {m.status === "Active" && (
-                            <MenuRow icon={<Ban size={14} />} color="#D92D20" onClick={() => { setOpenMenu(null); setStatus(m.id, "Suspended"); }}>Suspend</MenuRow>
+                            <MenuRow
+                              icon={<Ban size={14} />}
+                              color="#D92D20"
+                              onClick={() => {
+                                setOpenMenu(null);
+                                setStatus(m.id, "Suspended");
+                              }}
+                            >
+                              Suspend
+                            </MenuRow>
                           )}
-                          <MenuRow icon={<User size={14} />} color="#16233F" onClick={() => { setOpenMenu(null); }}>View profile</MenuRow>
-                          <MenuRow icon={<Trash2 size={14} />} color="#D92D20" onClick={() => { setOpenMenu(null); removeMember(m.id); }}>Remove member</MenuRow>
+                          <MenuRow
+                            icon={<User size={14} />}
+                            color="#16233F"
+                            onClick={() => {
+                              setOpenMenu(null);
+                            }}
+                          >
+                            View profile
+                          </MenuRow>
+                          <MenuRow
+                            icon={<Trash2 size={14} />}
+                            color="#D92D20"
+                            onClick={() => {
+                              setOpenMenu(null);
+                              removeMember(m.id);
+                            }}
+                          >
+                            Remove member
+                          </MenuRow>
                         </div>
                       )}
                     </td>
@@ -424,7 +607,15 @@ function MembershipPage() {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} style={{ padding: 32, textAlign: "center", color: tokens.textMuted, fontSize: 13 }}>
+                  <td
+                    colSpan={8}
+                    style={{
+                      padding: 32,
+                      textAlign: "center",
+                      color: tokens.textMuted,
+                      fontSize: 13,
+                    }}
+                  >
                     No members match these filters.
                   </td>
                 </tr>
@@ -437,16 +628,35 @@ function MembershipPage() {
   );
 }
 
-function MenuRow({ icon, color, onClick, children }: { icon: React.ReactNode; color: string; onClick: () => void; children: React.ReactNode }) {
+function MenuRow({
+  icon,
+  color,
+  onClick,
+  children,
+}: {
+  icon: React.ReactNode;
+  color: string;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
       style={{
-        display: "flex", alignItems: "center", gap: 8, width: "100%",
-        background: "transparent", border: "none", cursor: "pointer",
-        padding: "8px 14px", fontSize: 13, color, fontFamily: FONTS.body,
-        textAlign: "left", borderRadius: 6,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        width: "100%",
+        background: "transparent",
+        border: "none",
+        cursor: "pointer",
+        padding: "8px 14px",
+        fontSize: 13,
+        color,
+        fontFamily: FONTS.body,
+        textAlign: "left",
+        borderRadius: 6,
       }}
       onMouseEnter={(e) => (e.currentTarget.style.background = "#F4F6FB")}
       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}

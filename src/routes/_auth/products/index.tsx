@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Wallet, Landmark, PieChart, CreditCard } from "lucide-react";
 import type { ReactNode } from "react";
 import { FONTS, tokens } from "@/lib/tokens";
+import { PageHeader, Pill } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/products/")({
   component: ProductsHub,
@@ -9,29 +10,18 @@ export const Route = createFileRoute("/_auth/products/")({
 
 type LayerVariant = "overlay" | "governed" | "core";
 
+const LAYER_STYLES: Record<LayerVariant, { bg: string; fg: string }> = {
+  overlay: { bg: "#E1F5EE", fg: "#0F6E56" },
+  governed: { bg: "#FFFBEB", fg: "#B45309" },
+  core: { bg: "#E6EBF6", fg: "#002663" },
+};
+
 function LayerTag({ label, variant }: { label: string; variant: LayerVariant }) {
-  const styles: Record<LayerVariant, { bg: string; fg: string }> = {
-    overlay: { bg: "#E1F5EE", fg: "#0F6E56" },
-    governed: { bg: "#FFFBEB", fg: "#B45309" },
-    core: { bg: "#E6EBF6", fg: "#002663" },
-  };
-  const s = styles[variant];
+  const s = LAYER_STYLES[variant];
   return (
-    <span
-      style={{
-        background: s.bg,
-        color: s.fg,
-        fontSize: 10,
-        fontWeight: 700,
-        padding: "2px 7px",
-        borderRadius: 999,
-        letterSpacing: 0.3,
-        textTransform: "uppercase",
-        fontFamily: FONTS.body,
-      }}
-    >
+    <Pill color={s.fg} bg={s.bg} uppercase>
       {label}
-    </span>
+    </Pill>
   );
 }
 
@@ -134,24 +124,19 @@ function ProductsHub() {
   ];
 
   return (
-    <div style={{ background: tokens.bg, minHeight: "100%", padding: "24px 28px", fontFamily: FONTS.body }}>
-      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: tokens.textMuted }}>
-        MODULE
-      </div>
-      <h1
-        style={{
-          fontFamily: FONTS.display,
-          fontSize: 26,
-          fontWeight: 800,
-          color: tokens.text,
-          margin: "6px 0 8px",
-        }}
-      >
-        Products
-      </h1>
-      <p style={{ color: tokens.textSub, fontSize: 14, maxWidth: 680, marginBottom: 24 }}>
-        Savings, loan, share and prepaid product definitions.
-      </p>
+    <div
+      style={{
+        background: tokens.bg,
+        minHeight: "100%",
+        padding: "24px 28px",
+        fontFamily: FONTS.body,
+      }}
+    >
+      <PageHeader
+        title="Products"
+        subtitle="Savings, loan, share and prepaid product definitions."
+        style={{ marginBottom: 24 }}
+      />
 
       <div
         style={{
