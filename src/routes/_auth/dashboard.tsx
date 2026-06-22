@@ -142,8 +142,7 @@ function DashboardPage() {
                     <div className="text-xs text-gray-500 truncate">{a.action}</div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className={`h-1.5 w-1.5 rounded-full ${a.dot}`} />
-                    <span className="text-xs text-gray-400">{a.time}</span>
+                    <span className="text-xs" style={{ color: "#7A879F" }}>{a.time}</span>
                   </div>
                 </li>
               ))}
