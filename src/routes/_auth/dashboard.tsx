@@ -156,9 +156,9 @@ function DashboardPage() {
   );
 }
 
-function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Panel({ children, className = "", style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
-    <div className={`bg-white rounded-2xl border border-[#DDE4EF] p-5 ${className}`}>{children}</div>
+    <div className={`bg-white rounded-2xl border border-[#DDE4EF] p-5 ${className}`} style={style}>{children}</div>
   );
 }
 
