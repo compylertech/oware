@@ -1,21 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, useRef, useEffect } from "react";
-import {
-  Search,
-  ChevronDown,
-  MoreVertical,
-  Eye,
-  Pencil,
-  Trash2,
-  Plus,
-} from "lucide-react";
+import { Search, ChevronDown, MoreVertical, Eye, Pencil, Trash2, Plus } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
-import {
-  useClients,
-  removeClient,
-  type Client,
-  type ClientStatus,
-} from "@/lib/mockStore";
+import { useClients, removeClient, type Client, type ClientStatus } from "@/lib/mockStore";
 
 export const Route = createFileRoute("/_auth/clients/")({
   component: ClientsPage,
@@ -64,11 +51,7 @@ function ClientsPage() {
   const totalPending = clients.filter((c) => c.status === "Pending").length;
 
   const statusDotColor =
-    statusFilter === "Active"
-      ? "#067647"
-      : statusFilter === "Pending"
-        ? "#D97706"
-        : null;
+    statusFilter === "Active" ? "#067647" : statusFilter === "Pending" ? "#D97706" : null;
 
   // close popovers on outside click
   const rootRef = useRef<HTMLDivElement>(null);
@@ -88,18 +71,13 @@ function ClientsPage() {
   }
 
   return (
-    <div
-      ref={rootRef}
-      style={{ backgroundColor: "#F4F6FB", minHeight: "100%" }}
-      className="p-7"
-    >
+    <div ref={rootRef} style={{ backgroundColor: "#F4F6FB", minHeight: "100%" }} className="p-7">
       {/* Hero */}
       <div
         className="relative overflow-hidden"
         style={{
           borderRadius: 16,
-          background:
-            "linear-gradient(135deg, #001844 0%, #002663 60%, #1a4080 100%)",
+          background: "linear-gradient(135deg, #001844 0%, #002663 60%, #1a4080 100%)",
         }}
       >
         <div
@@ -118,8 +96,7 @@ function ClientsPage() {
             position: "absolute",
             inset: 0,
             opacity: 0.06,
-            backgroundImage:
-              "radial-gradient(rgba(255,255,255,1) 1px, transparent 1px)",
+            backgroundImage: "radial-gradient(rgba(255,255,255,1) 1px, transparent 1px)",
             backgroundSize: "16px 16px",
           }}
         />
@@ -170,12 +147,8 @@ function ClientsPage() {
                 fontWeight: 500,
                 background: "transparent",
               }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.background = "rgba(255,255,255,0.1)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.background = "transparent")
-              }
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.1)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
               <Plus size={16} /> Create Client
             </button>
@@ -195,8 +168,7 @@ function ClientsPage() {
                 key={s.label}
                 style={{
                   padding: "18px 20px",
-                  borderRight:
-                    i < 2 ? "1px solid rgba(255,255,255,0.08)" : "none",
+                  borderRight: i < 2 ? "1px solid rgba(255,255,255,0.08)" : "none",
                 }}
               >
                 <div
@@ -222,11 +194,7 @@ function ClientsPage() {
                 >
                   {s.value}
                 </div>
-                <div
-                  style={{ color: "rgba(255,255,255,0.45)", fontSize: 11 }}
-                >
-                  {s.desc}
-                </div>
+                <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 11 }}>{s.desc}</div>
               </div>
             ))}
           </div>
@@ -261,12 +229,8 @@ function ClientsPage() {
               fontSize: 13,
               color: "#0D1B3E",
             }}
-            onFocus={(e) =>
-              (e.currentTarget.style.borderColor = "#002663")
-            }
-            onBlur={(e) =>
-              (e.currentTarget.style.borderColor = "#DDE4EF")
-            }
+            onFocus={(e) => (e.currentTarget.style.borderColor = "#002663")}
+            onBlur={(e) => (e.currentTarget.style.borderColor = "#DDE4EF")}
           />
         </div>
 
@@ -312,7 +276,7 @@ function ClientsPage() {
               style={{
                 border: "1px solid #DDE4EF",
                 borderRadius: 8,
-                
+
                 minWidth: 180,
                 padding: 4,
               }}
@@ -331,10 +295,7 @@ function ClientsPage() {
                     borderRadius: 6,
                     fontSize: 13,
                     color: "#0D1B3E",
-                    background:
-                      statusFilter === opt
-                        ? "rgba(0,38,99,0.1)"
-                        : "transparent",
+                    background: statusFilter === opt ? "rgba(0,38,99,0.1)" : "transparent",
                   }}
                 >
                   {opt === "All" ? "All Statuses" : opt}
@@ -353,14 +314,7 @@ function ClientsPage() {
         <table className="w-full" style={{ borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ background: "#F8FAFC" }}>
-              {[
-                "Name",
-                "Client No.",
-                "External ID",
-                "Status",
-                "Office Name",
-                "",
-              ].map((h, i) => (
+              {["Name", "Client No.", "External ID", "Status", "Office Name", ""].map((h, i) => (
                 <th
                   key={i}
                   style={{
@@ -415,12 +369,8 @@ function ClientsPage() {
                     borderBottom: "1px solid #F0F3F8",
                     transition: "background 0.15s",
                   }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "#F7FAFF")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#F7FAFF")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
                   <td style={{ padding: 14 }}>
                     <div className="flex items-center gap-3">
@@ -475,22 +425,16 @@ function ClientsPage() {
                   <td style={{ padding: 14 }}>
                     <StatusPill status={c.status as StatusKind} />
                   </td>
-                  <td style={{ padding: 14, fontSize: 13, color: "#6B7A99" }}>
-                    {c.officeName}
-                  </td>
+                  <td style={{ padding: 14, fontSize: 13, color: "#6B7A99" }}>{c.officeName}</td>
                   <td
                     style={{ padding: 14, width: 60, textAlign: "right" }}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="relative inline-block">
                       <button
-                        onClick={() =>
-                          setMenuOpen(menuOpen === c.id ? null : c.id)
-                        }
+                        onClick={() => setMenuOpen(menuOpen === c.id ? null : c.id)}
                         className={
-                          menuOpen === c.id
-                            ? "opacity-100"
-                            : "opacity-0 group-hover:opacity-100"
+                          menuOpen === c.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                         }
                         style={{
                           width: 30,
@@ -502,12 +446,8 @@ function ClientsPage() {
                           color: "#6B7A99",
                           transition: "opacity 0.15s, background 0.15s",
                         }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.background = "#EEF2F8")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.background = "transparent")
-                        }
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "#EEF2F8")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                       >
                         <MoreVertical size={16} />
                       </button>
@@ -517,7 +457,7 @@ function ClientsPage() {
                           style={{
                             border: "1px solid #DDE4EF",
                             borderRadius: 8,
-                            
+
                             minWidth: 140,
                             padding: 4,
                           }}
@@ -561,14 +501,9 @@ function ClientsPage() {
         >
           <div style={{ fontSize: 12, color: "#8A9ABB" }}>
             Showing {filtered.length === 0 ? 0 : start + 1}–
-            {Math.min(start + PAGE_SIZE, filtered.length)} of {filtered.length}{" "}
-            clients
+            {Math.min(start + PAGE_SIZE, filtered.length)} of {filtered.length} clients
           </div>
-          <Pagination
-            page={currentPage}
-            totalPages={totalPages}
-            onChange={setPage}
-          />
+          <Pagination page={currentPage} totalPages={totalPages} onChange={setPage} />
         </div>
       </div>
 
@@ -586,7 +521,6 @@ function ClientsPage() {
               borderRadius: 12,
               padding: 24,
               width: 380,
-              
             }}
           >
             <h3
@@ -600,8 +534,8 @@ function ClientsPage() {
               Delete client?
             </h3>
             <p style={{ fontSize: 13, color: "#6B7A99", marginTop: 8 }}>
-              Are you sure you want to delete{" "}
-              <strong>{confirmDelete.name}</strong>? This cannot be undone.
+              Are you sure you want to delete <strong>{confirmDelete.name}</strong>? This cannot be
+              undone.
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <button
@@ -665,14 +599,8 @@ function MenuItem({
         color: danger ? "#EF4444" : "#374151",
         background: "transparent",
       }}
-      onMouseEnter={(e) =>
-        (e.currentTarget.style.background = danger
-          ? "#FEF2F2"
-          : "#F7FAFF")
-      }
-      onMouseLeave={(e) =>
-        (e.currentTarget.style.background = "transparent")
-      }
+      onMouseEnter={(e) => (e.currentTarget.style.background = danger ? "#FEF2F2" : "#F7FAFF")}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
     >
       {icon}
       {label}
@@ -691,12 +619,14 @@ function Pagination({
 }) {
   const pages = computePages(page, totalPages);
   const btn = (
+    key: string,
     label: React.ReactNode,
     active: boolean,
     onClick: () => void,
     disabled?: boolean,
   ) => (
     <button
+      key={key}
       onClick={onClick}
       disabled={disabled}
       style={{
@@ -718,20 +648,18 @@ function Pagination({
 
   return (
     <div className="flex items-center gap-1.5">
-      {btn("Prev", false, () => onChange(Math.max(1, page - 1)), page === 1)}
+      {btn("prev", "Prev", false, () => onChange(Math.max(1, page - 1)), page === 1)}
       {pages.map((p, i) =>
         p === "…" ? (
-          <span
-            key={`e${i}`}
-            style={{ padding: "0 6px", color: "#8A9ABB", fontSize: 12 }}
-          >
+          <span key={`e${i}`} style={{ padding: "0 6px", color: "#8A9ABB", fontSize: 12 }}>
             …
           </span>
         ) : (
-          btn(p, p === page, () => onChange(p as number))
+          btn(`p${p}`, p, p === page, () => onChange(p as number))
         ),
       )}
       {btn(
+        "next",
         "Next",
         false,
         () => onChange(Math.min(totalPages, page + 1)),

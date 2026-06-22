@@ -5,8 +5,6 @@ import {
   CreditCard,
   TrendingUp,
   Clock,
-  ArrowUpRight,
-  ArrowDownRight,
   ArrowLeftRight,
   ArrowDownCircle,
   ArrowUpCircle,
@@ -28,7 +26,11 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { CashTransactionDrawer, type CashTxType } from "@/components/dashboard/CashTransactionDrawer";
+import {
+  CashTransactionDrawer,
+  type CashTxType,
+} from "@/components/dashboard/CashTransactionDrawer";
+import { StatCard, StatGrid } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/dashboard")({
   component: DashboardPage,
@@ -71,7 +73,9 @@ function DashboardPage() {
         <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-[20px] font-extrabold text-[#101828] leading-tight">Dashboard</h1>
-            <p className="text-xs text-gray-400 mt-1">Welcome back — here's what's happening today.</p>
+            <p className="text-xs text-gray-400 mt-1">
+              Welcome back — here's what's happening today.
+            </p>
           </div>
           <span className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-500 border border-blue-100 text-xs font-medium opacity-50 pointer-events-none select-none">
             Teller Account
@@ -79,12 +83,43 @@ function DashboardPage() {
         </div>
 
         {/* KPI Strip */}
-        <div className="grid grid-cols-4 gap-4 mb-4">
-          <KpiCard label="Total Clients" value="398" delta={12.4} up tileBg="bg-blue-50" iconColor="text-blue-600" Icon={Users} />
-          <KpiCard label="Active Accounts" value="214" delta={8.1} up tileBg="bg-violet-50" iconColor="text-violet-600" Icon={CreditCard} />
-          <KpiCard label="Deposits (May)" value="GHS 830K" delta={25.8} up tileBg="bg-emerald-50" iconColor="text-emerald-600" Icon={TrendingUp} />
-          <KpiCard label="Pending KYC" value="23" delta={-4.2} up={false} tileBg="bg-orange-50" iconColor="text-orange-500" Icon={Clock} />
-        </div>
+        <StatGrid columns={4} style={{ marginBottom: 16 }}>
+          <StatCard
+            label="Total Clients"
+            value="398"
+            delta={12.4}
+            up
+            icon={<Users size={18} />}
+            iconBg="#EFF6FF"
+            iconColor="#2563EB"
+          />
+          <StatCard
+            label="Active Accounts"
+            value="214"
+            delta={8.1}
+            up
+            icon={<CreditCard size={18} />}
+            iconBg="#F5F3FF"
+            iconColor="#7C3AED"
+          />
+          <StatCard
+            label="Deposits (May)"
+            value="GHS 830K"
+            delta={25.8}
+            up
+            icon={<TrendingUp size={18} />}
+            iconBg="#ECFDF5"
+            iconColor="#059669"
+          />
+          <StatCard
+            label="Pending KYC"
+            value="23"
+            delta={-4.2}
+            icon={<Clock size={18} />}
+            iconBg="#FFF7ED"
+            iconColor="#EA580C"
+          />
+        </StatGrid>
 
         {/* Main grid */}
         <div className="grid grid-cols-3 gap-4">
@@ -99,7 +134,9 @@ function DashboardPage() {
             <div className="flex items-start justify-between mb-4">
               <div>
                 <div className="text-[15px] font-bold text-[#101828]">Transaction Volume</div>
-                <div className="text-xs text-gray-400 mt-0.5">Deposits vs withdrawals · last 7 months</div>
+                <div className="text-xs text-gray-400 mt-0.5">
+                  Deposits vs withdrawals · last 7 months
+                </div>
               </div>
               <div className="flex items-center gap-4 text-xs text-gray-600">
                 <LegendItem color="#3B82F6" label="Deposits" />
@@ -126,7 +163,9 @@ function DashboardPage() {
                 <div className="text-[15px] font-bold text-[#101828]">Recent Activity</div>
                 <div className="text-xs text-gray-400 mt-0.5">Latest client & account events</div>
               </div>
-              <button className="text-xs font-semibold text-[#002663] hover:underline">View all</button>
+              <button className="text-xs font-semibold text-[#002663] hover:underline">
+                View all
+              </button>
             </div>
             <ul>
               {activity.map((a, i) => (
@@ -135,14 +174,20 @@ function DashboardPage() {
                   className={`flex items-center gap-3 py-3 ${i !== activity.length - 1 ? "border-b border-gray-50" : ""}`}
                 >
                   <div className="h-8 w-8 rounded-full bg-[#002663] text-white text-[11px] font-semibold flex items-center justify-center shrink-0">
-                    {a.name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
+                    {a.name
+                      .split(" ")
+                      .map((p) => p[0])
+                      .join("")
+                      .slice(0, 2)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-[#101828] truncate">{a.name}</div>
                     <div className="text-xs text-gray-500 truncate">{a.action}</div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-xs" style={{ color: "#7A879F" }}>{a.time}</span>
+                    <span className="text-xs" style={{ color: "#7A879F" }}>
+                      {a.time}
+                    </span>
                   </div>
                 </li>
               ))}
@@ -156,9 +201,19 @@ function DashboardPage() {
   );
 }
 
-function Panel({ children, className = "", style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+function Panel({
+  children,
+  className = "",
+  style,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
   return (
-    <div className={`bg-white rounded-2xl border border-[#DDE4EF] p-5 ${className}`} style={style}>{children}</div>
+    <div className={`bg-white rounded-2xl border border-[#DDE4EF] p-5 ${className}`} style={style}>
+      {children}
+    </div>
   );
 }
 
@@ -175,43 +230,6 @@ function LegendItem({ color, label }: { color: string; label: string }) {
   );
 }
 
-function KpiCard({
-  label,
-  value,
-  delta,
-  up,
-  tileBg,
-  iconColor,
-  Icon,
-}: {
-  label: string;
-  value: string;
-  delta: number;
-  up: boolean;
-  tileBg: string;
-  iconColor: string;
-  Icon: React.ComponentType<{ className?: string }>;
-}) {
-  const Arrow = up ? ArrowUpRight : ArrowDownRight;
-  const color = up ? "#10b981" : "#f87171";
-  return (
-    <div className="bg-white rounded-2xl border border-[#DDE4EF] p-5 flex items-center gap-4">
-      <div className={`h-11 w-11 rounded-xl ${tileBg} flex items-center justify-center shrink-0`}>
-        <Icon className={`h-5 w-5 ${iconColor}`} />
-      </div>
-      <div className="min-w-0">
-        <div className="text-[11px] uppercase tracking-wide text-gray-400 font-medium">{label}</div>
-        <div className="text-[20px] font-extrabold text-[#101828] leading-tight mt-0.5">{value}</div>
-        <div className="flex items-center gap-1 mt-0.5 text-xs">
-          <Arrow className="h-3.5 w-3.5" style={{ color }} />
-          <span style={{ color }} className="font-semibold">{Math.abs(delta)}%</span>
-          <span className="text-gray-400">vs last month</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function QuickActions({ onCashTx }: { onCashTx: (t: CashTxType) => void }) {
   const navigate = useNavigate();
   const tiles: Array<{
@@ -220,7 +238,11 @@ function QuickActions({ onCashTx }: { onCashTx: (t: CashTxType) => void }) {
     onClick?: () => void;
     disabled?: boolean;
   }> = [
-    { label: "Transactions", Icon: ArrowLeftRight, onClick: () => navigate({ to: "/transactions" }) },
+    {
+      label: "Transactions",
+      Icon: ArrowLeftRight,
+      onClick: () => navigate({ to: "/transactions" }),
+    },
     { label: "Cash Deposits", Icon: ArrowDownCircle, onClick: () => onCashTx("deposit") },
     { label: "Cash Withdrawal", Icon: ArrowUpCircle, onClick: () => onCashTx("withdraw") },
     { label: "Clients", Icon: UserCircle2, onClick: () => navigate({ to: "/clients" }) },
@@ -255,7 +277,9 @@ function QuickActions({ onCashTx }: { onCashTx: (t: CashTxType) => void }) {
           >
             <t.Icon className={`h-5 w-5 ${t.disabled ? "text-gray-300" : "text-[#002663]"}`} />
           </div>
-          <span className={`text-[12px] font-medium text-center leading-tight ${t.disabled ? "text-gray-400" : "text-[#101828]"}`}>
+          <span
+            className={`text-[12px] font-medium text-center leading-tight ${t.disabled ? "text-gray-400" : "text-[#101828]"}`}
+          >
             {t.label}
           </span>
         </button>
@@ -296,11 +320,34 @@ function VolumeChart() {
           </linearGradient>
         </defs>
         <CartesianGrid stroke="#f0f0f0" strokeDasharray="3 3" vertical={false} />
-        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
+        <XAxis
+          dataKey="month"
+          axisLine={false}
+          tickLine={false}
+          tick={{ fontSize: 11, fill: "#9ca3af" }}
+        />
         <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
         <Tooltip content={<ChartTooltip currency />} cursor={{ stroke: "#e5e7eb" }} />
-        <Area type="monotone" dataKey="deposits" name="Deposits" stroke="#3B82F6" strokeWidth={2.5} fill="url(#gradDep)" dot={false} activeDot={false} />
-        <Area type="monotone" dataKey="withdrawals" name="Withdrawals" stroke="#0F6E56" strokeWidth={2} fill="url(#gradWit)" dot={false} activeDot={false} />
+        <Area
+          type="monotone"
+          dataKey="deposits"
+          name="Deposits"
+          stroke="#3B82F6"
+          strokeWidth={2.5}
+          fill="url(#gradDep)"
+          dot={false}
+          activeDot={false}
+        />
+        <Area
+          type="monotone"
+          dataKey="withdrawals"
+          name="Withdrawals"
+          stroke="#0F6E56"
+          strokeWidth={2}
+          fill="url(#gradWit)"
+          dot={false}
+          activeDot={false}
+        />
       </AreaChart>
     </ResponsiveContainer>
   );
@@ -311,7 +358,12 @@ function GrowthChart() {
     <ResponsiveContainer width="100%" height={240}>
       <BarChart data={growthData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
         <CartesianGrid stroke="#f0f0f0" strokeDasharray="3 3" vertical={false} />
-        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
+        <XAxis
+          dataKey="month"
+          axisLine={false}
+          tickLine={false}
+          tick={{ fontSize: 11, fill: "#9ca3af" }}
+        />
         <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
         <Tooltip
           cursor={{ fill: "rgba(0,38,99,0.04)" }}
