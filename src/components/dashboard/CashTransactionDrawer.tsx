@@ -94,7 +94,7 @@ export function CashTransactionDrawer({ type, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="absolute right-0 top-0 h-full w-full max-w-[448px] bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+      <div className="absolute right-0 top-0 h-full w-full max-w-[448px] bg-white border border-gray-200 flex flex-col animate-in slide-in-from-right duration-200">
         {/* Header */}
         <div className="flex items-start gap-3 p-5 border-b border-gray-100">
           <div className={`h-11 w-11 rounded-xl ${accentBg} flex items-center justify-center shrink-0`}>

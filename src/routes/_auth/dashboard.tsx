@@ -257,7 +257,7 @@ function QuickActions({ onCashTx }: { onCashTx: (t: CashTxType) => void }) {
 function ChartTooltip({ active, payload, valueSuffix, currency }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white rounded-lg border border-gray-100 shadow-md px-3 py-2 text-xs">
+    <div className="bg-white rounded-lg border border-gray-100  px-3 py-2 text-xs">
       {payload.map((p: any) => (
         <div key={p.dataKey} className="flex items-center gap-2 py-0.5">
           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: p.color }} />
@@ -308,7 +308,7 @@ function GrowthChart() {
           content={({ active, payload }: any) => {
             if (!active || !payload?.length) return null;
             return (
-              <div className="bg-white rounded-lg border border-gray-100 shadow-md px-3 py-2 text-xs">
+              <div className="bg-white rounded-lg border border-gray-100  px-3 py-2 text-xs">
                 <span className="font-semibold text-[#101828]">{payload[0].value} clients</span>
               </div>
             );

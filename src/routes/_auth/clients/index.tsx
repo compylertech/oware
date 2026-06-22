@@ -10,54 +10,15 @@ import {
   Plus,
 } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
+import {
+  useClients,
+  removeClient,
+  type Client,
+  type ClientStatus,
+} from "@/lib/mockStore";
 
 export const Route = createFileRoute("/_auth/clients/")({
   component: ClientsPage,
-});
-
-type ClientStatus = "Active" | "Pending";
-
-type Client = {
-  id: string;
-  name: string;
-  clientNumber: string;
-  externalId: string;
-  status: ClientStatus;
-  officeName: string;
-  activationDate: string;
-};
-
-const OFFICES = ["Accra Main", "Kumasi", "Takoradi", "Head Office"];
-
-const SEED: Client[] = [
-  ["Kwame Mensah", "Active", 0],
-  ["Akosua Owusu", "Active", 1],
-  ["Yaw Boateng", "Pending", 2],
-  ["Ama Asantewaa", "Active", 3],
-  ["Kojo Annan", "Active", 0],
-  ["Efua Sutherland", "Pending", 1],
-  ["Kwesi Appiah", "Active", 2],
-  ["Adwoa Safo", "Active", 3],
-  ["Nana Akufo", "Pending", 0],
-  ["Abena Pokuaa", "Active", 1],
-  ["Kofi Nyantakyi", "Active", 2],
-  ["Esi Bondzie", "Pending", 3],
-].map(([name, status, off], i) => {
-  const n = String(i + 1).padStart(4, "0");
-  const d = new Date(2024, (i * 2) % 12, ((i * 5) % 27) + 1);
-  return {
-    id: `clt-${n}`,
-    name: name as string,
-    clientNumber: `CLT-${n}`,
-    externalId: `EXT-${n}`,
-    status: status as ClientStatus,
-    officeName: OFFICES[off as number],
-    activationDate: d.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    }),
-  };
 });
 
 const PAGE_SIZE = 10;
@@ -73,7 +34,7 @@ function initials(name: string) {
 
 function ClientsPage() {
   const navigate = useNavigate();
-  const [clients, setClients] = useState<Client[]>(SEED);
+  const clients = useClients();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"All" | ClientStatus>("All");
   const [statusOpen, setStatusOpen] = useState(false);
@@ -351,7 +312,7 @@ function ClientsPage() {
               style={{
                 border: "1px solid #DDE4EF",
                 borderRadius: 8,
-                boxShadow: "0 8px 24px rgba(0,38,99,0.12)",
+                
                 minWidth: 180,
                 padding: 4,
               }}
@@ -556,7 +517,7 @@ function ClientsPage() {
                           style={{
                             border: "1px solid #DDE4EF",
                             borderRadius: 8,
-                            boxShadow: "0 8px 24px rgba(0,38,99,0.12)",
+                            
                             minWidth: 140,
                             padding: 4,
                           }}
@@ -625,7 +586,7 @@ function ClientsPage() {
               borderRadius: 12,
               padding: 24,
               width: 380,
-              boxShadow: "0 24px 48px rgba(0,0,0,0.2)",
+              
             }}
           >
             <h3
@@ -659,9 +620,7 @@ function ClientsPage() {
               </button>
               <button
                 onClick={() => {
-                  setClients((prev) =>
-                    prev.filter((x) => x.id !== confirmDelete.id),
-                  );
+                  removeClient(confirmDelete.id);
                   setConfirmDelete(null);
                 }}
                 style={{
