@@ -173,6 +173,7 @@ export function Td({ children, style }: { children: ReactNode; style?: CSSProper
         color: LOAN.ink,
         padding: "12px 14px",
         borderTop: `1px solid ${LOAN.border}`,
+        fontVariantNumeric: "tabular-nums",
         ...style,
       }}
     >

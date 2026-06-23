@@ -86,22 +86,22 @@ function LoanDetail() {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
-                <Th>No.</Th>
+                <Th style={{ textAlign: "right" }}>No.</Th>
                 <Th>Date</Th>
-                <Th>Principal</Th>
-                <Th>Interest</Th>
-                <Th>Total</Th>
+                <Th style={{ textAlign: "right" }}>Principal</Th>
+                <Th style={{ textAlign: "right" }}>Interest</Th>
+                <Th style={{ textAlign: "right" }}>Total</Th>
                 <Th>Status</Th>
               </tr>
             </thead>
             <tbody>
               {schedule.map((r) => (
                 <tr key={r.no}>
-                  <Td>{r.no}</Td>
+                  <Td style={{ textAlign: "right" }}>{r.no}</Td>
                   <Td>{r.date}</Td>
-                  <Td>{fmtGHS(r.principal)}</Td>
-                  <Td>{fmtGHS(r.interest)}</Td>
-                  <Td style={{ fontWeight: 700 }}>{fmtGHS(r.total)}</Td>
+                  <Td style={{ textAlign: "right" }}>{fmtGHS(r.principal)}</Td>
+                  <Td style={{ textAlign: "right" }}>{fmtGHS(r.interest)}</Td>
+                  <Td style={{ textAlign: "right", fontWeight: 700 }}>{fmtGHS(r.total)}</Td>
                   <Td>
                     <StatusPill
                       label={r.status}

@@ -31,9 +31,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen w-full bg-[#f8f9fc]">
       {/* Left brand panel */}
-      <aside
-        className="relative hidden lg:flex lg:w-[52%] flex-col overflow-hidden bg-[#002663] p-14"
-      >
+      <aside className="relative hidden lg:flex lg:w-[52%] flex-col overflow-hidden bg-[#002663] p-14">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
@@ -53,7 +51,10 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         </div>
 
         <div className="relative z-10 my-auto max-w-[460px]">
-          <p className="text-[11px] font-bold uppercase text-white/40" style={{ letterSpacing: "0.22em" }}>
+          <p
+            className="text-[11px] font-bold uppercase text-white/40"
+            style={{ letterSpacing: "0.22em" }}
+          >
             Core Banking Platform
           </p>
           <h1
@@ -75,7 +76,10 @@ export function AuthLayout({ children }: { children: ReactNode }) {
               "SOC 2 certified infrastructure",
             ].map((label) => (
               <li key={label} className="flex items-center gap-3">
-                <span className="h-[6px] w-[6px] rounded-full bg-white/40" style={{ boxShadow: "0 0 0 0.5px rgba(255,255,255,0.4)" }} />
+                <span
+                  className="h-[6px] w-[6px] rounded-full bg-white/40"
+                  style={{ boxShadow: "0 0 0 0.5px rgba(255,255,255,0.4)" }}
+                />
                 <span className="text-[13.5px] font-medium text-white/55">{label}</span>
               </li>
             ))}

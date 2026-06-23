@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_auth/transactions")({
 
 const NAVY = "#002663";
 const BORDER = "#DDE4EF";
-const MUTED = "#7A879F";
+const MUTED = "#5B6A86";
 const INK = "#16233F";
 const BG = "#F4F6FB";
 
@@ -196,13 +196,13 @@ function TransactionsPage() {
         <Kpi label="TOTAL TRANSACTIONS" value="10" valueColor={INK} sub="Matching filters" />
         <Kpi
           label="TOTAL CREDITS"
-          value={`GHS ${fmt(118289.8)}`}
+          value={`GH₵ ${fmt(118289.8)}`}
           valueColor="#067647"
           sub="Completed credits"
         />
         <Kpi
           label="TOTAL DEBITS"
-          value={`GHS ${fmt(9700)}`}
+          value={`GH₵ ${fmt(9700)}`}
           valueColor="#D92D20"
           sub="Completed debits"
         />
@@ -292,7 +292,7 @@ function TransactionsPage() {
                     fontVariantNumeric: "tabular-nums",
                   }}
                 >
-                  {r.type === "Credit" ? "+" : "-"}GHS {fmt(r.amount)}
+                  {r.type === "Credit" ? "+" : "-"}GH₵ {fmt(r.amount)}
                 </td>
                 <td style={{ ...td, color: INK }}>{r.narration}</td>
                 <td style={td}>
@@ -425,7 +425,7 @@ function TransactionsPage() {
             <DetailRow label="Type" value={detail.type} />
             <DetailRow
               label="Amount"
-              value={`${detail.type === "Credit" ? "+" : "-"}GHS ${fmt(detail.amount)}`}
+              value={`${detail.type === "Credit" ? "+" : "-"}GH₵ ${fmt(detail.amount)}`}
             />
             <DetailRow label="Narration" value={detail.narration} />
             <DetailRow label="Status" value={detail.status} />

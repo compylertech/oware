@@ -10,12 +10,7 @@ import {
   Check,
   ChevronRight,
 } from "lucide-react";
-import {
-  addClient,
-  addCoopMember,
-  nextClientNumber,
-  type Client,
-} from "@/lib/mockStore";
+import { addClient, addCoopMember, nextClientNumber, type Client } from "@/lib/mockStore";
 
 export const Route = createFileRoute("/_auth/clients/add")({
   component: AddClientPage,
@@ -174,13 +169,12 @@ function AddClientPage() {
       await new Promise((r) => setTimeout(r, 600));
       const n = nextClientNumber();
       const id = `clt-${n}`;
-      const fullName = [form.firstName, form.middleName, form.lastName]
-        .filter(Boolean)
-        .join(" ");
-      const activation = new Date(form.submittedOn).toLocaleDateString(
-        "en-GB",
-        { day: "2-digit", month: "short", year: "numeric" },
-      );
+      const fullName = [form.firstName, form.middleName, form.lastName].filter(Boolean).join(" ");
+      const activation = new Date(form.submittedOn).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
       const client: Client = {
         id,
         name: fullName,
@@ -243,10 +237,7 @@ function AddClientPage() {
       </p>
 
       {/* Two-column layout */}
-      <div
-        className="mt-6 grid items-start"
-        style={{ gridTemplateColumns: "220px 1fr", gap: 24 }}
-      >
+      <div className="mt-6 grid items-start" style={{ gridTemplateColumns: "220px 1fr", gap: 24 }}>
         {/* Step sidebar */}
         <div
           className="bg-white"
@@ -285,11 +276,7 @@ function AddClientPage() {
                   className="flex items-center gap-2.5 text-left transition-colors"
                   style={{
                     background: isCurrent ? NAVY : "transparent",
-                    color: isCurrent
-                      ? "white"
-                      : isDone
-                        ? "#374151"
-                        : "#9CA3AF",
+                    color: isCurrent ? "white" : isDone ? "#374151" : "#9CA3AF",
                     borderRadius: 10,
                     padding: "10px 10px",
                     fontSize: 13,
@@ -297,12 +284,10 @@ function AddClientPage() {
                     cursor: clickable ? "pointer" : "default",
                   }}
                   onMouseEnter={(e) => {
-                    if (isDone && !isCurrent)
-                      e.currentTarget.style.background = "#F9FAFB";
+                    if (isDone && !isCurrent) e.currentTarget.style.background = "#F9FAFB";
                   }}
                   onMouseLeave={(e) => {
-                    if (isDone && !isCurrent)
-                      e.currentTarget.style.background = "transparent";
+                    if (isDone && !isCurrent) e.currentTarget.style.background = "transparent";
                   }}
                 >
                   <span
@@ -316,11 +301,7 @@ function AddClientPage() {
                         : isDone
                           ? "#D1FAE5"
                           : "#F3F4F6",
-                      color: isCurrent
-                        ? "white"
-                        : isDone
-                          ? "#059669"
-                          : "#9CA3AF",
+                      color: isCurrent ? "white" : isDone ? "#059669" : "#9CA3AF",
                       fontSize: 11,
                       fontWeight: 700,
                     }}
@@ -330,13 +311,7 @@ function AddClientPage() {
                   <span className="flex-1">{s.label}</span>
                   <Icon
                     size={14}
-                    color={
-                      isCurrent
-                        ? "rgba(255,255,255,0.7)"
-                        : isDone
-                          ? "#059669"
-                          : "#D1D5DB"
-                    }
+                    color={isCurrent ? "rgba(255,255,255,0.7)" : isDone ? "#059669" : "#D1D5DB"}
                   />
                 </button>
               );
@@ -353,10 +328,7 @@ function AddClientPage() {
           }}
         >
           {/* Card header */}
-          <div
-            className="flex items-center gap-3"
-            style={{ padding: 28, paddingBottom: 0 }}
-          >
+          <div className="flex items-center gap-3" style={{ padding: 28, paddingBottom: 0 }}>
             <div
               className="inline-flex items-center justify-center"
               style={{
@@ -370,14 +342,8 @@ function AddClientPage() {
               <StepIcon size={18} color={NAVY} />
             </div>
             <div>
-              <div
-                style={{ fontSize: 14, fontWeight: 700, color: "#101828" }}
-              >
-                {stepLabel}
-              </div>
-              <div style={{ fontSize: 12, color: "#667085" }}>
-                Step {step} of 5
-              </div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#101828" }}>{stepLabel}</div>
+              <div style={{ fontSize: 12, color: "#667085" }}>Step {step} of 5</div>
             </div>
           </div>
 
@@ -386,12 +352,8 @@ function AddClientPage() {
             {step === 1 && <StepPersonal form={form} set={set} errors={errors} />}
             {step === 2 && <StepAddress form={form} set={set} />}
             {step === 3 && <StepFamily form={form} set={set} />}
-            {step === 4 && (
-              <StepIdentity form={form} set={set} errors={errors} />
-            )}
-            {step === 5 && (
-              <StepCoop form={form} set={set} errors={errors} />
-            )}
+            {step === 4 && <StepIdentity form={form} set={set} errors={errors} />}
+            {step === 5 && <StepCoop form={form} set={set} errors={errors} />}
 
             {submitError && (
               <div
@@ -526,12 +488,8 @@ function Field({
         {required && <span style={{ color: "#DC2626" }}> *</span>}
       </label>
       {children}
-      {hint && !error && (
-        <span style={{ fontSize: 11, color: "#9CA3AF" }}>{hint}</span>
-      )}
-      {error && (
-        <span style={{ fontSize: 11, color: "#DC2626" }}>{error}</span>
-      )}
+      {hint && !error && <span style={{ fontSize: 11, color: "#9CA3AF" }}>{hint}</span>}
+      {error && <span style={{ fontSize: 11, color: "#DC2626" }}>{error}</span>}
     </div>
   );
 }
@@ -550,9 +508,11 @@ function inputStyle(error?: boolean): React.CSSProperties {
   };
 }
 
-function TextInput(props: React.InputHTMLAttributes<HTMLInputElement> & {
-  error?: boolean;
-}) {
+function TextInput(
+  props: React.InputHTMLAttributes<HTMLInputElement> & {
+    error?: boolean;
+  },
+) {
   const { error, ...rest } = props;
   return (
     <input
@@ -650,11 +610,7 @@ function StepPersonal({ form, set, errors = {} }: StepProps) {
       </div>
       <div className="grid grid-cols-2 gap-4">
         <Field label="Date of Birth">
-          <TextInput
-            type="date"
-            value={form.dob}
-            onChange={(e) => set("dob", e.target.value)}
-          />
+          <TextInput type="date" value={form.dob} onChange={(e) => set("dob", e.target.value)} />
         </Field>
         <Field label="Gender">
           <Select
@@ -694,12 +650,7 @@ function StepPersonal({ form, set, errors = {} }: StepProps) {
           <Select
             value={form.office}
             onChange={(v) => set("office", v)}
-            options={[
-              "Headoffice",
-              "Kumasi Branch",
-              "Tema Branch",
-              "Takoradi Branch",
-            ]}
+            options={["Headoffice", "Kumasi Branch", "Tema Branch", "Takoradi Branch"]}
             error={!!errors.office}
           />
         </Field>
@@ -741,16 +692,10 @@ function StepAddress({ form, set }: StepProps) {
     <div className="flex flex-col gap-4">
       <HintLine>All address fields are optional.</HintLine>
       <Field label="Address Line 1">
-        <TextInput
-          value={form.addr1}
-          onChange={(e) => set("addr1", e.target.value)}
-        />
+        <TextInput value={form.addr1} onChange={(e) => set("addr1", e.target.value)} />
       </Field>
       <Field label="Address Line 2">
-        <TextInput
-          value={form.addr2}
-          onChange={(e) => set("addr2", e.target.value)}
-        />
+        <TextInput value={form.addr2} onChange={(e) => set("addr2", e.target.value)} />
       </Field>
       <div className="grid grid-cols-2 gap-4">
         <Field label="City / Town">
@@ -784,10 +729,7 @@ function StepFamily({ form, set }: StepProps) {
           />
         </Field>
         <Field label="Spouse Last Name">
-          <TextInput
-            value={form.spouseLast}
-            onChange={(e) => set("spouseLast", e.target.value)}
-          />
+          <TextInput value={form.spouseLast} onChange={(e) => set("spouseLast", e.target.value)} />
         </Field>
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -803,15 +745,7 @@ function StepFamily({ form, set }: StepProps) {
           <Select
             value={form.qualification}
             onChange={(v) => set("qualification", v)}
-            options={[
-              "None",
-              "Primary",
-              "JHS",
-              "SHS",
-              "Diploma",
-              "Degree",
-              "Postgraduate",
-            ]}
+            options={["None", "Primary", "JHS", "SHS", "Diploma", "Degree", "Postgraduate"]}
           />
         </Field>
       </div>
@@ -822,9 +756,7 @@ function StepFamily({ form, set }: StepProps) {
 function StepIdentity({ form, set, errors = {} }: StepProps) {
   return (
     <div className="flex flex-col gap-4">
-      <HintLine>
-        If a document type is selected, an ID number is required.
-      </HintLine>
+      <HintLine>If a document type is selected, an ID number is required.</HintLine>
       <Field label="Document Type">
         <Select
           value={form.docType}
@@ -861,9 +793,8 @@ function StepCoop({ form, set, errors = {} }: StepProps) {
   return (
     <div className="flex flex-col gap-4">
       <HintLine>
-        Enrol this client into the cooperative member register. Members are
-        admitted with a Pending status (amber) until the common-bond
-        requirement is confirmed.
+        Enrol this client into the cooperative member register. Members are admitted with a Pending
+        status (amber) until the common-bond requirement is confirmed.
       </HintLine>
       <label
         className="flex items-center gap-3 cursor-pointer"

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Wallet, Landmark, PieChart, CreditCard } from "lucide-react";
+import { Wallet, Landmark, PieChart, CreditCard, ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { FONTS, tokens } from "@/lib/tokens";
 import { PageHeader, Pill } from "@/components/patterns";
@@ -51,11 +51,19 @@ function HubCard({ card }: { card: NavCard }) {
         display: "flex",
         flexDirection: "column",
         gap: 14,
-        transition: "background 120ms",
+        transition: "background 120ms, transform 120ms, box-shadow 120ms",
         fontFamily: FONTS.body,
       }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = "#F7FAFF")}
-      onMouseLeave={(e) => (e.currentTarget.style.background = tokens.surface)}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = "#F7FAFF";
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.boxShadow = "0 6px 16px rgba(13,27,62,0.08)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = tokens.surface;
+        e.currentTarget.style.transform = "none";
+        e.currentTarget.style.boxShadow = "none";
+      }}
     >
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div
@@ -78,6 +86,19 @@ function HubCard({ card }: { card: NavCard }) {
         <div style={{ fontSize: 13, color: tokens.textSub, marginTop: 4, lineHeight: 1.5 }}>
           {card.desc}
         </div>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 4,
+          marginTop: "auto",
+          color: tokens.accent,
+          fontSize: 13,
+          fontWeight: 600,
+        }}
+      >
+        View <ArrowRight size={14} />
       </div>
     </button>
   );

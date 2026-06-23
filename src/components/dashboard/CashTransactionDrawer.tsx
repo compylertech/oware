@@ -17,8 +17,20 @@ interface AccountInfo {
 }
 
 const MOCK_ACCOUNTS: Record<string, AccountInfo> = {
-  "1001234567": { name: "Pearl Adzoko", account: "1001234567", type: "Savings", balance: "GHS 12,500.00", status: "active" },
-  "1009876543": { name: "Kwame Mensah", account: "1009876543", type: "Current", balance: "GHS 38,210.50", status: "active" },
+  "1001234567": {
+    name: "Pearl Adzoko",
+    account: "1001234567",
+    type: "Savings",
+    balance: "GH₵ 12,500.00",
+    status: "active",
+  },
+  "1009876543": {
+    name: "Kwame Mensah",
+    account: "1009876543",
+    type: "Current",
+    balance: "GH₵ 38,210.50",
+    status: "active",
+  },
 };
 
 export function CashTransactionDrawer({ type, onClose }: Props) {
@@ -57,9 +69,17 @@ export function CashTransactionDrawer({ type, onClose }: Props) {
   if (!open) return null;
 
   const handleLookup = () => {
-    const found = MOCK_ACCOUNTS[accountNumber.trim()] ?? (accountNumber.trim().length >= 6
-      ? { name: "John Doe", account: accountNumber.trim(), type: "Savings", balance: "GHS 12,500.00", status: "active" as const }
-      : null);
+    const found =
+      MOCK_ACCOUNTS[accountNumber.trim()] ??
+      (accountNumber.trim().length >= 6
+        ? {
+            name: "John Doe",
+            account: accountNumber.trim(),
+            type: "Savings",
+            balance: "GH₵ 12,500.00",
+            status: "active" as const,
+          }
+        : null);
     if (found) {
       setAccount(found);
       setLookupError(null);
@@ -97,8 +117,14 @@ export function CashTransactionDrawer({ type, onClose }: Props) {
       <div className="absolute right-0 top-0 h-full w-full max-w-[448px] bg-white border border-gray-200 flex flex-col animate-in slide-in-from-right duration-200">
         {/* Header */}
         <div className="flex items-start gap-3 p-5 border-b border-gray-100">
-          <div className={`h-11 w-11 rounded-xl ${accentBg} flex items-center justify-center shrink-0`}>
-            {isDeposit ? <ArrowDownCircle className={`h-5 w-5 ${accentText}`} /> : <ArrowUpCircle className={`h-5 w-5 ${accentText}`} />}
+          <div
+            className={`h-11 w-11 rounded-xl ${accentBg} flex items-center justify-center shrink-0`}
+          >
+            {isDeposit ? (
+              <ArrowDownCircle className={`h-5 w-5 ${accentText}`} />
+            ) : (
+              <ArrowUpCircle className={`h-5 w-5 ${accentText}`} />
+            )}
           </div>
           <div className="flex-1">
             <div className="text-[15px] font-bold text-[#101828]">{title}</div>
@@ -124,7 +150,9 @@ export function CashTransactionDrawer({ type, onClose }: Props) {
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
               {/* Account number */}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">Account Number</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                  Account Number
+                </label>
                 <div className="flex gap-2">
                   <input
                     value={accountNumber}
@@ -146,21 +174,29 @@ export function CashTransactionDrawer({ type, onClose }: Props) {
               {account && (
                 <div className="rounded-xl border border-gray-100 bg-gray-50 p-3 space-y-1.5 text-sm">
                   <Row label="Name" value={account.name} />
-                  <Row label="Account" value={<span className="font-mono">{account.account}</span>} />
+                  <Row
+                    label="Account"
+                    value={<span className="font-mono">{account.account}</span>}
+                  />
                   <Row label="Type" value={account.type} />
                   <Row label="Balance" value={account.balance} />
-                  <Row label="Status" value={
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                      <span className="text-emerald-600 capitalize">{account.status}</span>
-                    </span>
-                  } />
+                  <Row
+                    label="Status"
+                    value={
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        <span className="text-emerald-600 capitalize">{account.status}</span>
+                      </span>
+                    }
+                  />
                 </div>
               )}
 
               {/* Amount */}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">Amount (GHS)</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                  Amount (GH₵)
+                </label>
                 <input
                   type="number"
                   value={amount}
@@ -174,7 +210,9 @@ export function CashTransactionDrawer({ type, onClose }: Props) {
 
               {/* Narration */}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">Narration <span className="text-gray-400 font-normal">(optional)</span></label>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                  Narration <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
                 <textarea
                   value={narration}
                   onChange={(e) => setNarration(e.target.value)}
@@ -205,8 +243,10 @@ export function CashTransactionDrawer({ type, onClose }: Props) {
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" /> Processing…
                   </>
+                ) : isDeposit ? (
+                  "Post Deposit"
                 ) : (
-                  isDeposit ? "Post Deposit" : "Post Withdrawal"
+                  "Post Withdrawal"
                 )}
               </button>
             </div>

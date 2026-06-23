@@ -24,7 +24,14 @@ const PRODUCTS: ProductCardData[] = LOAN_PRODUCTS.map((p) => ({
 
 function LoanProductsPage() {
   return (
-    <div style={{ background: tokens.bg, minHeight: "100%", padding: "24px 28px", fontFamily: FONTS.body }}>
+    <div
+      style={{
+        background: tokens.bg,
+        minHeight: "100%",
+        padding: "24px 28px",
+        fontFamily: FONTS.body,
+      }}
+    >
       <Link
         to="/products"
         style={{
@@ -41,10 +48,31 @@ function LoanProductsPage() {
         <ArrowLeft size={14} /> Back to Products
       </Link>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: 14, gap: 16, marginBottom: 22 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          marginTop: 14,
+          gap: 16,
+          marginBottom: 22,
+        }}
+      >
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: tokens.textMuted }}>PRODUCTS</div>
-          <h1 style={{ fontFamily: FONTS.display, fontSize: 26, fontWeight: 800, color: tokens.text, margin: "6px 0 6px" }}>
+          <div
+            style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: tokens.textMuted }}
+          >
+            PRODUCTS
+          </div>
+          <h1
+            style={{
+              fontFamily: FONTS.display,
+              fontSize: 26,
+              fontWeight: 800,
+              color: tokens.text,
+              margin: "6px 0 6px",
+            }}
+          >
             Loan Products
           </h1>
           <p style={{ color: tokens.textSub, fontSize: 14, margin: 0 }}>

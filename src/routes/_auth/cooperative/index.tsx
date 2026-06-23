@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Gavel, Users2, PieChart, SlidersHorizontal } from "lucide-react";
+import { Gavel, Users2, PieChart, SlidersHorizontal, ArrowRight } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
+import { Pill } from "@/components/patterns";
 import type { CSSProperties, ReactNode } from "react";
 
 export const Route = createFileRoute("/_auth/cooperative/")({
@@ -17,21 +18,9 @@ function LayerTag({ label, variant }: { label: string; variant: LayerVariant }) 
   };
   const s = styles[variant];
   return (
-    <span
-      style={{
-        background: s.bg,
-        color: s.fg,
-        fontSize: 10,
-        fontWeight: 700,
-        padding: "2px 7px",
-        borderRadius: 999,
-        letterSpacing: 0.3,
-        textTransform: "uppercase",
-        fontFamily: FONTS.body,
-      }}
-    >
+    <Pill color={s.fg} bg={s.bg} uppercase>
       {label}
-    </span>
+    </Pill>
   );
 }
 
@@ -61,11 +50,19 @@ function HubCard({ card }: { card: NavCard }) {
         display: "flex",
         flexDirection: "column",
         gap: 14,
-        transition: "background 120ms",
+        transition: "background 120ms, transform 120ms, box-shadow 120ms",
         fontFamily: FONTS.body,
       }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = "#F7FAFF")}
-      onMouseLeave={(e) => (e.currentTarget.style.background = tokens.surface)}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = "#F7FAFF";
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.boxShadow = "0 6px 16px rgba(13,27,62,0.08)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = tokens.surface;
+        e.currentTarget.style.transform = "none";
+        e.currentTarget.style.boxShadow = "none";
+      }}
     >
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div
@@ -88,6 +85,19 @@ function HubCard({ card }: { card: NavCard }) {
         <div style={{ fontSize: 13, color: tokens.textSub, marginTop: 4, lineHeight: 1.5 }}>
           {card.desc}
         </div>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 4,
+          marginTop: "auto",
+          color: tokens.accent,
+          fontSize: 13,
+          fontWeight: 600,
+        }}
+      >
+        View <ArrowRight size={14} />
       </div>
     </button>
   );
@@ -134,7 +144,14 @@ function CooperativeHub() {
   ];
 
   return (
-    <div style={{ background: tokens.bg, minHeight: "100%", padding: "24px 28px", fontFamily: FONTS.body }}>
+    <div
+      style={{
+        background: tokens.bg,
+        minHeight: "100%",
+        padding: "24px 28px",
+        fontFamily: FONTS.body,
+      }}
+    >
       <div>
         <div
           style={{

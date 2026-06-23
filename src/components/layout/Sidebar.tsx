@@ -57,16 +57,9 @@ const SECTIONS: NavSection[] = [
   },
 ];
 
-const DOT_GRID =
-  "radial-gradient(circle, rgba(255,255,255,1) 1px, transparent 1px)";
+const DOT_GRID = "radial-gradient(circle, rgba(255,255,255,1) 1px, transparent 1px)";
 
-export function Sidebar({
-  collapsed,
-  onToggle,
-}: {
-  collapsed: boolean;
-  onToggle: () => void;
-}) {
+export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   // Longest-match wins so /clients/account-lookup never activates /clients.
@@ -84,8 +77,7 @@ export function Sidebar({
       style={{
         width: collapsed ? 64 : 220,
         transition: "width 0.25s ease",
-        background:
-          "linear-gradient(135deg, #001844 0%, #002663 60%, #1a4080 100%)",
+        background: "linear-gradient(135deg, #001844 0%, #002663 60%, #1a4080 100%)",
       }}
     >
       {/* Dot grid overlay */}
@@ -121,9 +113,7 @@ export function Sidebar({
             >
               Oware
             </span>
-            <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>
-              Head Office
-            </span>
+            <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>Head Office</span>
           </div>
         )}
       </div>
@@ -209,11 +199,7 @@ function NavRow({
           style={{ width: 3, height: 18, backgroundColor: "#fff" }}
         />
       )}
-      <Icon
-        className="shrink-0"
-        style={{ width: 15, height: 15 }}
-        strokeWidth={2}
-      />
+      <Icon className="shrink-0" style={{ width: 15, height: 15 }} strokeWidth={2} />
       {!collapsed && (
         <span className="truncate" style={{ fontSize: 13 }}>
           {item.label}

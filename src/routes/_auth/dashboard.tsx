@@ -59,7 +59,7 @@ const growthData = [
 const activity = [
   { name: "Pearl Adzoko", action: "Account activated", time: "2 min ago" },
   { name: "Kwame Mensah", action: "KYC documents submitted", time: "18 min ago" },
-  { name: "Ama Boateng", action: "Deposit · GHS 4,500", time: "1 hr ago" },
+  { name: "Ama Boateng", action: "Deposit · GH₵ 4,500", time: "1 hr ago" },
   { name: "Kofi Asare", action: "Loan application pending", time: "2 hr ago" },
 ];
 
@@ -104,7 +104,7 @@ function DashboardPage() {
           />
           <StatCard
             label="Deposits (May)"
-            value="GHS 830K"
+            value="GH₵ 830K"
             delta={25.8}
             up
             icon={<TrendingUp size={18} />}
@@ -185,7 +185,7 @@ function DashboardPage() {
                     <div className="text-xs text-gray-500 truncate">{a.action}</div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-xs" style={{ color: "#7A879F" }}>
+                    <span className="text-xs" style={{ color: "#5B6A86" }}>
                       {a.time}
                     </span>
                   </div>
@@ -288,16 +288,30 @@ function QuickActions({ onCashTx }: { onCashTx: (t: CashTxType) => void }) {
   );
 }
 
-function ChartTooltip({ active, payload, valueSuffix, currency }: any) {
+type TooltipEntry = {
+  dataKey?: string | number;
+  name?: string;
+  value?: number;
+  color?: string;
+};
+
+type ChartTooltipProps = {
+  active?: boolean;
+  payload?: TooltipEntry[];
+  valueSuffix?: string;
+  currency?: boolean;
+};
+
+function ChartTooltip({ active, payload, valueSuffix, currency }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white rounded-lg border border-gray-100  px-3 py-2 text-xs">
-      {payload.map((p: any) => (
+      {payload.map((p: TooltipEntry) => (
         <div key={p.dataKey} className="flex items-center gap-2 py-0.5">
           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: p.color }} />
           <span className="text-gray-500 capitalize">{p.name}:</span>
           <span className="font-semibold text-[#101828]">
-            {currency ? `GHS ${p.value}K` : `${p.value}${valueSuffix ?? ""}`}
+            {currency ? `GH₵ ${p.value}K` : `${p.value}${valueSuffix ?? ""}`}
           </span>
         </div>
       ))}
@@ -367,7 +381,7 @@ function GrowthChart() {
         <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
         <Tooltip
           cursor={{ fill: "rgba(0,38,99,0.04)" }}
-          content={({ active, payload }: any) => {
+          content={({ active, payload }: { active?: boolean; payload?: TooltipEntry[] }) => {
             if (!active || !payload?.length) return null;
             return (
               <div className="bg-white rounded-lg border border-gray-100  px-3 py-2 text-xs">

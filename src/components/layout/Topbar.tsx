@@ -17,7 +17,7 @@ import {
 
 const NAVY = "#002663";
 const BORDER = "#DDE4EF";
-const MUTED = "#7A879F";
+const MUTED = "#5B6A86";
 const INK = "#16233F";
 
 type Notif = {
@@ -33,7 +33,7 @@ type Notif = {
 const NOTIFS: Notif[] = [
   {
     title: "New transaction alert",
-    desc: "Cash deposit of GHS 5,000 processed",
+    desc: "Cash deposit of GH₵ 5,000 processed",
     time: "2 min ago",
     unread: true,
     icon: <CreditCard size={16} />,

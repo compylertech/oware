@@ -423,7 +423,7 @@ function MembershipPage() {
                       padding: "11px 16px",
                       fontSize: 11,
                       fontWeight: 700,
-                      color: "#7A879F",
+                      color: "#5B6A86",
                       letterSpacing: "0.05em",
                       textTransform: "uppercase",
                     }}
@@ -509,7 +509,7 @@ function MembershipPage() {
                           background: "transparent",
                           border: "none",
                           cursor: "pointer",
-                          color: "#7A879F",
+                          color: "#5B6A86",
                           padding: 4,
                         }}
                       >

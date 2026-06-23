@@ -54,7 +54,9 @@ function ProductCard({
     >
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div>
-          <div style={{ fontFamily: FONTS.display, fontSize: 15, fontWeight: 800, color: tokens.text }}>
+          <div
+            style={{ fontFamily: FONTS.display, fontSize: 15, fontWeight: 800, color: tokens.text }}
+          >
             {product.name}
           </div>
           <div
@@ -68,7 +70,9 @@ function ProductCard({
               marginTop: 4,
             }}
           >
-            <span style={{ width: 8, height: 8, borderRadius: 999, background: product.typeColor }} />
+            <span
+              style={{ width: 8, height: 8, borderRadius: 999, background: product.typeColor }}
+            />
             {product.type}
           </div>
         </div>

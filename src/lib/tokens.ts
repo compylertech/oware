@@ -16,7 +16,8 @@ export const tokens = {
   border: "#DDE4EF",
   text: "#0D1B3E",
   textSub: "#4A5878",
-  textMuted: "#8A9ABB",
+  // Darkened from #8A9ABB to meet WCAG AA (~5.4:1 on white) for small labels.
+  textMuted: "#5B6A86",
   success: "#059669",
   successBg: "#ECFDF5",
   warning: "#B45309",
@@ -51,7 +52,8 @@ export const LOAN = {
   purple: tokens.purple,
   purpleBg: tokens.purpleBg,
   border: "#E6EAF2",
-  muted: "#7A879F",
+  // Darkened from #7A879F to meet WCAG AA on white.
+  muted: "#5B6A86",
   ink: "#16233F",
   cardBg: tokens.surface,
   pageBg: tokens.bg,

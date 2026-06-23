@@ -211,7 +211,7 @@ function ClientsPage() {
               left: 12,
               top: "50%",
               transform: "translateY(-50%)",
-              color: "#8A9ABB",
+              color: "#5B6A86",
             }}
           />
           <input
@@ -499,7 +499,7 @@ function ClientsPage() {
           className="flex items-center justify-between"
           style={{ padding: "14px 18px", borderTop: "1px solid #F0F3F8" }}
         >
-          <div style={{ fontSize: 12, color: "#8A9ABB" }}>
+          <div style={{ fontSize: 12, color: "#5B6A86" }}>
             Showing {filtered.length === 0 ? 0 : start + 1}–
             {Math.min(start + PAGE_SIZE, filtered.length)} of {filtered.length} clients
           </div>
@@ -651,7 +651,7 @@ function Pagination({
       {btn("prev", "Prev", false, () => onChange(Math.max(1, page - 1)), page === 1)}
       {pages.map((p, i) =>
         p === "…" ? (
-          <span key={`e${i}`} style={{ padding: "0 6px", color: "#8A9ABB", fontSize: 12 }}>
+          <span key={`e${i}`} style={{ padding: "0 6px", color: "#5B6A86", fontSize: 12 }}>
             …
           </span>
         ) : (

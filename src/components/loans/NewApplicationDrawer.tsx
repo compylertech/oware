@@ -7,13 +7,7 @@ import { WIZARD_PRODUCTS, fmtGHS } from "@/lib/loanMock";
 type Collateral = { asset: string; type: string; valuation: number };
 type Guarantor = { name: string; relation: string; amount: number; coop: boolean };
 
-export function NewApplicationDrawer({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+export function NewApplicationDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [clientNo, setClientNo] = useState("");
@@ -27,13 +21,11 @@ export function NewApplicationDrawer({
   const [collateral, setCollateral] = useState<Collateral[]>([]);
   const [guarantors, setGuarantors] = useState<Guarantor[]>([]);
 
-  if (!open) return null;
   const product = productIdx != null ? WIZARD_PRODUCTS[productIdx] : null;
 
   const exceeds = !!product && amount > product.max;
   const totalCollat = collateral.reduce((s, c) => s + (c.valuation || 0), 0);
-  const ltv =
-    product?.secured && totalCollat > 0 ? Math.round((amount / totalCollat) * 100) : 0;
+  const ltv = product?.secured && totalCollat > 0 ? Math.round((amount / totalCollat) * 100) : 0;
 
   const eligibility = useMemo(() => {
     const checks: { label: string; ok: boolean; value: string }[] = [
@@ -69,6 +61,8 @@ export function NewApplicationDrawer({
     else if (failures > 0) outcome = "Needs review";
     return { checks, outcome };
   }, [exceeds, amount, product, tenure, officer, collateral, ltv, guarantors]);
+
+  if (!open) return null;
 
   const step1OK = !!name && !!product && amount > 0 && !exceeds;
   const step2OK = tenure > 0 && rate > 0;
@@ -116,13 +110,23 @@ export function NewApplicationDrawer({
           <div style={{ ...fontDisplay, fontSize: 18, fontWeight: 800, color: LOAN.ink }}>
             New loan application
           </div>
-          <button onClick={close} style={{ background: "transparent", border: "none", color: LOAN.muted }}>
+          <button
+            onClick={close}
+            style={{ background: "transparent", border: "none", color: LOAN.muted }}
+          >
             <X size={18} />
           </button>
         </div>
 
         {/* Stepper */}
-        <div className="grid gap-2 px-6" style={{ gridTemplateColumns: "repeat(4,1fr)", padding: "16px 24px", borderBottom: `1px solid ${LOAN.border}` }}>
+        <div
+          className="grid gap-2 px-6"
+          style={{
+            gridTemplateColumns: "repeat(4,1fr)",
+            padding: "16px 24px",
+            borderBottom: `1px solid ${LOAN.border}`,
+          }}
+        >
           {["Applicant & product", "Terms", "Collateral & guarantors", "Review"].map((label, i) => {
             const idx = i + 1;
             const completed = idx < step;
@@ -188,7 +192,9 @@ export function NewApplicationDrawer({
                           padding: 10,
                         }}
                       >
-                        <div style={{ fontSize: 13, fontWeight: 700, color: LOAN.ink }}>{p.name}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: LOAN.ink }}>
+                          {p.name}
+                        </div>
                         <div style={{ fontSize: 11, color: LOAN.muted, marginTop: 2 }}>
                           {p.rate} · {p.secured ? "secured" : "unsecured"}
                         </div>
@@ -249,10 +255,18 @@ export function NewApplicationDrawer({
                   <Input value={String(rate)} onChange={(v) => setRate(Number(v) || 0)} />
                 </Field>
                 <Field label="Branch">
-                  <Select value={branch} onChange={setBranch} options={["Accra Main", "Kumasi Central", "Takoradi", "Tema"]} />
+                  <Select
+                    value={branch}
+                    onChange={setBranch}
+                    options={["Accra Main", "Kumasi Central", "Takoradi", "Tema"]}
+                  />
                 </Field>
                 <Field label="Loan officer">
-                  <Select value={officer} onChange={setOfficer} options={["A.Owusu", "K.Asante", "V.Yeboah", "D.Quaidoo"]} />
+                  <Select
+                    value={officer}
+                    onChange={setOfficer}
+                    options={["A.Owusu", "K.Asante", "V.Yeboah", "D.Quaidoo"]}
+                  />
                 </Field>
               </div>
             </div>
@@ -281,13 +295,31 @@ export function NewApplicationDrawer({
                 <div className="mt-2 space-y-2">
                   {collateral.map((c, i) => (
                     <div key={i} className="grid grid-cols-3 gap-2">
-                      <Input value={c.asset} onChange={(v) => updateAt(collateral, setCollateral, i, { asset: v })} placeholder="Asset" />
-                      <Input value={c.type} onChange={(v) => updateAt(collateral, setCollateral, i, { type: v })} placeholder="Type" />
-                      <Input value={c.valuation ? String(c.valuation) : ""} onChange={(v) => updateAt(collateral, setCollateral, i, { valuation: Number(v.replace(/[^\d]/g, "")) || 0 })} placeholder="Valuation" />
+                      <Input
+                        value={c.asset}
+                        onChange={(v) => updateAt(collateral, setCollateral, i, { asset: v })}
+                        placeholder="Asset"
+                      />
+                      <Input
+                        value={c.type}
+                        onChange={(v) => updateAt(collateral, setCollateral, i, { type: v })}
+                        placeholder="Type"
+                      />
+                      <Input
+                        value={c.valuation ? String(c.valuation) : ""}
+                        onChange={(v) =>
+                          updateAt(collateral, setCollateral, i, {
+                            valuation: Number(v.replace(/[^\d]/g, "")) || 0,
+                          })
+                        }
+                        placeholder="Valuation"
+                      />
                     </div>
                   ))}
                   <button
-                    onClick={() => setCollateral([...collateral, { asset: "", type: "", valuation: 0 }])}
+                    onClick={() =>
+                      setCollateral([...collateral, { asset: "", type: "", valuation: 0 }])
+                    }
                     style={{
                       width: "100%",
                       padding: 10,
@@ -309,18 +341,48 @@ export function NewApplicationDrawer({
                   {guarantors.map((g, i) => (
                     <div key={i} className="space-y-2">
                       <div className="grid grid-cols-3 gap-2">
-                        <Input value={g.name} onChange={(v) => updateAt(guarantors, setGuarantors, i, { name: v })} placeholder="Name" />
-                        <Input value={g.relation} onChange={(v) => updateAt(guarantors, setGuarantors, i, { relation: v })} placeholder="Relationship" />
-                        <Input value={g.amount ? String(g.amount) : ""} onChange={(v) => updateAt(guarantors, setGuarantors, i, { amount: Number(v.replace(/[^\d]/g, "")) || 0 })} placeholder="Amount" />
+                        <Input
+                          value={g.name}
+                          onChange={(v) => updateAt(guarantors, setGuarantors, i, { name: v })}
+                          placeholder="Name"
+                        />
+                        <Input
+                          value={g.relation}
+                          onChange={(v) => updateAt(guarantors, setGuarantors, i, { relation: v })}
+                          placeholder="Relationship"
+                        />
+                        <Input
+                          value={g.amount ? String(g.amount) : ""}
+                          onChange={(v) =>
+                            updateAt(guarantors, setGuarantors, i, {
+                              amount: Number(v.replace(/[^\d]/g, "")) || 0,
+                            })
+                          }
+                          placeholder="Amount"
+                        />
                       </div>
-                      <label className="flex items-center gap-2" style={{ fontSize: 12, color: LOAN.muted }}>
-                        <input type="checkbox" checked={g.coop} onChange={(e) => updateAt(guarantors, setGuarantors, i, { coop: e.target.checked })} />
+                      <label
+                        className="flex items-center gap-2"
+                        style={{ fontSize: 12, color: LOAN.muted }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={g.coop}
+                          onChange={(e) =>
+                            updateAt(guarantors, setGuarantors, i, { coop: e.target.checked })
+                          }
+                        />
                         <ShieldCheck size={12} /> Co-op member
                       </label>
                     </div>
                   ))}
                   <button
-                    onClick={() => setGuarantors([...guarantors, { name: "", relation: "", amount: 0, coop: false }])}
+                    onClick={() =>
+                      setGuarantors([
+                        ...guarantors,
+                        { name: "", relation: "", amount: 0, coop: false },
+                      ])
+                    }
                     style={{
                       width: "100%",
                       padding: 10,
@@ -353,11 +415,20 @@ export function NewApplicationDrawer({
                   <SummaryRow label="Tenure" value={`${tenure} months`} />
                   <SummaryRow label="Rate" value={`${rate}%`} />
                   <SummaryRow label="Officer" value={officer} />
-                  <SummaryRow label="Collateral" value={collateral.length ? `${collateral.length} items · ${fmtGHS(totalCollat)}` : "—"} />
+                  <SummaryRow
+                    label="Collateral"
+                    value={
+                      collateral.length
+                        ? `${collateral.length} items · ${fmtGHS(totalCollat)}`
+                        : "—"
+                    }
+                  />
                   <SummaryRow label="Guarantors" value={String(guarantors.length)} />
                 </div>
                 {purpose && (
-                  <div style={{ marginTop: 10, fontSize: 12, fontStyle: "italic", color: LOAN.muted }}>
+                  <div
+                    style={{ marginTop: 10, fontSize: 12, fontStyle: "italic", color: LOAN.muted }}
+                  >
                     "{purpose}"
                   </div>
                 )}
@@ -393,7 +464,8 @@ export function NewApplicationDrawer({
                   ))}
                 </div>
                 <div style={{ marginTop: 10, fontSize: 11, color: LOAN.muted }}>
-                  Eligible → ready for approval queue. Needs review → routed for override approval. Ineligible → resolve failures first.
+                  Eligible → ready for approval queue. Needs review → routed for override approval.
+                  Ineligible → resolve failures first.
                 </div>
               </div>
             </div>
@@ -405,11 +477,7 @@ export function NewApplicationDrawer({
           className="flex items-center justify-between px-6"
           style={{ height: 64, borderTop: `1px solid ${LOAN.border}`, background: "#fff" }}
         >
-          {step > 1 ? (
-            <OutlineBtn onClick={() => setStep(step - 1)}>Back</OutlineBtn>
-          ) : (
-            <span />
-          )}
+          {step > 1 ? <OutlineBtn onClick={() => setStep(step - 1)}>Back</OutlineBtn> : <span />}
           <div style={{ fontSize: 11, color: LOAN.muted }}>Step {step} of 4</div>
           {step < 4 ? (
             <NavyBtn onClick={() => setStep(step + 1)} disabled={!canContinue}>
@@ -417,7 +485,9 @@ export function NewApplicationDrawer({
             </NavyBtn>
           ) : (
             <NavyBtn onClick={close} disabled={eligibility.outcome === "Ineligible"}>
-              {eligibility.outcome === "Needs review" ? "Submit for approval" : "Submit application"}
+              {eligibility.outcome === "Needs review"
+                ? "Submit for approval"
+                : "Submit application"}
             </NavyBtn>
           )}
         </div>
@@ -443,7 +513,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <label style={{ fontSize: 11, fontWeight: 600, color: LOAN.muted, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+    <label
+      style={{
+        fontSize: 11,
+        fontWeight: 600,
+        color: LOAN.muted,
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+      }}
+    >
       {children}
     </label>
   );

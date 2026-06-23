@@ -43,7 +43,15 @@ export function Modal({
           fontFamily: FONTS.body,
         }}
       >
-        <div style={{ fontFamily: FONTS.display, fontSize: 18, fontWeight: 700, color: "#16233F", marginBottom: 18 }}>
+        <div
+          style={{
+            fontFamily: FONTS.display,
+            fontSize: 18,
+            fontWeight: 700,
+            color: "#16233F",
+            marginBottom: 18,
+          }}
+        >
           {title}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>{children}</div>
@@ -60,7 +68,9 @@ export function Modal({
 export function MField({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <span style={{ fontSize: 12, fontWeight: 600, color: "#16233F", fontFamily: FONTS.body }}>{label}</span>
+      <span style={{ fontSize: 12, fontWeight: 600, color: "#16233F", fontFamily: FONTS.body }}>
+        {label}
+      </span>
       {children}
     </label>
   );
@@ -82,12 +92,24 @@ export function MInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} style={{ ...baseInputStyle, ...(props.style ?? {}) }} />;
 }
 export function MTextarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea {...props} style={{ ...baseInputStyle, resize: "vertical", ...(props.style ?? {}) }} />;
+  return (
+    <textarea
+      {...props}
+      style={{ ...baseInputStyle, resize: "vertical", ...(props.style ?? {}) }}
+    />
+  );
 }
-export function MSelect({ options, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { options: string[] }) {
+export function MSelect({
+  options,
+  ...props
+}: React.SelectHTMLAttributes<HTMLSelectElement> & { options: string[] }) {
   return (
     <select {...props} style={{ ...baseInputStyle, ...(props.style ?? {}) }}>
-      {options.map((o) => <option key={o} value={o}>{o}</option>)}
+      {options.map((o) => (
+        <option key={o} value={o}>
+          {o}
+        </option>
+      ))}
     </select>
   );
 }
@@ -112,7 +134,15 @@ export function MCancelBtn({ onClick }: { onClick: () => void }) {
     </button>
   );
 }
-export function MNavyBtn({ onClick, children, disabled }: { onClick: () => void; children: ReactNode; disabled?: boolean }) {
+export function MNavyBtn({
+  onClick,
+  children,
+  disabled,
+}: {
+  onClick: () => void;
+  children: ReactNode;
+  disabled?: boolean;
+}) {
   return (
     <button
       onClick={onClick}

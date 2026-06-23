@@ -22,12 +22,22 @@ function ActiveLoansPage() {
 
       <div className="flex gap-2 mb-3">
         {["Status: All", "All Products"].map((l) => (
-          <button key={l} style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            height: 34, padding: "0 12px", borderRadius: 10,
-            border: `1px solid ${LOAN.border}`, background: "#fff",
-            fontSize: 12, color: LOAN.ink, fontWeight: 600,
-          }}>
+          <button
+            key={l}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              height: 34,
+              padding: "0 12px",
+              borderRadius: 10,
+              border: `1px solid ${LOAN.border}`,
+              background: "#fff",
+              fontSize: 12,
+              color: LOAN.ink,
+              fontWeight: 600,
+            }}
+          >
             {l} <ChevronDown size={12} />
           </button>
         ))}
@@ -37,15 +47,24 @@ function ActiveLoansPage() {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              <Th>Loan</Th><Th>Client</Th><Th>Product</Th><Th>Outstanding</Th>
-              <Th>Next Due</Th><Th>Repaid</Th><Th>Status</Th>
+              <Th>Loan</Th>
+              <Th>Client</Th>
+              <Th>Product</Th>
+              <Th>Outstanding</Th>
+              <Th>Next Due</Th>
+              <Th>Repaid</Th>
+              <Th>Status</Th>
             </tr>
           </thead>
           <tbody>
             {ACTIVE_LOANS.map((l) => (
               <tr key={l.id}>
                 <Td>
-                  <Link to="/loans/$loanId" params={{ loanId: l.id }} style={{ ...fontMono, fontWeight: 700, color: LOAN.navy }}>
+                  <Link
+                    to="/loans/$loanId"
+                    params={{ loanId: l.id }}
+                    style={{ ...fontMono, fontWeight: 700, color: LOAN.navy }}
+                  >
                     {l.id}
                   </Link>
                 </Td>
@@ -57,11 +76,22 @@ function ActiveLoansPage() {
                 </Td>
                 <Td>{l.product}</Td>
                 <Td style={{ fontWeight: 700 }}>{fmtGHS(l.outstanding)}</Td>
-                <Td style={l.status === "In Arrears" ? { color: LOAN.red, fontWeight: 700 } : undefined}>
+                <Td
+                  style={
+                    l.status === "In Arrears" ? { color: LOAN.red, fontWeight: 700 } : undefined
+                  }
+                >
                   {l.nextDue}
                 </Td>
-                <Td><MiniBar pct={l.repaid} color={l.status === "In Arrears" ? LOAN.red : LOAN.green} /></Td>
-                <Td><StagePill stage={l.status} /></Td>
+                <Td>
+                  <MiniBar
+                    pct={l.repaid}
+                    color={l.status === "In Arrears" ? LOAN.red : LOAN.green}
+                  />
+                </Td>
+                <Td>
+                  <StagePill stage={l.status} />
+                </Td>
               </tr>
             ))}
           </tbody>

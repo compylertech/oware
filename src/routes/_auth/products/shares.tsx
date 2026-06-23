@@ -287,7 +287,7 @@ function ShareCapitalPage() {
                         padding: "11px 16px",
                         fontSize: 11,
                         fontWeight: 700,
-                        color: "#7A879F",
+                        color: "#5B6A86",
                         letterSpacing: "0.05em",
                         textTransform: "uppercase",
                       }}
@@ -449,7 +449,7 @@ function ShareCapitalPage() {
               onChange={(e) => setF({ ...f, count: e.target.value })}
             />
           </MField>
-          <MField label="Price per Share (GHS)">
+          <MField label="Price per Share (GH₵)">
             <MInput
               type="number"
               step="0.01"
@@ -491,7 +491,7 @@ function ShareCapitalPage() {
         >
           Total Value:{" "}
           <span style={{ fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
-            GHS{" "}
+            GH₵{" "}
             {total.toLocaleString(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,

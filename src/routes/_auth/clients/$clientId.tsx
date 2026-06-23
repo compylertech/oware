@@ -1,13 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useRef, useEffect } from "react";
-import {
-  ArrowLeft,
-  MoreVertical,
-  Plus,
-  Download,
-  Pencil,
-  Upload,
-} from "lucide-react";
+import { ArrowLeft, MoreVertical, Plus, Download, Pencil, Upload } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
 import { tokens, cardShadow } from "@/lib/tokens";
 
@@ -297,9 +290,30 @@ function ClientDetail() {
   ]);
   const [accountFilter, setAccountFilter] = useState<string>("All");
   const transactions = [
-    { date: "18 Jun 2026", type: "Credit", amount: 500, balance: 12950.75, ref: "TRX-0091", acc: "1001234567" },
-    { date: "15 Jun 2026", type: "Debit", amount: 120, balance: 12450.75, ref: "TRX-0088", acc: "1001234567" },
-    { date: "10 Jun 2026", type: "Credit", amount: 2000, balance: 3200, ref: "TRX-0075", acc: "1001234890" },
+    {
+      date: "18 Jun 2026",
+      type: "Credit",
+      amount: 500,
+      balance: 12950.75,
+      ref: "TRX-0091",
+      acc: "1001234567",
+    },
+    {
+      date: "15 Jun 2026",
+      type: "Debit",
+      amount: 120,
+      balance: 12450.75,
+      ref: "TRX-0088",
+      acc: "1001234567",
+    },
+    {
+      date: "10 Jun 2026",
+      type: "Credit",
+      amount: 2000,
+      balance: 3200,
+      ref: "TRX-0075",
+      acc: "1001234890",
+    },
   ];
   const txRows = transactions.filter((t) => accountFilter === "All" || t.acc === accountFilter);
 
@@ -343,12 +357,19 @@ function ClientDetail() {
         className="relative overflow-hidden"
         style={{
           borderRadius: 16,
-          background:
-            "linear-gradient(135deg, #002663 0%, #002663 55%, #1a4080 100%)",
-          
+          background: "linear-gradient(135deg, #002663 0%, #002663 55%, #1a4080 100%)",
         }}
       >
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: tokens.gold }} />
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 3,
+            background: tokens.gold,
+          }}
+        />
         <div
           aria-hidden
           style={{
@@ -369,7 +390,7 @@ function ClientDetail() {
                   borderRadius: 999,
                   background: "rgba(255,255,255,0.1)",
                   border: `2px solid ${tokens.gold}`,
-                  
+
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -436,7 +457,7 @@ function ClientDetail() {
                     right: 0,
                     border: `1px solid ${tokens.border}`,
                     borderRadius: 8,
-                    
+
                     minWidth: 180,
                     padding: 4,
                   }}
@@ -628,8 +649,8 @@ function ClientDetail() {
                   </div>
                   <div className="grid grid-cols-3 gap-5">
                     <Mono label="Shares Held" value="250" />
-                    <Mono label="Share Par Value" value="GHS 10.00" />
-                    <Mono label="Total Share Capital" value="GHS 2,500.00" />
+                    <Mono label="Share Par Value" value="GH₵ 10.00" />
+                    <Mono label="Total Share Capital" value="GH₵ 2,500.00" />
                   </div>
                 </div>
               </SectionCard>
@@ -658,24 +679,44 @@ function ClientDetail() {
                 }
               >
                 <table className="w-full" style={{ borderCollapse: "collapse" }}>
-                  <TableHead cols={["Account No.", "Product", "Balance", "Status", "Activated", ""]} />
+                  <TableHead
+                    cols={["Account No.", "Product", "Balance", "Status", "Activated", ""]}
+                  />
                   <tbody>
                     {savings.length === 0 ? (
                       <EmptyRow cols={6} text="No savings accounts found" />
                     ) : (
                       savings.map((a) => (
                         <tr key={a.acc} style={{ borderTop: `1px solid #F0F3F8` }}>
-                          <td style={{ padding: 14, fontFamily: "DM Mono, monospace", fontSize: 13, color: tokens.text }}>
+                          <td
+                            style={{
+                              padding: 14,
+                              fontFamily: "DM Mono, monospace",
+                              fontSize: 13,
+                              color: tokens.text,
+                            }}
+                          >
                             {a.acc}
                           </td>
-                          <td style={{ padding: 14, fontSize: 13, color: tokens.text }}>{a.product}</td>
-                          <td style={{ padding: 14, fontFamily: "DM Mono, monospace", fontSize: 13, color: tokens.text }}>
-                            GHS {a.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          <td style={{ padding: 14, fontSize: 13, color: tokens.text }}>
+                            {a.product}
+                          </td>
+                          <td
+                            style={{
+                              padding: 14,
+                              fontFamily: "DM Mono, monospace",
+                              fontSize: 13,
+                              color: tokens.text,
+                            }}
+                          >
+                            GH₵ {a.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </td>
                           <td style={{ padding: 14 }}>
                             <StatusPill status={a.status} />
                           </td>
-                          <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>{a.activated}</td>
+                          <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>
+                            {a.activated}
+                          </td>
                           <td style={{ padding: 14, textAlign: "right" }}>
                             <GhostBtn>View</GhostBtn>
                           </td>
@@ -724,7 +765,9 @@ function ClientDetail() {
                       const isCredit = t.type === "Credit";
                       return (
                         <tr key={t.ref} style={{ borderTop: `1px solid #F0F3F8` }}>
-                          <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>{t.date}</td>
+                          <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>
+                            {t.date}
+                          </td>
                           <td style={{ padding: 14 }}>
                             <StatusPill status={isCredit ? "Credit" : "Debit"} />
                           </td>
@@ -738,12 +781,29 @@ function ClientDetail() {
                               fontVariantNumeric: "tabular-nums",
                             }}
                           >
-                            {isCredit ? "+" : "−"} GHS {t.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            {isCredit ? "+" : "−"} GH₵{" "}
+                            {t.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </td>
-                          <td style={{ padding: 14, fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: 13, fontVariantNumeric: "tabular-nums", color: tokens.text }}>
-                            GHS {t.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          <td
+                            style={{
+                              padding: 14,
+                              fontFamily: "'DM Sans', sans-serif",
+                              fontWeight: 500,
+                              fontSize: 13,
+                              fontVariantNumeric: "tabular-nums",
+                              color: tokens.text,
+                            }}
+                          >
+                            GH₵ {t.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </td>
-                          <td style={{ padding: 14, fontFamily: "DM Mono, monospace", fontSize: 12, color: tokens.textSub }}>
+                          <td
+                            style={{
+                              padding: 14,
+                              fontFamily: "DM Mono, monospace",
+                              fontSize: 12,
+                              color: tokens.textSub,
+                            }}
+                          >
                             {t.ref}
                           </td>
                         </tr>
@@ -785,7 +845,12 @@ function ClientDetail() {
                     onClick={() =>
                       setOffice((r) => [
                         ...r,
-                        { line1: "HQ Tower", line2: "Floor 3", city: "Accra", region: "Greater Accra" },
+                        {
+                          line1: "HQ Tower",
+                          line2: "Floor 3",
+                          city: "Accra",
+                          region: "Greater Accra",
+                        },
                       ])
                     }
                   >
@@ -806,7 +871,10 @@ function ClientDetail() {
                 <GhostBtn
                   icon={Plus}
                   onClick={() =>
-                    setFamily((f) => [...f, { name: "New Member", rel: "Sibling", age: 25, gender: "Female" }])
+                    setFamily((f) => [
+                      ...f,
+                      { name: "New Member", rel: "Sibling", age: 25, gender: "Female" },
+                    ])
                   }
                 >
                   Add
@@ -822,9 +890,15 @@ function ClientDetail() {
                     family.map((f) => (
                       <tr key={f.name} style={{ borderTop: `1px solid #F0F3F8` }}>
                         <td style={{ padding: 14, fontSize: 13, color: tokens.text }}>{f.name}</td>
-                        <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>{f.rel}</td>
-                        <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>{f.age}</td>
-                        <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>{f.gender}</td>
+                        <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>
+                          {f.rel}
+                        </td>
+                        <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>
+                          {f.age}
+                        </td>
+                        <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>
+                          {f.gender}
+                        </td>
                       </tr>
                     ))
                   )}
@@ -841,7 +915,10 @@ function ClientDetail() {
                 <GhostBtn
                   icon={Plus}
                   onClick={() =>
-                    setIdentities((i) => [...i, { type: "Driver's License", no: "DL-99812", status: "Pending" }])
+                    setIdentities((i) => [
+                      ...i,
+                      { type: "Driver's License", no: "DL-99812", status: "Pending" },
+                    ])
                   }
                 >
                   Add
@@ -857,7 +934,14 @@ function ClientDetail() {
                     identities.map((i) => (
                       <tr key={i.no} style={{ borderTop: `1px solid #F0F3F8` }}>
                         <td style={{ padding: 14, fontSize: 13, color: tokens.text }}>{i.type}</td>
-                        <td style={{ padding: 14, fontFamily: "DM Mono, monospace", fontSize: 13, color: tokens.text }}>
+                        <td
+                          style={{
+                            padding: 14,
+                            fontFamily: "DM Mono, monospace",
+                            fontSize: 13,
+                            color: tokens.text,
+                          }}
+                        >
                           {i.no}
                         </td>
                         <td style={{ padding: 14 }}>
@@ -885,7 +969,14 @@ function ClientDetail() {
               }
             >
               {docs.length === 0 ? (
-                <div style={{ padding: 36, textAlign: "center", color: tokens.textMuted, fontSize: 13 }}>
+                <div
+                  style={{
+                    padding: 36,
+                    textAlign: "center",
+                    color: tokens.textMuted,
+                    fontSize: 13,
+                  }}
+                >
                   No documents found
                 </div>
               ) : (
@@ -901,8 +992,12 @@ function ClientDetail() {
                       }}
                     >
                       <div>
-                        <div style={{ fontSize: 13, color: tokens.text, fontWeight: 500 }}>{d.name}</div>
-                        <div style={{ fontSize: 11, color: tokens.textMuted, marginTop: 2 }}>{d.type}</div>
+                        <div style={{ fontSize: 13, color: tokens.text, fontWeight: 500 }}>
+                          {d.name}
+                        </div>
+                        <div style={{ fontSize: 11, color: tokens.textMuted, marginTop: 2 }}>
+                          {d.type}
+                        </div>
                       </div>
                       <button style={{ color: tokens.textSub }} aria-label="Download">
                         <Download size={16} />
@@ -938,7 +1033,11 @@ function ClientDetail() {
                   onClick={() => {
                     if (!noteDraft.trim()) return;
                     setNotes((n) => [
-                      { author: "Daniel Q.", text: noteDraft.trim(), at: new Date().toLocaleDateString("en-GB") },
+                      {
+                        author: "Daniel Q.",
+                        text: noteDraft.trim(),
+                        at: new Date().toLocaleDateString("en-GB"),
+                      },
                       ...n,
                     ]);
                     setNoteDraft("");
@@ -949,7 +1048,14 @@ function ClientDetail() {
               </div>
               <div className="mt-5 space-y-3">
                 {notes.length === 0 ? (
-                  <div style={{ padding: 24, textAlign: "center", color: tokens.textMuted, fontSize: 13 }}>
+                  <div
+                    style={{
+                      padding: 24,
+                      textAlign: "center",
+                      color: tokens.textMuted,
+                      fontSize: 13,
+                    }}
+                  >
                     No notes yet
                   </div>
                 ) : (
@@ -983,10 +1089,14 @@ function ClientDetail() {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <span style={{ fontSize: 12, fontWeight: 600, color: tokens.text }}>{n.author}</span>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: tokens.text }}>
+                            {n.author}
+                          </span>
                           <span style={{ fontSize: 11, color: tokens.textMuted }}>{n.at}</span>
                         </div>
-                        <p style={{ fontSize: 13, color: tokens.textSub, marginTop: 4 }}>{n.text}</p>
+                        <p style={{ fontSize: 13, color: tokens.textSub, marginTop: 4 }}>
+                          {n.text}
+                        </p>
                       </div>
                     </div>
                   ))
@@ -1000,7 +1110,15 @@ function ClientDetail() {
   );
 }
 
-function Field({ label, value, children }: { label: string; value?: string; children?: React.ReactNode }) {
+function Field({
+  label,
+  value,
+  children,
+}: {
+  label: string;
+  value?: string;
+  children?: React.ReactNode;
+}) {
   return (
     <div>
       <div
@@ -1035,7 +1153,14 @@ function Mono({ label, value }: { label: string; value: string }) {
       >
         {label}
       </div>
-      <div style={{ fontFamily: "DM Mono, monospace", fontSize: 14, color: tokens.text, fontWeight: 600 }}>
+      <div
+        style={{
+          fontFamily: "DM Mono, monospace",
+          fontSize: 14,
+          color: tokens.text,
+          fontWeight: 600,
+        }}
+      >
         {value}
       </div>
     </div>

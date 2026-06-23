@@ -956,7 +956,7 @@ function GovernancePage() {
                             fontWeight: 700,
                             letterSpacing: 0.5,
                             textTransform: "uppercase",
-                            color: "#7A879F",
+                            color: "#5B6A86",
                           }}
                         >
                           {h}
@@ -1195,7 +1195,7 @@ function GovernancePage() {
                             fontWeight: 700,
                             letterSpacing: 0.5,
                             textTransform: "uppercase",
-                            color: "#7A879F",
+                            color: "#5B6A86",
                           }}
                         >
                           {h}

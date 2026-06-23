@@ -16,16 +16,35 @@ type Row = {
 };
 
 const ROWS: Row[] = [
-  { product: "Visa Prepaid", network: "Visa", loadLimit: "GH₵ 10,000", dailyLimit: "GH₵ 2,000", fee: "GH₵ 15 / mo", status: "Active" },
-  { product: "Mastercard Travel", network: "Mastercard", loadLimit: "GH₵ 25,000", dailyLimit: "GH₵ 5,000", fee: "GH₵ 25 / mo", status: "Active" },
-  { product: "GhanaPay Wallet", network: "GhIPSS", loadLimit: "GH₵ 5,000", dailyLimit: "GH₵ 1,500", fee: "Free", status: "Inactive" },
+  {
+    product: "Visa Prepaid",
+    network: "Visa",
+    loadLimit: "GH₵ 10,000",
+    dailyLimit: "GH₵ 2,000",
+    fee: "GH₵ 15 / mo",
+    status: "Active",
+  },
+  {
+    product: "Mastercard Travel",
+    network: "Mastercard",
+    loadLimit: "GH₵ 25,000",
+    dailyLimit: "GH₵ 5,000",
+    fee: "GH₵ 25 / mo",
+    status: "Active",
+  },
+  {
+    product: "GhanaPay Wallet",
+    network: "GhIPSS",
+    loadLimit: "GH₵ 5,000",
+    dailyLimit: "GH₵ 1,500",
+    fee: "Free",
+    status: "Inactive",
+  },
 ];
 
 function StatusPill({ status }: { status: Row["status"] }) {
   const s =
-    status === "Active"
-      ? { bg: "#ECFDF3", fg: "#067647" }
-      : { bg: "#EEF1F6", fg: "#7A879F" };
+    status === "Active" ? { bg: "#ECFDF3", fg: "#067647" } : { bg: "#EEF1F6", fg: "#5B6A86" };
   return (
     <span
       style={{
@@ -48,7 +67,14 @@ function StatusPill({ status }: { status: Row["status"] }) {
 
 function PrepaidProductsPage() {
   return (
-    <div style={{ background: tokens.bg, minHeight: "100%", padding: "24px 28px", fontFamily: FONTS.body }}>
+    <div
+      style={{
+        background: tokens.bg,
+        minHeight: "100%",
+        padding: "24px 28px",
+        fontFamily: FONTS.body,
+      }}
+    >
       <Link
         to="/products"
         style={{
@@ -65,10 +91,31 @@ function PrepaidProductsPage() {
         <ArrowLeft size={14} /> Back to Products
       </Link>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: 14, gap: 16, marginBottom: 22 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          marginTop: 14,
+          gap: 16,
+          marginBottom: 22,
+        }}
+      >
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: tokens.textMuted }}>PRODUCTS</div>
-          <h1 style={{ fontFamily: FONTS.display, fontSize: 26, fontWeight: 800, color: tokens.text, margin: "6px 0 6px" }}>
+          <div
+            style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: tokens.textMuted }}
+          >
+            PRODUCTS
+          </div>
+          <h1
+            style={{
+              fontFamily: FONTS.display,
+              fontSize: 26,
+              fontWeight: 800,
+              color: tokens.text,
+              margin: "6px 0 6px",
+            }}
+          >
             Prepaid Products
           </h1>
           <p style={{ color: tokens.textSub, fontSize: 14, margin: 0 }}>
@@ -95,7 +142,14 @@ function PrepaidProductsPage() {
         </button>
       </div>
 
-      <div style={{ background: "#fff", border: `1px solid ${tokens.border}`, borderRadius: 14, overflow: "hidden" }}>
+      <div
+        style={{
+          background: "#fff",
+          border: `1px solid ${tokens.border}`,
+          borderRadius: 14,
+          overflow: "hidden",
+        }}
+      >
         <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: FONTS.body }}>
           <thead>
             <tr style={{ borderBottom: `2px solid ${tokens.navy}` }}>
@@ -107,7 +161,7 @@ function PrepaidProductsPage() {
                     padding: "11px 16px",
                     fontSize: 11,
                     fontWeight: 700,
-                    color: "#7A879F",
+                    color: "#5B6A86",
                     letterSpacing: "0.05em",
                     textTransform: "uppercase",
                   }}
@@ -120,15 +174,46 @@ function PrepaidProductsPage() {
           <tbody>
             {ROWS.map((r, i) => (
               <tr key={i} style={{ borderBottom: `1px solid ${tokens.border}` }}>
-                <td style={{ padding: "13px 16px", fontSize: 13, fontWeight: 700, color: tokens.text }}>{r.product}</td>
-                <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>{r.network}</td>
-                <td style={{ padding: "13px 16px", textAlign: "right", fontSize: 13, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: tokens.text }}>
+                <td
+                  style={{
+                    padding: "13px 16px",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: tokens.text,
+                  }}
+                >
+                  {r.product}
+                </td>
+                <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>
+                  {r.network}
+                </td>
+                <td
+                  style={{
+                    padding: "13px 16px",
+                    textAlign: "right",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    fontVariantNumeric: "tabular-nums",
+                    color: tokens.text,
+                  }}
+                >
                   {r.loadLimit}
                 </td>
-                <td style={{ padding: "13px 16px", textAlign: "right", fontSize: 13, fontWeight: 500, fontVariantNumeric: "tabular-nums", color: tokens.textSub }}>
+                <td
+                  style={{
+                    padding: "13px 16px",
+                    textAlign: "right",
+                    fontSize: 13,
+                    fontWeight: 500,
+                    fontVariantNumeric: "tabular-nums",
+                    color: tokens.textSub,
+                  }}
+                >
                   {r.dailyLimit}
                 </td>
-                <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>{r.fee}</td>
+                <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>
+                  {r.fee}
+                </td>
                 <td style={{ padding: "13px 16px" }}>
                   <StatusPill status={r.status} />
                 </td>

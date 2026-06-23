@@ -81,7 +81,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Core banking platform for modern financial institutions." },
       { name: "author", content: "Oware" },
       { property: "og:title", content: "Oware" },
-      { property: "og:description", content: "Core banking platform for modern financial institutions." },
+      {
+        property: "og:description",
+        content: "Core banking platform for modern financial institutions.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

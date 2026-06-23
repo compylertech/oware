@@ -48,7 +48,7 @@ function AdminPage() {
               fontSize: 11,
               fontWeight: 700,
               letterSpacing: "0.14em",
-              color: "#7A879F",
+              color: "#5B6A86",
               textTransform: "uppercase",
               marginBottom: 8,
             }}
@@ -84,7 +84,7 @@ function AdminPage() {
               >
                 Administration
               </h1>
-              <div style={{ fontSize: 13, color: "#7A879F", marginTop: 4 }}>
+              <div style={{ fontSize: 13, color: "#5B6A86", marginTop: 4 }}>
                 Manage users, roles, permissions and system configuration.
               </div>
             </div>
@@ -119,7 +119,7 @@ const thStyle: React.CSSProperties = {
   padding: "13px 16px",
   fontSize: 12,
   fontWeight: 700,
-  color: "#7A879F",
+  color: "#5B6A86",
   textTransform: "uppercase",
   letterSpacing: "0.08em",
   borderBottom: "2px solid #002663",
@@ -528,7 +528,7 @@ function RolesTab() {
                 </div>
                 <div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: "#16233F" }}>{r.name}</div>
-                  <div style={{ fontSize: 12, color: "#7A879F", marginTop: 2 }}>{r.desc}</div>
+                  <div style={{ fontSize: 12, color: "#5B6A86", marginTop: 2 }}>{r.desc}</div>
                 </div>
               </div>
               <button
@@ -546,7 +546,7 @@ function RolesTab() {
                 Edit
               </button>
             </div>
-            <div style={{ fontSize: 12, color: "#7A879F", marginTop: 8 }}>
+            <div style={{ fontSize: 12, color: "#5B6A86", marginTop: 8 }}>
               {r.perms} permissions
             </div>
           </div>
@@ -717,7 +717,7 @@ function AuditTab() {
               left: 12,
               top: "50%",
               transform: "translateY(-50%)",
-              color: "#7A879F",
+              color: "#5B6A86",
             }}
           />
           <input
