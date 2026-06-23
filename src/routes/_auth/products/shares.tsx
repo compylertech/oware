@@ -199,7 +199,7 @@ function ShareCapitalPage() {
             <Pill color="#7C3AED" bg="#F5F3FF" uppercase>
               AGM-governed
             </Pill>
-            <Button onClick={() => setOpen(true)} icon={<Plus size={14} />}>
+            <Button variant="success" onClick={() => setOpen(true)} icon={<Plus size={14} />}>
               Issue Shares
             </Button>
           </div>

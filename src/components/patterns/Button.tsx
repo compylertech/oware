@@ -1,8 +1,13 @@
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 import { tokens } from "@/lib/tokens";
 
-type Variant = "primary" | "outline" | "ghost" | "danger" | "dangerOutline";
+// Semantic convention: `success` (solid green) for affirmative actions —
+// add/create/approve/post/register/issue; `danger` (solid red) for negative
+// actions — reject/cancel/delete. `primary` (navy) is for neutral primaries.
+type Variant = "primary" | "success" | "outline" | "ghost" | "danger" | "dangerOutline";
 type Size = "md" | "sm";
+
+const GREEN = "#047857";
 
 type ButtonProps = {
   variant?: Variant;
@@ -21,6 +26,13 @@ function variantStyle(variant: Variant, disabled?: boolean): CSSProperties {
   if (variant === "primary") {
     return {
       background: disabled ? "#94A3B8" : tokens.navy,
+      color: "#fff",
+      border: "none",
+    };
+  }
+  if (variant === "success") {
+    return {
+      background: disabled ? "#94A3B8" : GREEN,
       color: "#fff",
       border: "none",
     };

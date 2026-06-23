@@ -148,7 +148,7 @@ export function MNavyBtn({
       onClick={onClick}
       disabled={disabled}
       style={{
-        background: disabled ? "#94A3B8" : "#002663",
+        background: disabled ? "#94A3B8" : "#047857",
         color: "#fff",
         border: "none",
         borderRadius: 8,

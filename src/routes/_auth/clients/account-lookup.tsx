@@ -450,11 +450,11 @@ function AccountLookupPage() {
                         onClick={handleApprove}
                         className="cursor-pointer"
                         style={{
-                          background: "rgba(110,231,183,0.18)",
-                          color: "#6EE7B7",
-                          border: "1px solid rgba(110,231,183,0.4)",
+                          background: "#047857",
+                          color: "#fff",
+                          border: "none",
                           borderRadius: 8,
-                          padding: "3px 10px",
+                          padding: "4px 12px",
                           fontSize: 11,
                           fontWeight: 600,
                         }}

@@ -221,7 +221,7 @@ export function NavyBtn({
   full?: boolean;
 }) {
   return (
-    <Button onClick={onClick} icon={icon} disabled={disabled} full={full}>
+    <Button variant="success" onClick={onClick} icon={icon} disabled={disabled} full={full}>
       {children}
     </Button>
   );

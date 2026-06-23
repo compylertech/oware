@@ -440,7 +440,7 @@ function AddClientPage() {
                 disabled={submitting}
                 className="cursor-pointer"
                 style={{
-                  background: NAVY,
+                  background: "#047857",
                   color: "white",
                   padding: "9px 18px",
                   borderRadius: 10,

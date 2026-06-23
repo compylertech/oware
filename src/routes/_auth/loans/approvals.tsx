@@ -117,7 +117,7 @@ function ApprovalsPage() {
               </div>
               <div className="flex gap-2">
                 <Button
-                  variant="dangerOutline"
+                  variant="danger"
                   size="sm"
                   icon={<X size={14} />}
                   onClick={() => setConfirm({ row: r, action: "reject" })}
@@ -125,7 +125,7 @@ function ApprovalsPage() {
                   Reject
                 </Button>
                 <Button
-                  variant={r.type === "Write-off" ? "danger" : "primary"}
+                  variant="success"
                   size="sm"
                   icon={<Check size={14} />}
                   onClick={() => onApprove(r)}
@@ -191,7 +191,7 @@ function ConfirmDialog({
             Cancel
           </Button>
           <Button
-            variant="danger"
+            variant={isReject ? "danger" : "success"}
             icon={isReject ? <X size={14} /> : <Check size={14} />}
             onClick={onConfirm}
           >

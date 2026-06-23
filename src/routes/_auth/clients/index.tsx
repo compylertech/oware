@@ -138,17 +138,18 @@ function ClientsPage() {
             </div>
             <button
               onClick={() => navigate({ to: "/clients/add" })}
-              className="inline-flex items-center gap-2 rounded-lg border transition-colors"
+              className="inline-flex items-center gap-2 rounded-lg transition-colors"
               style={{
-                borderColor: "rgba(255,255,255,0.4)",
                 color: "white",
-                padding: "8px 14px",
+                padding: "9px 16px",
                 fontSize: 13,
-                fontWeight: 500,
-                background: "transparent",
+                fontWeight: 600,
+                background: "#047857",
+                border: "none",
+                cursor: "pointer",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.1)")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#036848")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "#047857")}
             >
               <Plus size={16} /> Create Client
             </button>

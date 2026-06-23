@@ -165,7 +165,7 @@ function NavyBtn({
         display: "inline-flex",
         alignItems: "center",
         gap: 6,
-        background: "#002663",
+        background: "#047857",
         color: "#fff",
         border: "none",
         borderRadius: 8,

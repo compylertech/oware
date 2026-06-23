@@ -254,7 +254,11 @@ function MembershipPage() {
               Share allocations, common-bond groups and membership status.
             </p>
           </div>
-          <Button onClick={() => navigate({ to: "/clients/add" })} icon={<Plus size={16} />}>
+          <Button
+            variant="success"
+            onClick={() => navigate({ to: "/clients/add" })}
+            icon={<Plus size={16} />}
+          >
             Add member via Clients
           </Button>
         </div>

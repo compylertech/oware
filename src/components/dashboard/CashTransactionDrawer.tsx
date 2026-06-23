@@ -107,7 +107,8 @@ export function CashTransactionDrawer({ type, onClose }: Props) {
   const canSubmit = account && amount && Number(amount) > 0 && !submitting;
   const accentBg = isDeposit ? "bg-emerald-50" : "bg-red-50";
   const accentText = isDeposit ? "text-emerald-600" : "text-red-600";
-  const submitColor = isDeposit ? "#059669" : "#DC2626";
+  // Both deposit and withdrawal are affirmative "post" actions → solid green.
+  const submitColor = "#047857";
   const title = isDeposit ? "Cash Deposit" : "Cash Withdrawal";
   const subtitle = isDeposit ? "Credit funds into an account" : "Debit funds from an account";
 
