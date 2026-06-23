@@ -2,9 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
-import { Panel, NavyBtn, OutlineBtn, TypePill, fontMono } from "@/components/loans/ui";
+import { Panel, TypePill, fontMono } from "@/components/loans/ui";
 import { fmtGHS } from "@/api/loans";
-import { Tabs } from "@/components/patterns";
+import { Tabs, Button } from "@/components/patterns";
+import { Check, X } from "lucide-react";
 
 export const Route = createFileRoute("/_auth/loans/approvals")({
   component: ApprovalsPage,
@@ -72,6 +73,13 @@ const TYPE_STYLE: Record<Row["type"], { c: string; bg: string }> = {
 
 function ApprovalsPage() {
   const [tab, setTab] = useState<"my" | "all" | "history">("my");
+  const [confirm, setConfirm] = useState<{ row: Row; action: "approve" | "reject" } | null>(null);
+
+  // Destructive actions (reject anything, or approve an irreversible Write-off)
+  // are confirm-gated so a single mis-click can't action real money.
+  function onApprove(r: Row) {
+    if (r.type === "Write-off") setConfirm({ row: r, action: "approve" });
+  }
 
   return (
     <LoansShell>
@@ -108,13 +116,89 @@ function ApprovalsPage() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <OutlineBtn>Reject</OutlineBtn>
-                <NavyBtn>Approve</NavyBtn>
+                <Button
+                  variant="dangerOutline"
+                  size="sm"
+                  icon={<X size={14} />}
+                  onClick={() => setConfirm({ row: r, action: "reject" })}
+                >
+                  Reject
+                </Button>
+                <Button
+                  variant={r.type === "Write-off" ? "danger" : "primary"}
+                  size="sm"
+                  icon={<Check size={14} />}
+                  onClick={() => onApprove(r)}
+                >
+                  Approve
+                </Button>
               </div>
             </div>
           );
         })}
       </Panel>
+
+      {confirm && (
+        <ConfirmDialog
+          row={confirm.row}
+          action={confirm.action}
+          onCancel={() => setConfirm(null)}
+          onConfirm={() => setConfirm(null)}
+        />
+      )}
     </LoansShell>
+  );
+}
+
+function ConfirmDialog({
+  row,
+  action,
+  onCancel,
+  onConfirm,
+}: {
+  row: Row;
+  action: "approve" | "reject";
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const isReject = action === "reject";
+  const title = isReject ? `Reject ${row.type}?` : `Approve ${row.type}?`;
+  const body = isReject
+    ? `This will reject ${row.client}'s ${row.type.toLowerCase()} (${row.amount}). The maker (${row.maker}) will be notified.`
+    : `This will approve an irreversible ${row.type.toLowerCase()} of ${row.amount} for ${row.client}. This cannot be undone.`;
+  return (
+    <div
+      onClick={onCancel}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(13,27,62,0.45)",
+        zIndex: 60,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 16,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ background: "#fff", borderRadius: 14, padding: 24, width: 400, maxWidth: "100%" }}
+      >
+        <div style={{ fontSize: 17, fontWeight: 800, color: LOAN.ink }}>{title}</div>
+        <p style={{ fontSize: 13, color: LOAN.muted, marginTop: 8, lineHeight: 1.5 }}>{body}</p>
+        <div className="flex justify-end gap-2" style={{ marginTop: 20 }}>
+          <Button variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            icon={isReject ? <X size={14} /> : <Check size={14} />}
+            onClick={onConfirm}
+          >
+            {isReject ? "Reject" : "Approve write-off"}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

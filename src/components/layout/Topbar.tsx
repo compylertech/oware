@@ -159,7 +159,10 @@ export function Topbar() {
           <button
             type="button"
             aria-label="Notifications"
-            onClick={() => { setNotifOpen((v) => !v); setUserOpen(false); }}
+            onClick={() => {
+              setNotifOpen((v) => !v);
+              setUserOpen(false);
+            }}
             style={{
               position: "relative",
               padding: 6,
@@ -216,7 +219,14 @@ export function Topbar() {
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontFamily: "Sora, sans-serif", fontSize: 14, fontWeight: 700, color: INK }}>
+                  <span
+                    style={{
+                      fontFamily: "Sora, sans-serif",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: INK,
+                    }}
+                  >
                     Notifications
                   </span>
                   <span
@@ -236,8 +246,12 @@ export function Topbar() {
                 <button
                   type="button"
                   style={{
-                    color: NAVY, fontSize: 12, fontWeight: 600,
-                    background: "transparent", border: "none", cursor: "pointer",
+                    color: NAVY,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
                   }}
                 >
                   Mark all read
@@ -256,9 +270,14 @@ export function Topbar() {
                   >
                     <div
                       style={{
-                        width: 36, height: 36, borderRadius: 999,
-                        background: n.iconBg, color: n.iconColor,
-                        display: "flex", alignItems: "center", justifyContent: "center",
+                        width: 36,
+                        height: 36,
+                        borderRadius: 999,
+                        background: n.iconBg,
+                        color: n.iconColor,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                         flexShrink: 0,
                       }}
                     >
@@ -268,7 +287,14 @@ export function Topbar() {
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>{n.title}</span>
                         {n.unread && (
-                          <span style={{ width: 6, height: 6, borderRadius: 999, background: "#1E40AF" }} />
+                          <span
+                            style={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: 999,
+                              background: "#1E40AF",
+                            }}
+                          />
                         )}
                       </div>
                       <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>{n.desc}</div>
@@ -277,12 +303,22 @@ export function Topbar() {
                   </div>
                 ))}
               </div>
-              <div style={{ padding: "10px 14px", textAlign: "center", borderTop: `1px solid ${BORDER}` }}>
+              <div
+                style={{
+                  padding: "10px 14px",
+                  textAlign: "center",
+                  borderTop: `1px solid ${BORDER}`,
+                }}
+              >
                 <button
                   type="button"
                   style={{
-                    color: NAVY, fontSize: 12, fontWeight: 600,
-                    background: "transparent", border: "none", cursor: "pointer",
+                    color: NAVY,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
                   }}
                 >
                   View all notifications
@@ -298,20 +334,33 @@ export function Topbar() {
         <div ref={userRef} style={{ position: "relative" }}>
           <button
             type="button"
-            onClick={() => { setUserOpen((v) => !v); setNotifOpen(false); }}
+            onClick={() => {
+              setUserOpen((v) => !v);
+              setNotifOpen(false);
+            }}
             style={{
-              display: "flex", alignItems: "center", gap: 10,
-              background: "transparent", border: "none", cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
               padding: 0,
             }}
           >
             <div style={{ position: "relative" }}>
               <div
                 style={{
-                  width: 36, height: 36, borderRadius: 999,
-                  background: NAVY, color: "#fff",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 13, fontWeight: 700,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 999,
+                  background: NAVY,
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 13,
+                  fontWeight: 700,
                   fontFamily: "DM Sans, sans-serif",
                 }}
               >
@@ -319,13 +368,25 @@ export function Topbar() {
               </div>
               <span
                 style={{
-                  position: "absolute", bottom: 0, right: 0,
-                  width: 10, height: 10, borderRadius: 999,
-                  background: "#12B76A", border: "2px solid #fff",
+                  position: "absolute",
+                  bottom: 0,
+                  right: 0,
+                  width: 10,
+                  height: 10,
+                  borderRadius: 999,
+                  background: "#12B76A",
+                  border: "2px solid #fff",
                 }}
               />
             </div>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", lineHeight: 1.2 }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                lineHeight: 1.2,
+              }}
+            >
               <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>Daniel Quaidoo</span>
               <span style={{ fontSize: 11, color: MUTED }}>Administrator</span>
             </div>
@@ -348,10 +409,19 @@ export function Topbar() {
               }}
             >
               <div style={{ padding: "12px 14px", borderBottom: `1px solid ${BORDER}` }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: INK, fontFamily: "DM Sans, sans-serif" }}>
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: INK,
+                    fontFamily: "DM Sans, sans-serif",
+                  }}
+                >
                   Daniel Quaidoo
                 </div>
-                <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>daniel.quaidoo@gmail.com</div>
+                <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>
+                  daniel.quaidoo@gmail.com
+                </div>
               </div>
               <div style={{ padding: "4px 0" }}>
                 <UserMenuItem icon={<User size={16} />} label="My Profile" />
@@ -359,44 +429,46 @@ export function Topbar() {
                 <UserMenuItem icon={<Shield size={16} />} label="Security" />
                 <div style={{ height: 1, background: BORDER, margin: "4px 0" }} />
                 <UserMenuItem icon={<HelpCircle size={16} />} label="Help & Support" />
+                <div style={{ height: 1, background: BORDER, margin: "4px 0" }} />
+                <UserMenuItem icon={<LogOut size={16} />} label="Logout" danger />
               </div>
             </div>
           )}
         </div>
-
-        <button
-          type="button"
-          style={{
-            display: "flex", alignItems: "center", gap: 6,
-            background: "#D92D20", color: "#fff",
-            border: "none", borderRadius: 10,
-            padding: "9px 16px",
-            fontSize: 13, fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          <LogOut size={14} />
-          Logout
-        </button>
       </div>
     </header>
   );
 }
 
-function UserMenuItem({ icon, label }: { icon: React.ReactNode; label: string }) {
+function UserMenuItem({
+  icon,
+  label,
+  danger,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  danger?: boolean;
+}) {
   return (
     <button
       type="button"
       style={{
-        display: "flex", alignItems: "center", gap: 10,
-        width: "100%", padding: "9px 14px",
-        background: "transparent", border: "none", cursor: "pointer",
-        color: INK, fontSize: 13, textAlign: "left",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        width: "100%",
+        padding: "9px 14px",
+        background: "transparent",
+        border: "none",
+        cursor: "pointer",
+        color: danger ? "#D92D20" : INK,
+        fontSize: 13,
+        textAlign: "left",
       }}
-      onMouseEnter={(e) => ((e.currentTarget.style.background = "#F4F6FB"))}
-      onMouseLeave={(e) => ((e.currentTarget.style.background = "transparent"))}
+      onMouseEnter={(e) => (e.currentTarget.style.background = danger ? "#FEF3F2" : "#F4F6FB")}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
     >
-      <span style={{ color: MUTED, display: "flex" }}>{icon}</span>
+      <span style={{ color: danger ? "#D92D20" : MUTED, display: "flex" }}>{icon}</span>
       {label}
     </button>
   );

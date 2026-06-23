@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 import { tokens } from "@/lib/tokens";
 
-type Variant = "primary" | "outline" | "ghost";
+type Variant = "primary" | "outline" | "ghost" | "danger" | "dangerOutline";
 type Size = "md" | "sm";
 
 type ButtonProps = {
@@ -30,6 +30,20 @@ function variantStyle(variant: Variant, disabled?: boolean): CSSProperties {
       background: tokens.surface,
       color: tokens.text,
       border: `1px solid ${tokens.border}`,
+    };
+  }
+  if (variant === "danger") {
+    return {
+      background: disabled ? "#94A3B8" : tokens.danger,
+      color: "#fff",
+      border: "none",
+    };
+  }
+  if (variant === "dangerOutline") {
+    return {
+      background: tokens.surface,
+      color: tokens.danger,
+      border: "1px solid #FECDCA",
     };
   }
   return { background: "transparent", color: tokens.text, border: "none" };

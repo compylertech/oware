@@ -1,4 +1,5 @@
 import { Pill } from "@/components/patterns/Pill";
+import { Check, Clock, AlertTriangle, Minus, type LucideIcon } from "lucide-react";
 
 export type StatusKind =
   | "Active"
@@ -73,10 +74,21 @@ const ON_DARK: Record<string, { text: string; bg: string; border: string }> = {
   blue: { text: "#93C5FD", bg: "rgba(59,91,219,0.18)", border: "rgba(147,197,253,0.35)" },
 };
 
+// A shape per tone so state is never conveyed by colour alone (accessibility).
+const TONE_ICON: Record<Tone, LucideIcon> = {
+  green: Check,
+  amber: Clock,
+  red: AlertTriangle,
+  orange: AlertTriangle,
+  gray: Minus,
+  blue: Clock,
+};
+
 /**
  * Semantic status badge — a special {@link Pill} that always has a border and a
- * status dot. Pass a known `status` (mapped to a tone) or an explicit `tone` +
- * `label` for domain-specific statuses (e.g. loan stages).
+ * tone-specific icon (so colour is never the only signal). Pass a known `status`
+ * (mapped to a tone) or an explicit `tone` + `label` for domain-specific
+ * statuses (e.g. loan stages).
  */
 export function StatusPill({
   status,
@@ -93,8 +105,15 @@ export function StatusPill({
 }) {
   const resolvedTone = tone ?? (status ? STATUS_TONE[status] : undefined) ?? "gray";
   const s = variant === "onDark" ? ON_DARK[resolvedTone] : TONE[resolvedTone];
+  const Icon = TONE_ICON[resolvedTone];
   return (
-    <Pill color={s.text} bg={s.bg} border={s.border} dot className={className}>
+    <Pill
+      color={s.text}
+      bg={s.bg}
+      border={s.border}
+      icon={<Icon size={12} strokeWidth={2.5} style={{ flexShrink: 0 }} />}
+      className={className}
+    >
       {label ?? status}
     </Pill>
   );

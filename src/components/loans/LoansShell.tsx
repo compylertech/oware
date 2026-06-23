@@ -5,22 +5,6 @@ import { LOAN } from "@/lib/tokens";
 import { fontDisplay, NavyBtn, OutlineBtn } from "./ui";
 import { NewApplicationDrawer } from "./NewApplicationDrawer";
 
-function AmberBtn({ children, icon, onClick }: { children: ReactNode; icon?: ReactNode; onClick?: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        display: "inline-flex", alignItems: "center", gap: 6, height: 36,
-        padding: "0 16px", borderRadius: 10, background: "#B45309",
-        color: "#fff", fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer",
-      }}
-    >
-      {icon}
-      {children}
-    </button>
-  );
-}
-
 type Tab = { label: string; to: string; badge?: number };
 
 const TABS: Tab[] = [
@@ -100,10 +84,7 @@ export function LoansShell({ children }: { children: ReactNode }) {
       </div>
 
       {/* Page header */}
-      <div
-        className="flex items-end justify-between"
-        style={{ padding: "24px 28px 16px" }}
-      >
+      <div className="flex items-end justify-between" style={{ padding: "24px 28px 16px" }}>
         <div>
           <div
             style={{
@@ -131,7 +112,12 @@ export function LoansShell({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-2">
           {(() => {
             const path = activeTab.to;
-            const showExport = ["/loans", "/loans/applications", "/loans/active", "/loans/arrears"].includes(path);
+            const showExport = [
+              "/loans",
+              "/loans/applications",
+              "/loans/active",
+              "/loans/arrears",
+            ].includes(path);
             const showNewApp = ["/loans", "/loans/applications"].includes(path);
             const showReminders = path === "/loans/arrears";
             const showNewProduct = path === "/loans/products";
@@ -144,12 +130,8 @@ export function LoansShell({ children }: { children: ReactNode }) {
                     New Application
                   </NavyBtn>
                 )}
-                {showReminders && (
-                  <AmberBtn icon={<Bell size={14} />}>Send Reminders</AmberBtn>
-                )}
-                {showNewProduct && (
-                  <NavyBtn icon={<Plus size={14} />}>New Product</NavyBtn>
-                )}
+                {showReminders && <NavyBtn icon={<Bell size={14} />}>Send Reminders</NavyBtn>}
+                {showNewProduct && <NavyBtn icon={<Plus size={14} />}>New Product</NavyBtn>}
                 {showRegisterCollat && (
                   <NavyBtn icon={<Plus size={14} />}>Register Collateral</NavyBtn>
                 )}

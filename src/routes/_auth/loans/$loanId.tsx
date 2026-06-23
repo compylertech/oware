@@ -7,6 +7,7 @@ import { Panel, PanelHead, Ava, Th, Td, fontDisplay, fontMono } from "@/componen
 import { StagePill } from "@/components/loans/StagePill";
 import { ACTIVE_LOANS, fmtGHS } from "@/api/loans";
 import { Tabs } from "@/components/patterns";
+import { StatusPill } from "@/components/common/StatusPill";
 
 export const Route = createFileRoute("/_auth/loans/$loanId")({
   component: LoanDetail,
@@ -102,21 +103,10 @@ function LoanDetail() {
                   <Td>{fmtGHS(r.interest)}</Td>
                   <Td style={{ fontWeight: 700 }}>{fmtGHS(r.total)}</Td>
                   <Td>
-                    {r.status === "Paid" && (
-                      <Pill c={LOAN.green} bg={LOAN.greenBg}>
-                        Paid
-                      </Pill>
-                    )}
-                    {r.status === "Due" && (
-                      <Pill c={LOAN.amber} bg={LOAN.amberBg}>
-                        Due
-                      </Pill>
-                    )}
-                    {r.status === "Upcoming" && (
-                      <Pill c={LOAN.muted} bg="#EEF1F6">
-                        Upcoming
-                      </Pill>
-                    )}
+                    <StatusPill
+                      label={r.status}
+                      tone={r.status === "Paid" ? "green" : r.status === "Due" ? "amber" : "gray"}
+                    />
                   </Td>
                 </tr>
               ))}
@@ -130,22 +120,5 @@ function LoanDetail() {
         )}
       </Panel>
     </LoansShell>
-  );
-}
-
-function Pill({ c, bg, children }: { c: string; bg: string; children: React.ReactNode }) {
-  return (
-    <span
-      style={{
-        padding: "2px 10px",
-        borderRadius: 999,
-        fontSize: 11,
-        fontWeight: 600,
-        color: c,
-        background: bg,
-      }}
-    >
-      {children}
-    </span>
   );
 }
