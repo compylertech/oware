@@ -3,6 +3,8 @@
 export { Button } from "./Button";
 export { Tabs } from "./Tabs";
 export type { TabItem } from "./Tabs";
+export { FilterSelect } from "./FilterSelect";
+export type { FilterOption } from "./FilterSelect";
 export { PageHeader } from "./PageHeader";
 export { StatCard, StatGrid } from "./StatCard";
 export { SectionCard } from "./SectionCard";

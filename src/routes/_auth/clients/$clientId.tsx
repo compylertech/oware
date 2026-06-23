@@ -768,15 +768,15 @@ function ClientDetail() {
                           <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>
                             {t.date}
                           </td>
-                          <td style={{ padding: 14 }}>
-                            <StatusPill status={isCredit ? "Credit" : "Debit"} />
+                          <td style={{ padding: 14, fontSize: 13, color: tokens.text }}>
+                            {t.type}
                           </td>
                           <td
                             style={{
                               padding: 14,
                               fontFamily: "'DM Sans', sans-serif",
                               fontSize: 13,
-                              color: isCredit ? "#067647" : "#D92D20",
+                              color: tokens.text,
                               fontWeight: 700,
                               fontVariantNumeric: "tabular-nums",
                             }}

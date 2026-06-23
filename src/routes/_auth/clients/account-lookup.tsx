@@ -706,8 +706,8 @@ function AccountLookupPage() {
                         <td style={{ padding: "12px 18px", fontSize: 13, color: tokens.text }}>
                           {t.type}
                         </td>
-                        <td style={{ padding: "12px 18px" }}>
-                          <StatusPill status={t.entry} />
+                        <td style={{ padding: "12px 18px", fontSize: 13, color: tokens.text }}>
+                          {t.entry}
                         </td>
                         <td
                           style={{
@@ -716,7 +716,7 @@ function AccountLookupPage() {
                             fontWeight: 700,
                             fontSize: 13,
                             fontVariantNumeric: "tabular-nums",
-                            color: t.entry === "Credit" ? "#067647" : "#D92D20",
+                            color: tokens.text,
                           }}
                         >
                           {t.entry === "Credit" ? "+" : "−"} {fmtGHS(t.amount)}

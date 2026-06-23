@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { RefreshCw, Download, Search, ChevronDown, MoreVertical } from "lucide-react";
+import { RefreshCw, Download, Search, MoreVertical } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
+import { FilterSelect } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/transactions")({
   component: TransactionsPage,
@@ -119,6 +120,33 @@ const ROWS: Row[] = [
 const fmt = (n: number) =>
   n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+const OFFICE_BY_ACCT: Record<string, string> = {
+  "ACC-00001": "Head Office",
+  "ACC-00002": "Kumasi",
+  "ACC-00003": "Takoradi",
+  "ACC-00004": "Accra Main",
+  "ACC-00005": "Head Office",
+  "ACC-00006": "Kumasi",
+};
+
+const OFFICE_OPTIONS = [
+  { label: "All offices", value: "All" },
+  { label: "Head Office", value: "Head Office" },
+  { label: "Accra Main", value: "Accra Main" },
+  { label: "Kumasi", value: "Kumasi" },
+  { label: "Takoradi", value: "Takoradi" },
+];
+const TYPE_OPTIONS = [
+  { label: "All types", value: "All" },
+  { label: "Credit", value: "Credit" },
+  { label: "Debit", value: "Debit" },
+];
+const STATUS_OPTIONS = [
+  { label: "All statuses", value: "All" },
+  { label: "Completed", value: "Completed" },
+  { label: "Pending", value: "Pending" },
+];
+
 function showToast(msg: string) {
   if (typeof window === "undefined") return;
   const el = document.createElement("div");
@@ -145,6 +173,11 @@ function TransactionsPage() {
   const [detail, setDetail] = useState<Row | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const [search, setSearch] = useState("");
+  const [office, setOffice] = useState("All");
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
+
   useEffect(() => {
     function onClick(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpenMenu(null);
@@ -152,6 +185,23 @@ function TransactionsPage() {
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
+
+  const q = search.trim().toLowerCase();
+  const filtered = ROWS.filter((r) => {
+    if (office !== "All" && OFFICE_BY_ACCT[r.acct] !== office) return false;
+    if (typeFilter !== "All" && r.type !== typeFilter) return false;
+    if (statusFilter !== "All" && r.status !== statusFilter) return false;
+    if (q && !`${r.acct} ${r.client} ${r.narration}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  const totalCredits = filtered
+    .filter((r) => r.type === "Credit" && r.status === "Completed")
+    .reduce((s, r) => s + r.amount, 0);
+  const totalDebits = filtered
+    .filter((r) => r.type === "Debit" && r.status === "Completed")
+    .reduce((s, r) => s + r.amount, 0);
+  const pendingCount = filtered.filter((r) => r.status === "Pending").length;
 
   return (
     <div style={{ background: BG, minHeight: "100%", padding: "24px 28px" }}>
@@ -193,20 +243,30 @@ function TransactionsPage() {
           marginBottom: 16,
         }}
       >
-        <Kpi label="TOTAL TRANSACTIONS" value="10" valueColor={INK} sub="Matching filters" />
+        <Kpi
+          label="TOTAL TRANSACTIONS"
+          value={String(filtered.length)}
+          valueColor={INK}
+          sub="Matching filters"
+        />
         <Kpi
           label="TOTAL CREDITS"
-          value={`GH₵ ${fmt(118289.8)}`}
+          value={`GH₵ ${fmt(totalCredits)}`}
           valueColor="#067647"
           sub="Completed credits"
         />
         <Kpi
           label="TOTAL DEBITS"
-          value={`GH₵ ${fmt(9700)}`}
+          value={`GH₵ ${fmt(totalDebits)}`}
           valueColor="#D92D20"
           sub="Completed debits"
         />
-        <Kpi label="PENDING" value="1" valueColor="#B45309" sub="Awaiting processing" />
+        <Kpi
+          label="PENDING"
+          value={String(pendingCount)}
+          valueColor="#B45309"
+          sub="Awaiting processing"
+        />
       </div>
 
       <Card
@@ -225,6 +285,8 @@ function TransactionsPage() {
         >
           <Search size={16} color={MUTED} />
           <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Search reference, client, account…"
             style={{
               flex: 1,
@@ -236,11 +298,20 @@ function TransactionsPage() {
             }}
           />
         </div>
-        <SelectPill label="Office: Head Office" />
-        <SelectPill label="Type: All" />
-        <SelectPill label="Status: All" />
-        <SelectPill label="End of Month" />
-        <span style={{ fontSize: 13, color: MUTED, marginLeft: 4 }}>10 results</span>
+        <FilterSelect label="Office" value={office} onChange={setOffice} options={OFFICE_OPTIONS} />
+        <FilterSelect
+          label="Type"
+          value={typeFilter}
+          onChange={setTypeFilter}
+          options={TYPE_OPTIONS}
+        />
+        <FilterSelect
+          label="Status"
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={STATUS_OPTIONS}
+        />
+        <span style={{ fontSize: 13, color: MUTED, marginLeft: 4 }}>{filtered.length} results</span>
       </Card>
 
       <Card>
@@ -268,10 +339,20 @@ function TransactionsPage() {
             </tr>
           </thead>
           <tbody>
-            {ROWS.map((r, i) => (
+            {filtered.length === 0 && (
+              <tr>
+                <td
+                  colSpan={8}
+                  style={{ ...td, textAlign: "center", color: MUTED, padding: "32px 18px" }}
+                >
+                  No transactions match the current filters.
+                </td>
+              </tr>
+            )}
+            {filtered.map((r, i) => (
               <tr
                 key={i}
-                style={{ borderBottom: i < ROWS.length - 1 ? `1px solid ${BORDER}` : "none" }}
+                style={{ borderBottom: i < filtered.length - 1 ? `1px solid ${BORDER}` : "none" }}
               >
                 <td style={td}>
                   <span style={{ fontFamily: "DM Mono, monospace", color: NAVY, fontSize: 13 }}>
@@ -281,18 +362,16 @@ function TransactionsPage() {
                 <td style={td}>
                   <span style={{ fontSize: 13, color: INK }}>{r.client}</span>
                 </td>
-                <td style={td}>
-                  <StatusPill status={r.type} />
-                </td>
+                <td style={td}>{r.type}</td>
                 <td
                   style={{
                     ...td,
                     fontWeight: 700,
-                    color: r.type === "Credit" ? "#067647" : "#D92D20",
+                    color: INK,
                     fontVariantNumeric: "tabular-nums",
                   }}
                 >
-                  {r.type === "Credit" ? "+" : "-"}GH₵ {fmt(r.amount)}
+                  {r.type === "Credit" ? "+" : "−"}GH₵ {fmt(r.amount)}
                 </td>
                 <td style={{ ...td, color: INK }}>{r.narration}</td>
                 <td style={td}>
@@ -561,32 +640,6 @@ function OutlineBtn({ children, icon }: { children: React.ReactNode; icon?: Reac
     >
       {icon}
       {children}
-    </button>
-  );
-}
-
-function SelectPill({ label }: { label: string }) {
-  return (
-    <button
-      type="button"
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        background: "#fff",
-        border: `1px solid ${BORDER}`,
-        color: INK,
-        fontSize: 13,
-        fontWeight: 600,
-        lineHeight: 1.2,
-        borderRadius: 8,
-        padding: "8px 12px",
-        height: 36,
-        cursor: "pointer",
-      }}
-    >
-      {label}
-      <ChevronDown size={14} color={MUTED} />
     </button>
   );
 }
