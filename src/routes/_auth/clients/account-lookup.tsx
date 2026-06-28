@@ -8,18 +8,27 @@ import {
   TrendingUp,
   TrendingDown,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   Plus,
   ArrowLeftRight,
   X,
   CheckCircle2,
+  MoreVertical,
 } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
-import { Pill } from "@/components/patterns";
-import { tokens } from "@/lib/tokens";
+import {
+  Button,
+  DateRangeFilter,
+  EmptyRow,
+  Pill,
+  Table,
+  TableCard,
+  Td,
+  Th,
+  THead,
+  Tr,
+} from "@/components/patterns";
+import { isDisplayDateInRange } from "@/lib/dateFilters";
+import { FONTS, tokens } from "@/lib/tokens";
 import { getClients } from "@/lib/mockStore";
 
 export const Route = createFileRoute("/_auth/clients/account-lookup")({
@@ -186,9 +195,12 @@ function AccountLookupPage() {
   const [notices, setNotices] = useState<WithdrawalNotice[]>([]);
 
   const [filter, setFilter] = useState<"All" | TxnEntry>("All");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
 
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [accountActionsOpen, setAccountActionsOpen] = useState(false);
   const [dialog, setDialog] = useState<null | "credit" | "debit" | "transfer">(null);
 
   function handleLookup(e?: React.FormEvent) {
@@ -198,6 +210,7 @@ function AccountLookupPage() {
     setError(null);
     setSearching(true);
     setActionsOpen(false);
+    setAccountActionsOpen(false);
     setTimeout(() => {
       // Any non-empty string except "000" returns the mock account.
       if (q.replace(/\s|-/g, "").toLowerCase() === "000") {
@@ -211,6 +224,8 @@ function AccountLookupPage() {
         setTxns(built.txns);
         setNotices(built.notices);
         setFilter("All");
+        setDateFrom("");
+        setDateTo("");
         setPage(1);
       }
       setSearching(false);
@@ -218,8 +233,13 @@ function AccountLookupPage() {
   }
 
   const filteredTxns = useMemo(
-    () => (filter === "All" ? txns : txns.filter((t) => t.entry === filter)),
-    [txns, filter],
+    () =>
+      txns.filter(
+        (t) =>
+          (filter === "All" || t.entry === filter) &&
+          isDisplayDateInRange(t.date, dateFrom, dateTo),
+      ),
+    [dateFrom, dateTo, txns, filter],
   );
   const totalPages = Math.max(1, Math.ceil(filteredTxns.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -236,7 +256,10 @@ function AccountLookupPage() {
   const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     function onDoc(e: MouseEvent) {
-      if (!rootRef.current?.contains(e.target as Node)) setActionsOpen(false);
+      if (!rootRef.current?.contains(e.target as Node)) {
+        setActionsOpen(false);
+        setAccountActionsOpen(false);
+      }
     }
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
@@ -245,6 +268,12 @@ function AccountLookupPage() {
   function handleApprove() {
     if (!account) return;
     setAccount({ ...account, status: "Active" });
+    setAccountActionsOpen(false);
+  }
+
+  function openAccountDialog(nextDialog: "credit" | "debit" | "transfer") {
+    setAccountActionsOpen(false);
+    setDialog(nextDialog);
   }
 
   function handleTxnSubmit(kind: "credit" | "debit", amount: number) {
@@ -263,15 +292,119 @@ function AccountLookupPage() {
     setTxns([newTxn, ...txns]);
   }
 
+  const transactionFilters = (
+    <>
+      {(["All", "Credit", "Debit"] as const).map((f) => {
+        const active = filter === f;
+        return (
+          <Button
+            type="button"
+            key={f}
+            onClick={() => {
+              setFilter(f);
+              setPage(1);
+            }}
+            variant={
+              active
+                ? f === "Credit"
+                  ? "success"
+                  : f === "Debit"
+                    ? "danger"
+                    : "primary"
+                : "outline"
+            }
+            size="sm"
+            style={{ borderRadius: 999 }}
+          >
+            {f === "All" ? "All" : f}
+          </Button>
+        );
+      })}
+      <DateRangeFilter
+        from={dateFrom}
+        to={dateTo}
+        onFromChange={(value) => {
+          setDateFrom(value);
+          setPage(1);
+        }}
+        onToChange={(value) => {
+          setDateTo(value);
+          setPage(1);
+        }}
+      />
+    </>
+  );
+
+  const transactionActions =
+    account?.status === "Active" ? (
+      <div className="relative ml-2">
+        <Button
+          type="button"
+          onClick={() => {
+            setAccountActionsOpen(false);
+            setActionsOpen((o) => !o);
+          }}
+          variant="primary"
+          size="sm"
+          iconRight={<ChevronDown size={14} />}
+        >
+          Actions
+        </Button>
+        {actionsOpen && (
+          <div
+            className="absolute right-0 mt-2 z-20"
+            style={{
+              background: "#fff",
+              border: `1px solid ${tokens.border}`,
+              borderRadius: 12,
+              width: 220,
+              padding: 6,
+            }}
+          >
+            <ActionItem
+              icon={<TrendingUp size={15} />}
+              iconBg="#ECFDF3"
+              iconColor="#067647"
+              label="Credit Account"
+              onClick={() => {
+                setActionsOpen(false);
+                setDialog("credit");
+              }}
+            />
+            <ActionItem
+              icon={<TrendingDown size={15} />}
+              iconBg="#FEF3F2"
+              iconColor="#D92D20"
+              label="Debit Account"
+              onClick={() => {
+                setActionsOpen(false);
+                setDialog("debit");
+              }}
+            />
+            <ActionItem
+              icon={<ArrowLeftRight size={15} />}
+              iconBg="#EFF4FE"
+              iconColor={tokens.accent}
+              label="Transfer Funds"
+              onClick={() => {
+                setActionsOpen(false);
+                setDialog("transfer");
+              }}
+            />
+          </div>
+        )}
+      </div>
+    ) : null;
+
   return (
     <div ref={rootRef} style={{ background: tokens.bg, minHeight: "100%", padding: 24 }}>
-      <div className="space-y-5" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <div className="space-y-5" style={{ fontFamily: FONTS.body }}>
         {/* ===== Hero ===== */}
         <Card style={{ padding: 28, borderRadius: 16 }}>
           <div
             style={{
               fontSize: 11,
-              fontWeight: 700,
+              fontWeight: 100,
               letterSpacing: 1.2,
               color: tokens.textMuted,
               textTransform: "uppercase",
@@ -281,9 +414,9 @@ function AccountLookupPage() {
           </div>
           <h1
             style={{
-              fontFamily: "'Sora', sans-serif",
+              fontFamily: FONTS.body,
               fontSize: 24,
-              fontWeight: 800,
+              fontWeight: 200,
               color: tokens.text,
               marginTop: 6,
             }}
@@ -315,7 +448,7 @@ function AccountLookupPage() {
                 placeholder="Enter account number"
                 className="flex-1 bg-transparent outline-none"
                 style={{
-                  fontFamily: "'DM Mono', monospace",
+                  fontFamily: FONTS.mono,
                   fontSize: 13,
                   color: tokens.text,
                   height: 40,
@@ -324,32 +457,16 @@ function AccountLookupPage() {
                 onBlur={(e) => (e.currentTarget.parentElement!.style.borderColor = tokens.border)}
               />
             </div>
-            <button
+            <Button
               type="submit"
               disabled={searching || !query.trim()}
-              className="inline-flex items-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-              style={{
-                background: tokens.navy,
-                color: "#fff",
-                borderRadius: 10,
-                padding: "0 18px",
-                fontSize: 13,
-                fontWeight: 600,
-                height: 42,
-              }}
+              size="lg"
+              icon={
+                searching ? <RefreshCw size={15} className="animate-spin" /> : <Search size={15} />
+              }
             >
-              {searching ? (
-                <>
-                  <RefreshCw size={15} className="animate-spin" />
-                  Searching…
-                </>
-              ) : (
-                <>
-                  <Search size={15} />
-                  Look Up
-                </>
-              )}
-            </button>
+              {searching ? "Searching…" : "Look Up"}
+            </Button>
           </form>
 
           {error && (
@@ -399,16 +516,16 @@ function AccountLookupPage() {
                       fontSize: 10,
                       letterSpacing: 1.4,
                       color: "rgba(255,255,255,0.6)",
-                      fontWeight: 700,
+                      fontWeight: 100,
                     }}
                   >
                     ACCOUNT NUMBER
                   </div>
                   <div
                     style={{
-                      fontFamily: "'DM Mono', monospace",
+                      fontFamily: FONTS.mono,
                       fontSize: 26,
-                      fontWeight: 700,
+                      fontWeight: 100,
                       color: "#fff",
                       marginTop: 6,
                       letterSpacing: 1,
@@ -427,16 +544,16 @@ function AccountLookupPage() {
                       fontSize: 10,
                       letterSpacing: 1.4,
                       color: "rgba(255,255,255,0.6)",
-                      fontWeight: 700,
+                      fontWeight: 100,
                     }}
                   >
                     CURRENT BALANCE
                   </div>
                   <div
                     style={{
-                      fontFamily: "'Sora', sans-serif",
+                      fontFamily: FONTS.body,
                       fontSize: 32,
-                      fontWeight: 800,
+                      fontWeight: 200,
                       color: "#fff",
                       marginTop: 4,
                     }}
@@ -445,39 +562,70 @@ function AccountLookupPage() {
                   </div>
                   <div className="mt-2 flex items-center justify-end gap-2">
                     <StatusPill status={account.status} variant="onDark" />
-                    {account.status === "Pending" ? (
+                    <div className="relative">
                       <button
-                        onClick={handleApprove}
-                        className="cursor-pointer"
-                        style={{
-                          background: "#047857",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: 8,
-                          padding: "4px 12px",
-                          fontSize: 11,
-                          fontWeight: 600,
+                        type="button"
+                        aria-label="Account actions"
+                        aria-expanded={accountActionsOpen}
+                        onClick={() => {
+                          setActionsOpen(false);
+                          setAccountActionsOpen((v) => !v);
                         }}
-                      >
-                        Approve
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => {}}
-                        className="cursor-pointer"
                         style={{
                           background: "rgba(255,255,255,0.1)",
-                          color: "#fff",
-                          border: "1px solid rgba(255,255,255,0.2)",
+                          border: "1px solid rgba(255,255,255,0.15)",
                           borderRadius: 8,
-                          padding: "3px 10px",
-                          fontSize: 11,
-                          fontWeight: 600,
+                          padding: 6,
+                          color: "white",
                         }}
                       >
-                        Activate
+                        <MoreVertical size={16} />
                       </button>
-                    )}
+                      {accountActionsOpen && (
+                        <div
+                          className="absolute z-20 bg-white"
+                          style={{
+                            top: 36,
+                            right: 0,
+                            border: `1px solid ${tokens.border}`,
+                            borderRadius: 8,
+                            minWidth: 190,
+                            padding: 4,
+                          }}
+                        >
+                          {account.status === "Pending" ? (
+                            <>
+                              <AccountActionItem label="Approve Account" onClick={handleApprove} />
+                              <AccountActionItem
+                                label="Reject Account"
+                                color="#D92D20"
+                                onClick={() => setAccountActionsOpen(false)}
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <AccountActionItem
+                                label="Credit Account"
+                                onClick={() => openAccountDialog("credit")}
+                              />
+                              <AccountActionItem
+                                label="Debit Account"
+                                onClick={() => openAccountDialog("debit")}
+                              />
+                              <AccountActionItem
+                                label="Transfer Funds"
+                                onClick={() => openAccountDialog("transfer")}
+                              />
+                              <AccountActionItem
+                                label="Close Account"
+                                color="#D92D20"
+                                onClick={() => setAccountActionsOpen(false)}
+                              />
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -534,296 +682,64 @@ function AccountLookupPage() {
 
         {/* ===== Transactions ===== */}
         {account && (
-          <Card>
-            <div
-              className="flex flex-wrap items-center justify-between gap-3"
-              style={{ padding: "18px 22px", borderBottom: `1px solid ${tokens.border}` }}
-            >
-              <div className="flex items-center gap-3">
-                <span style={{ width: 3, height: 18, background: tokens.navy, borderRadius: 2 }} />
-                <span
-                  style={{
-                    fontFamily: "'Sora', sans-serif",
-                    fontSize: 12,
-                    letterSpacing: 1.2,
-                    fontWeight: 700,
-                    color: tokens.text,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Transaction History
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {(["All", "Credit", "Debit"] as const).map((f) => {
-                  const active = filter === f;
-                  const c =
-                    f === "Credit"
-                      ? { bg: "#067647", text: "#fff", border: "#067647" }
-                      : f === "Debit"
-                        ? { bg: "#D92D20", text: "#fff", border: "#D92D20" }
-                        : { bg: tokens.navy, text: "#fff", border: tokens.navy };
-                  return (
-                    <button
-                      key={f}
-                      onClick={() => {
-                        setFilter(f);
-                        setPage(1);
-                      }}
-                      className="cursor-pointer"
-                      style={{
-                        background: active ? c.bg : "#fff",
-                        color: active ? c.text : tokens.textSub,
-                        border: `1px solid ${active ? c.border : tokens.border}`,
-                        borderRadius: 999,
-                        padding: "5px 12px",
-                        fontSize: 12,
-                        fontWeight: 600,
-                      }}
-                    >
-                      {f === "All" ? "All" : f}
-                    </button>
-                  );
-                })}
-                <span style={{ fontSize: 12, color: tokens.textMuted, marginLeft: 6 }}>
-                  {filteredTxns.length} results
-                </span>
-
-                {account.status === "Active" && (
-                  <div className="relative ml-2">
-                    <button
-                      onClick={() => setActionsOpen((o) => !o)}
-                      className="inline-flex items-center gap-1.5 cursor-pointer"
-                      style={{
-                        background: tokens.navy,
-                        color: "#fff",
-                        borderRadius: 8,
-                        padding: "7px 12px",
-                        fontSize: 12,
-                        fontWeight: 600,
-                      }}
-                    >
-                      Actions
-                      <ChevronDown size={14} />
-                    </button>
-                    {actionsOpen && (
-                      <div
-                        className="absolute right-0 mt-2 z-20"
-                        style={{
-                          background: "#fff",
-                          border: `1px solid ${tokens.border}`,
-                          borderRadius: 12,
-                          width: 220,
-                          padding: 6,
-                        }}
-                      >
-                        <ActionItem
-                          icon={<TrendingUp size={15} />}
-                          iconBg="#ECFDF3"
-                          iconColor="#067647"
-                          label="Credit Account"
-                          onClick={() => {
-                            setActionsOpen(false);
-                            setDialog("credit");
-                          }}
-                        />
-                        <ActionItem
-                          icon={<TrendingDown size={15} />}
-                          iconBg="#FEF3F2"
-                          iconColor="#D92D20"
-                          label="Debit Account"
-                          onClick={() => {
-                            setActionsOpen(false);
-                            setDialog("debit");
-                          }}
-                        />
-                        <ActionItem
-                          icon={<ArrowLeftRight size={15} />}
-                          iconBg="#EFF4FE"
-                          iconColor={tokens.accent}
-                          label="Transfer Funds"
-                          onClick={() => {
-                            setActionsOpen(false);
-                            setDialog("transfer");
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
+          <TableCard
+            title="Transaction History"
+            filters={transactionFilters}
+            resultLabel={`${filteredTxns.length} results`}
+            actions={transactionActions}
+            pagination={{
+              page: currentPage,
+              totalPages,
+              totalItems: filteredTxns.length,
+              itemLabel: "transactions",
+              onPageChange: setPage,
+            }}
+          >
+            <Table>
+              <THead>
+                {["Date", "Narration", "Debit", "Credit", "Running Balance", "Status"].map((h) => (
+                  <Th key={h}>{h}</Th>
+                ))}
+              </THead>
+              <tbody>
+                {pageRows.length === 0 ? (
+                  <EmptyRow colSpan={6}>No transactions found</EmptyRow>
+                ) : (
+                  pageRows.map((t) => (
+                    <Tr key={t.id} hover>
+                      <Td muted>{t.date}</Td>
+                      <Td>{t.type}</Td>
+                      <Td numeric style={{ fontWeight: 100 }}>
+                        {t.entry === "Debit" ? fmtGHS(t.amount) : ""}
+                      </Td>
+                      <Td numeric style={{ fontWeight: 100 }}>
+                        {t.entry === "Credit" ? fmtGHS(t.amount) : ""}
+                      </Td>
+                      <Td numeric style={{ fontWeight: 500 }}>
+                        {fmtGHS(t.runningBalance)}
+                      </Td>
+                      <Td>
+                        <StatusPill status={t.status} />
+                      </Td>
+                    </Tr>
+                  ))
                 )}
-              </div>
-            </div>
-
-            {/* Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full" style={{ borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ background: "#F5F8FE" }}>
-                    {["Date", "Type", "Entry", "Amount", "Running Balance", "Status"].map((h) => (
-                      <th
-                        key={h}
-                        style={{
-                          textAlign: "left",
-                          padding: "10px 18px",
-                          fontSize: 10,
-                          letterSpacing: 1,
-                          fontWeight: 700,
-                          color: tokens.textMuted,
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {pageRows.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        style={{
-                          padding: 36,
-                          textAlign: "center",
-                          color: tokens.textMuted,
-                          fontSize: 13,
-                        }}
-                      >
-                        No transactions found
-                      </td>
-                    </tr>
-                  ) : (
-                    pageRows.map((t) => (
-                      <tr
-                        key={t.id}
-                        className="hover:bg-[#FAFBFF]"
-                        style={{ borderTop: `1px solid ${tokens.border}` }}
-                      >
-                        <td style={{ padding: "12px 18px", fontSize: 13, color: tokens.textSub }}>
-                          {t.date}
-                        </td>
-                        <td style={{ padding: "12px 18px", fontSize: 13, color: tokens.text }}>
-                          {t.type}
-                        </td>
-                        <td style={{ padding: "12px 18px", fontSize: 13, color: tokens.text }}>
-                          {t.entry}
-                        </td>
-                        <td
-                          style={{
-                            padding: "12px 18px",
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontWeight: 700,
-                            fontSize: 13,
-                            fontVariantNumeric: "tabular-nums",
-                            color: tokens.text,
-                          }}
-                        >
-                          {t.entry === "Credit" ? "+" : "−"} {fmtGHS(t.amount)}
-                        </td>
-                        <td
-                          style={{
-                            padding: "12px 18px",
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontWeight: 500,
-                            fontSize: 13,
-                            fontVariantNumeric: "tabular-nums",
-                            color: tokens.text,
-                          }}
-                        >
-                          {fmtGHS(t.runningBalance)}
-                        </td>
-                        <td style={{ padding: "12px 18px" }}>
-                          <StatusPill status={t.status} />
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            {filteredTxns.length > 0 && (
-              <div
-                className="flex flex-wrap items-center justify-between gap-3"
-                style={{ padding: "14px 22px", borderTop: `1px solid ${tokens.border}` }}
-              >
-                <div style={{ fontSize: 12, color: tokens.textMuted }}>
-                  Page {currentPage} of {totalPages} · {filteredTxns.length} transactions
-                </div>
-                <div className="flex items-center gap-1">
-                  <PageBtn onClick={() => setPage(1)} disabled={currentPage === 1}>
-                    <ChevronsLeft size={14} />
-                  </PageBtn>
-                  <PageBtn
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    <ChevronLeft size={14} />
-                  </PageBtn>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setPage(p)}
-                      className="cursor-pointer"
-                      style={{
-                        width: 30,
-                        height: 30,
-                        borderRadius: 8,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        background: p === currentPage ? tokens.navy : "#fff",
-                        color: p === currentPage ? "#fff" : tokens.textSub,
-                        border: `1px solid ${p === currentPage ? tokens.navy : tokens.border}`,
-                      }}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                  <PageBtn
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    <ChevronRight size={14} />
-                  </PageBtn>
-                  <PageBtn
-                    onClick={() => setPage(totalPages)}
-                    disabled={currentPage === totalPages}
-                  >
-                    <ChevronsRight size={14} />
-                  </PageBtn>
-                </div>
-              </div>
-            )}
-          </Card>
+              </tbody>
+            </Table>
+          </TableCard>
         )}
 
         {/* ===== Withdrawal notices ===== */}
         {account?.clientId && (
-          <Card>
-            <div
-              className="flex items-center justify-between gap-3"
-              style={{
-                padding: "16px 22px",
-                borderBottom: `1px solid ${tokens.border}`,
-                borderLeft: `3px solid ${tokens.teal}`,
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <span
-                  style={{
-                    fontFamily: "'Sora', sans-serif",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: tokens.text,
-                  }}
-                >
-                  Account Withdrawal Notices
-                </span>
+          <TableCard
+            title={
+              <span className="inline-flex items-center gap-3">
+                <span>Account Withdrawal Notices</span>
                 <LayerTag label="Cooperative" />
-              </div>
-              <button
+              </span>
+            }
+            actions={
+              <Button
                 onClick={() =>
                   setNotices([
                     {
@@ -836,81 +752,45 @@ function AccountLookupPage() {
                     ...notices,
                   ])
                 }
-                className="inline-flex items-center gap-1.5 cursor-pointer"
-                style={{
-                  background: tokens.navy,
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                  padding: "8px 16px",
-                  height: 36,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  lineHeight: 1.2,
-                }}
+                variant="success"
+                icon={<Plus size={14} />}
               >
-                <Plus size={14} />
                 Add notice
-              </button>
-            </div>
-            {notices.length === 0 ? (
-              <div
-                style={{ padding: 28, textAlign: "center", color: tokens.textMuted, fontSize: 13 }}
-              >
-                No withdrawal notices.
-              </div>
-            ) : (
-              <table className="w-full" style={{ borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ background: "#F5F8FE" }}>
-                    {["Notice date", "Amount", "Maturity / release", "Status"].map((h) => (
-                      <th
-                        key={h}
-                        style={{
-                          textAlign: "left",
-                          padding: "10px 22px",
-                          fontSize: 10,
-                          letterSpacing: 1,
-                          fontWeight: 700,
-                          color: tokens.textMuted,
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {notices.map((n) => (
-                    <tr key={n.id} style={{ borderTop: `1px solid ${tokens.border}` }}>
-                      <td style={{ padding: "12px 22px", fontSize: 13, color: tokens.textSub }}>
+              </Button>
+            }
+          >
+            <Table>
+              <THead>
+                {["Notice date", "Amount", "Maturity / release", "Status"].map((h) => (
+                  <Th key={h} style={{ paddingInline: 22 }}>
+                    {h}
+                  </Th>
+                ))}
+              </THead>
+              <tbody>
+                {notices.length === 0 ? (
+                  <EmptyRow colSpan={4}>No withdrawal notices.</EmptyRow>
+                ) : (
+                  notices.map((n) => (
+                    <Tr key={n.id} hover>
+                      <Td muted style={{ paddingInline: 22 }}>
                         {n.noticeDate}
-                      </td>
-                      <td
-                        style={{
-                          padding: "12px 22px",
-                          fontFamily: "'DM Sans', sans-serif",
-                          fontWeight: 700,
-                          fontSize: 13,
-                          fontVariantNumeric: "tabular-nums",
-                          color: tokens.text,
-                        }}
-                      >
+                      </Td>
+                      <Td numeric style={{ paddingInline: 22, fontWeight: 100 }}>
                         {fmtGHS(n.amount)}
-                      </td>
-                      <td style={{ padding: "12px 22px", fontSize: 13, color: tokens.textSub }}>
+                      </Td>
+                      <Td muted style={{ paddingInline: 22 }}>
                         {n.maturityDate}
-                      </td>
-                      <td style={{ padding: "12px 22px" }}>
+                      </Td>
+                      <Td style={{ paddingInline: 22 }}>
                         <StatusPill status={n.status as StatusKind} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </Card>
+                      </Td>
+                    </Tr>
+                  ))
+                )}
+              </tbody>
+            </Table>
+          </TableCard>
         )}
 
         {!account && !error && !searching && (
@@ -970,7 +850,7 @@ function MetaItem({ label, value, mono }: { label: string; value: string; mono?:
           fontSize: 10,
           letterSpacing: 1.2,
           color: "rgba(255,255,255,0.55)",
-          fontWeight: 700,
+          fontWeight: 100,
         }}
       >
         {label}
@@ -980,8 +860,8 @@ function MetaItem({ label, value, mono }: { label: string; value: string; mono?:
           marginTop: 4,
           color: "#fff",
           fontSize: 14,
-          fontWeight: 600,
-          fontFamily: mono ? "'DM Mono', monospace" : "'DM Sans', sans-serif",
+          fontWeight: 300,
+          fontFamily: mono ? FONTS.mono : FONTS.body,
         }}
       >
         {value}
@@ -1015,11 +895,11 @@ function StatCard({
           {icon}
         </div>
         <div>
-          <div style={{ fontSize: 11, color: tokens.textMuted, fontWeight: 600 }}>{label}</div>
+          <div style={{ fontSize: 11, color: tokens.textMuted, fontWeight: 300 }}>{label}</div>
           <div
             style={{
-              fontFamily: "'Sora', sans-serif",
-              fontWeight: 800,
+              fontFamily: FONTS.body,
+              fontWeight: 200,
               fontSize: 18,
               color: valueColor,
               marginTop: 2,
@@ -1063,33 +943,23 @@ function ActionItem({
   );
 }
 
-function PageBtn({
-  children,
+function AccountActionItem({
+  label,
+  color = tokens.text,
   onClick,
-  disabled,
 }: {
-  children: React.ReactNode;
+  label: string;
+  color?: string;
   onClick: () => void;
-  disabled?: boolean;
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      disabled={disabled}
-      className="cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-      style={{
-        width: 30,
-        height: 30,
-        borderRadius: 8,
-        background: "#fff",
-        border: `1px solid ${tokens.border}`,
-        color: tokens.textSub,
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
+      className="block w-full text-left hover:bg-slate-50"
+      style={{ padding: "8px 10px", borderRadius: 6, fontSize: 13, color }}
     >
-      {children}
+      {label}
     </button>
   );
 }
@@ -1130,8 +1000,8 @@ function DialogShell({
           <div>
             <div
               style={{
-                fontFamily: "'Sora', sans-serif",
-                fontWeight: 700,
+                fontFamily: FONTS.body,
+                fontWeight: 100,
                 fontSize: 15,
                 color: tokens.text,
               }}
@@ -1163,7 +1033,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <div style={{ fontSize: 11, fontWeight: 600, color: tokens.textSub, marginBottom: 6 }}>
+      <div style={{ fontSize: 11, fontWeight: 300, color: tokens.textSub, marginBottom: 6 }}>
         {label} {required && <span style={{ color: "#D92D20" }}>*</span>}
       </div>
       {children}
@@ -1202,7 +1072,6 @@ function TxnDialog({
   const [done, setDone] = useState(false);
 
   const isCredit = kind === "credit";
-  const color = isCredit ? "#059669" : "#DC2626";
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -1226,9 +1095,7 @@ function TxnDialog({
       subtitle={
         <>
           to account{" "}
-          <span style={{ fontFamily: "'DM Mono', monospace", color: tokens.text }}>
-            {accountNumber}
-          </span>
+          <span style={{ fontFamily: FONTS.mono, color: tokens.text }}>{accountNumber}</span>
         </>
       }
       onClose={onClose}
@@ -1250,8 +1117,8 @@ function TxnDialog({
           <div
             style={{
               marginTop: 12,
-              fontFamily: "'Sora', sans-serif",
-              fontWeight: 700,
+              fontFamily: FONTS.body,
+              fontWeight: 100,
               color: tokens.text,
             }}
           >
@@ -1317,21 +1184,9 @@ function TxnDialog({
               {err}
             </div>
           )}
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full cursor-pointer disabled:opacity-60"
-            style={{
-              background: color,
-              color: "#fff",
-              padding: "10px 14px",
-              borderRadius: 10,
-              fontSize: 13,
-              fontWeight: 600,
-            }}
-          >
+          <Button type="submit" disabled={saving} full variant={isCredit ? "success" : "danger"}>
             {saving ? "Saving…" : isCredit ? "Credit" : "Debit"}
-          </button>
+          </Button>
         </form>
       )}
     </DialogShell>
@@ -1374,7 +1229,7 @@ function TransferDialog({
           <input
             value={fromAccount}
             readOnly
-            style={{ ...inputStyle, fontFamily: "'DM Mono', monospace", background: "#EEF2F8" }}
+            style={{ ...inputStyle, fontFamily: FONTS.mono, background: "#EEF2F8" }}
           />
         </Field>
         <Field label="To account" required>
@@ -1382,7 +1237,7 @@ function TransferDialog({
             value={to}
             onChange={(e) => setTo(e.target.value)}
             placeholder="Enter account number"
-            style={{ ...inputStyle, fontFamily: "'DM Mono', monospace" }}
+            style={{ ...inputStyle, fontFamily: FONTS.mono }}
           />
         </Field>
         <Field label="Amount" required>
@@ -1414,21 +1269,9 @@ function TransferDialog({
             {err}
           </div>
         )}
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full cursor-pointer disabled:opacity-60"
-          style={{
-            background: tokens.navy,
-            color: "#fff",
-            padding: "10px 14px",
-            borderRadius: 10,
-            fontSize: 13,
-            fontWeight: 600,
-          }}
-        >
+        <Button type="submit" disabled={saving} full variant="primary">
           {saving ? "Saving…" : "Transfer"}
-        </button>
+        </Button>
       </form>
     </DialogShell>
   );

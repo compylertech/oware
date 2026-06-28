@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Plus } from "lucide-react";
+import { Button, Table, TableCard, Td, Th, THead, Tr } from "@/components/patterns";
 import { FONTS, tokens } from "@/lib/tokens";
 
 export const Route = createFileRoute("/_auth/products/prepaid")({
@@ -54,7 +55,7 @@ function StatusPill({ status }: { status: Row["status"] }) {
         background: s.bg,
         color: s.fg,
         fontSize: 11,
-        fontWeight: 700,
+        fontWeight: 100,
         padding: "3px 10px",
         borderRadius: 999,
       }}
@@ -80,7 +81,7 @@ function PrepaidProductsPage() {
         style={{
           color: tokens.navy,
           fontSize: 13,
-          fontWeight: 600,
+          fontWeight: 300,
           display: "inline-flex",
           alignItems: "center",
           gap: 6,
@@ -103,7 +104,7 @@ function PrepaidProductsPage() {
       >
         <div>
           <div
-            style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: tokens.textMuted }}
+            style={{ fontSize: 11, fontWeight: 100, letterSpacing: 1.2, color: tokens.textMuted }}
           >
             PRODUCTS
           </div>
@@ -111,7 +112,7 @@ function PrepaidProductsPage() {
             style={{
               fontFamily: FONTS.display,
               fontSize: 26,
-              fontWeight: 800,
+              fontWeight: 200,
               color: tokens.text,
               margin: "6px 0 6px",
             }}
@@ -122,106 +123,65 @@ function PrepaidProductsPage() {
             Prepaid card and wallet product definitions.
           </p>
         </div>
-        <button
-          style={{
-            background: tokens.navy,
-            color: "#fff",
-            border: "none",
-            borderRadius: 10,
-            padding: "10px 16px",
-            fontSize: 13,
-            fontWeight: 700,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            cursor: "pointer",
-            fontFamily: FONTS.body,
-          }}
-        >
-          <Plus size={16} /> New prepaid product
-        </button>
+        <Button variant="primary" icon={<Plus size={16} />}>
+          New prepaid product
+        </Button>
       </div>
 
-      <div
-        style={{
-          background: "#fff",
-          border: `1px solid ${tokens.border}`,
-          borderRadius: 14,
-          overflow: "hidden",
-        }}
-      >
-        <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: FONTS.body }}>
-          <thead>
-            <tr style={{ borderBottom: `2px solid ${tokens.navy}` }}>
-              {["Product", "Network", "Load limit", "Daily limit", "Fee", "Status"].map((h, i) => (
-                <th
-                  key={h}
-                  style={{
-                    textAlign: i === 2 || i === 3 ? "right" : "left",
-                    padding: "11px 16px",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: "#5B6A86",
-                    letterSpacing: "0.05em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
+      <TableCard>
+        <Table>
+          <THead>
+            {["Product", "Network", "Load limit", "Daily limit", "Fee", "Status"].map((h, i) => (
+              <Th
+                key={h}
+                align={i === 2 || i === 3 ? "right" : "left"}
+                style={{ padding: "11px 16px", fontSize: 11, color: "#5B6A86" }}
+              >
+                {h}
+              </Th>
+            ))}
+          </THead>
           <tbody>
             {ROWS.map((r, i) => (
-              <tr key={i} style={{ borderBottom: `1px solid ${tokens.border}` }}>
-                <td
+              <Tr key={i} hover>
+                <Td
                   style={{
-                    padding: "13px 16px",
-                    fontSize: 13,
-                    fontWeight: 700,
+                    fontWeight: 100,
                     color: tokens.text,
                   }}
                 >
                   {r.product}
-                </td>
-                <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>
-                  {r.network}
-                </td>
-                <td
+                </Td>
+                <Td muted>{r.network}</Td>
+                <Td
+                  numeric
+                  align="right"
                   style={{
-                    padding: "13px 16px",
-                    textAlign: "right",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    fontVariantNumeric: "tabular-nums",
+                    fontWeight: 100,
                     color: tokens.text,
                   }}
                 >
                   {r.loadLimit}
-                </td>
-                <td
+                </Td>
+                <Td
+                  numeric
+                  align="right"
                   style={{
-                    padding: "13px 16px",
-                    textAlign: "right",
-                    fontSize: 13,
                     fontWeight: 500,
-                    fontVariantNumeric: "tabular-nums",
                     color: tokens.textSub,
                   }}
                 >
                   {r.dailyLimit}
-                </td>
-                <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>
-                  {r.fee}
-                </td>
-                <td style={{ padding: "13px 16px" }}>
+                </Td>
+                <Td muted>{r.fee}</Td>
+                <Td>
                   <StatusPill status={r.status} />
-                </td>
-              </tr>
+                </Td>
+              </Tr>
             ))}
           </tbody>
-        </table>
-      </div>
+        </Table>
+      </TableCard>
     </div>
   );
 }

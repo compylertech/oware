@@ -16,15 +16,16 @@ import {
   BookOpen,
 } from "lucide-react";
 import {
-  AreaChart,
   Area,
-  BarChart,
   Bar,
+  ComposedChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  LabelList,
 } from "recharts";
 import {
   CashTransactionDrawer,
@@ -37,23 +38,23 @@ export const Route = createFileRoute("/_auth/dashboard")({
 });
 
 const volumeData = [
-  { month: "Nov", deposits: 420, withdrawals: 310 },
-  { month: "Dec", deposits: 580, withdrawals: 390 },
-  { month: "Jan", deposits: 490, withdrawals: 340 },
-  { month: "Feb", deposits: 620, withdrawals: 410 },
-  { month: "Mar", deposits: 710, withdrawals: 480 },
-  { month: "Apr", deposits: 660, withdrawals: 430 },
-  { month: "May", deposits: 830, withdrawals: 560 },
+  { month: "Nov 2024", total: 450, net: 280, variance: 170 },
+  { month: "Dec 2024", total: 620, net: 360, variance: 260 },
+  { month: "Jan 2025", total: 510, net: 300, variance: 210 },
+  { month: "Feb 2025", total: 650, net: 380, variance: 270 },
+  { month: "Mar 2025", total: 720, net: 450, variance: 270 },
+  { month: "Apr 2025", total: 680, net: 410, variance: 270 },
+  { month: "May 2025", total: 845, net: 632, variance: 213 },
 ];
 
 const growthData = [
-  { month: "Nov", clients: 180 },
-  { month: "Dec", clients: 210 },
+  { month: "Nov", clients: 175 },
+  { month: "Dec", clients: 208 },
   { month: "Jan", clients: 245 },
-  { month: "Feb", clients: 280 },
-  { month: "Mar", clients: 320 },
-  { month: "Apr", clients: 355 },
-  { month: "May", clients: 398 },
+  { month: "Feb", clients: 278 },
+  { month: "Mar", clients: 318 },
+  { month: "Apr", clients: 356 },
+  { month: "May", clients: 415 },
 ];
 
 const activity = [
@@ -72,7 +73,7 @@ function DashboardPage() {
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-[20px] font-extrabold text-[#101828] leading-tight">Dashboard</h1>
+            <h1 className="text-[20px] font-semibold text-[#101828] leading-tight">Dashboard</h1>
             <p className="text-xs text-gray-400 mt-1">
               Welcome back — here's what's happening today.
             </p>
@@ -130,17 +131,18 @@ function DashboardPage() {
           </Panel>
 
           {/* B - Transaction Volume */}
-          <Panel className="col-span-2" style={{ paddingBottom: 16 }}>
+          <Panel className="col-span-2 flex flex-col" style={{ paddingBottom: 16 }}>
             <div className="flex items-start justify-between mb-4">
               <div>
                 <div className="text-[15px] font-bold text-[#101828]">Transaction Volume</div>
                 <div className="text-xs text-gray-400 mt-0.5">
-                  Deposits vs withdrawals · last 7 months
+                  Transaction count vs net volume · last 7 months
                 </div>
               </div>
               <div className="flex items-center gap-4 text-xs text-gray-600">
-                <LegendItem color="#3B82F6" label="Deposits" />
-                <LegendItem color="#0F6E56" label="Withdrawals" />
+                <LegendItem color="#2F7CF6" label="Transactions" />
+                <LegendItem color="#219873" label="Net Volume" />
+                <LegendItem color="#8B6CF6" label="Variance" />
               </div>
             </div>
             <VolumeChart />
@@ -148,7 +150,7 @@ function DashboardPage() {
 
           {/* D - Recent Activity (col-span-2) — placed before C visually in spec but spec says C then D. Keep order C then D */}
           {/* C - Client Growth */}
-          <Panel className="col-span-1">
+          <Panel className="col-span-1 flex flex-col">
             <div className="mb-4">
               <div className="text-[15px] font-bold text-[#101828]">Client Growth</div>
               <div className="text-xs text-gray-400 mt-0.5">New registrations · 7 months</div>
@@ -224,7 +226,7 @@ function PanelTitle({ title }: { title: string }) {
 function LegendItem({ color, label }: { color: string; label: string }) {
   return (
     <div className="flex items-center gap-1.5">
-      <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: color }} />
+      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
       <span>{label}</span>
     </div>
   );
@@ -272,7 +274,7 @@ function QuickActions({ onCashTx }: { onCashTx: (t: CashTxType) => void }) {
               width: 44,
               height: 44,
               borderRadius: 10,
-              background: t.disabled ? "transparent" : "#EFF4FE",
+              background: "transparent",
             }}
           >
             <t.Icon className={`h-5 w-5 ${t.disabled ? "text-gray-300" : "text-[#002663]"}`} />
@@ -321,77 +323,249 @@ function ChartTooltip({ active, payload, valueSuffix, currency }: ChartTooltipPr
 
 function VolumeChart() {
   return (
-    <ResponsiveContainer width="100%" height={210}>
-      <AreaChart data={volumeData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-        <defs>
-          <linearGradient id="gradDep" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.32} />
-            <stop offset="100%" stopColor="#3B82F6" stopOpacity={0} />
-          </linearGradient>
-          <linearGradient id="gradWit" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#0F6E56" stopOpacity={0.22} />
-            <stop offset="100%" stopColor="#0F6E56" stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid stroke="#f0f0f0" strokeDasharray="3 3" vertical={false} />
-        <XAxis
-          dataKey="month"
-          axisLine={false}
-          tickLine={false}
-          tick={{ fontSize: 11, fill: "#9ca3af" }}
-        />
-        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
-        <Tooltip content={<ChartTooltip currency />} cursor={{ stroke: "#e5e7eb" }} />
-        <Area
-          type="monotone"
-          dataKey="deposits"
-          name="Deposits"
-          stroke="#3B82F6"
-          strokeWidth={2.5}
-          fill="url(#gradDep)"
-          dot={false}
-          activeDot={false}
-        />
-        <Area
-          type="monotone"
-          dataKey="withdrawals"
-          name="Withdrawals"
-          stroke="#0F6E56"
-          strokeWidth={2}
-          fill="url(#gradWit)"
-          dot={false}
-          activeDot={false}
-        />
-      </AreaChart>
-    </ResponsiveContainer>
+    <div style={{ position: "relative", flex: 1, minHeight: 420 }}>
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          fontSize: 12,
+          fontWeight: 600,
+          color: "#71809F",
+        }}
+      >
+        Volume (Transactions)
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          fontSize: 12,
+          fontWeight: 600,
+          color: "#71809F",
+        }}
+      >
+        Net Volume
+      </div>
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={volumeData} margin={{ top: 38, right: 34, left: 4, bottom: 0 }}>
+          <defs>
+            <linearGradient id="gradTotalVolume" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#2F7CF6" stopOpacity={0.26} />
+              <stop offset="85%" stopColor="#2F7CF6" stopOpacity={0.04} />
+            </linearGradient>
+            <linearGradient id="gradNetVolume" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#1F9A75" stopOpacity={0.2} />
+              <stop offset="90%" stopColor="#1F9A75" stopOpacity={0.03} />
+            </linearGradient>
+            <linearGradient id="gradVarianceBar" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#8B6CF6" stopOpacity={0.28} />
+              <stop offset="100%" stopColor="#8B6CF6" stopOpacity={0.08} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid stroke="#DCE4F1" strokeDasharray="4 5" vertical={false} />
+          <XAxis
+            dataKey="month"
+            axisLine={false}
+            tickLine={false}
+            dy={12}
+            tick={{ fontSize: 11, fill: "#71809F", fontWeight: 600 }}
+          />
+          <YAxis
+            yAxisId="left"
+            domain={[0, 1250]}
+            ticks={[0, 250, 500, 750, 1000, 1250]}
+            axisLine={{ stroke: "#DCE4F1" }}
+            tickLine={false}
+            tickFormatter={(value) => value.toLocaleString()}
+            tick={{ fontSize: 11, fill: "#71809F", fontWeight: 600 }}
+          />
+          <YAxis
+            yAxisId="right"
+            orientation="right"
+            domain={[-250, 1000]}
+            ticks={[-250, 0, 250, 500, 750, 1000]}
+            axisLine={{ stroke: "#DCE4F1" }}
+            tickLine={false}
+            tickFormatter={(value) => value.toLocaleString()}
+            tick={{ fontSize: 11, fill: "#71809F", fontWeight: 600 }}
+          />
+          <Tooltip content={<ChartTooltip />} cursor={{ stroke: "#DCE4F1" }} />
+          <Bar
+            yAxisId="right"
+            dataKey="variance"
+            name="Variance"
+            fill="url(#gradVarianceBar)"
+            stroke="#B8A8FF"
+            strokeWidth={1}
+            barSize={36}
+            radius={[4, 4, 0, 0]}
+          >
+            <LabelList
+              dataKey="variance"
+              position="top"
+              offset={10}
+              fill="#6D55D8"
+              fontSize={11}
+              fontWeight={700}
+            />
+          </Bar>
+          <Area
+            yAxisId="left"
+            type="monotone"
+            dataKey="total"
+            name="Transactions"
+            stroke="#2F7CF6"
+            strokeWidth={2.5}
+            fill="url(#gradTotalVolume)"
+            dot={{ r: 5, fill: "#2F7CF6", stroke: "#fff", strokeWidth: 2 }}
+            activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }}
+          >
+            <LabelList
+              dataKey="total"
+              position="top"
+              offset={12}
+              fill="#2F7CF6"
+              fontSize={11}
+              fontWeight={700}
+            />
+          </Area>
+          <Area
+            yAxisId="right"
+            type="monotone"
+            dataKey="net"
+            name="Net Volume"
+            stroke="#219873"
+            strokeWidth={2.25}
+            fill="url(#gradNetVolume)"
+            dot={{ r: 5, fill: "#219873", stroke: "#fff", strokeWidth: 2 }}
+            activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }}
+          >
+            <LabelList
+              dataKey="net"
+              position="bottom"
+              offset={12}
+              fill="#219873"
+              fontSize={11}
+              fontWeight={700}
+            />
+          </Area>
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 
 function GrowthChart() {
   return (
-    <ResponsiveContainer width="100%" height={240}>
-      <BarChart data={growthData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-        <CartesianGrid stroke="#f0f0f0" strokeDasharray="3 3" vertical={false} />
-        <XAxis
-          dataKey="month"
-          axisLine={false}
-          tickLine={false}
-          tick={{ fontSize: 11, fill: "#9ca3af" }}
-        />
-        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
-        <Tooltip
-          cursor={{ fill: "rgba(0,38,99,0.04)" }}
-          content={({ active, payload }: { active?: boolean; payload?: TooltipEntry[] }) => {
-            if (!active || !payload?.length) return null;
-            return (
-              <div className="bg-white rounded-lg border border-gray-100  px-3 py-2 text-xs">
-                <span className="font-semibold text-[#101828]">{payload[0].value} clients</span>
-              </div>
-            );
+    <div style={{ position: "relative", flex: 1, minHeight: 300 }}>
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          fontSize: 12,
+          fontWeight: 600,
+          color: "#71809F",
+        }}
+      >
+        New Registrations
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          border: "1px solid #BBF7D0",
+          borderRadius: 8,
+          background: "#F0FDF4",
+          color: "#16A34A",
+          padding: "7px 10px",
+          textAlign: "center",
+          fontSize: 12,
+          fontWeight: 800,
+          lineHeight: 1.2,
+          boxShadow: "0 8px 18px rgba(22, 163, 74, 0.08)",
+        }}
+      >
+        +16.6%
+        <div style={{ marginTop: 3, color: "#5B6A86", fontSize: 10, fontWeight: 700 }}>vs Apr</div>
+        <span
+          style={{
+            position: "absolute",
+            left: 28,
+            bottom: -7,
+            width: 12,
+            height: 12,
+            background: "#F0FDF4",
+            borderRight: "1px solid #BBF7D0",
+            borderBottom: "1px solid #BBF7D0",
+            transform: "rotate(45deg)",
           }}
         />
-        <Bar dataKey="clients" fill="#002663" barSize={14} radius={[4, 4, 0, 0]} />
-      </BarChart>
-    </ResponsiveContainer>
+      </div>
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={growthData} margin={{ top: 40, right: 8, left: -18, bottom: 0 }}>
+          <defs>
+            <linearGradient id="gradClientGrowth" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#2F5DFF" stopOpacity={0.86} />
+              <stop offset="100%" stopColor="#AFC2FF" stopOpacity={0.76} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid stroke="#DCE4F1" strokeDasharray="4 5" vertical={false} />
+          <XAxis
+            dataKey="month"
+            axisLine={{ stroke: "#DCE4F1" }}
+            tickLine={false}
+            dy={10}
+            tick={{ fontSize: 11, fill: "#71809F", fontWeight: 600 }}
+          />
+          <YAxis
+            domain={[0, 500]}
+            ticks={[0, 100, 200, 300, 400, 500]}
+            axisLine={{ stroke: "#DCE4F1" }}
+            tickLine={false}
+            tick={{ fontSize: 11, fill: "#71809F", fontWeight: 600 }}
+          />
+          <Tooltip
+            cursor={{ fill: "rgba(47, 93, 255, 0.05)" }}
+            content={({ active, payload }: { active?: boolean; payload?: TooltipEntry[] }) => {
+              if (!active || !payload?.length) return null;
+              return (
+                <div className="bg-white rounded-lg border border-gray-100 px-3 py-2 text-xs">
+                  <span className="font-semibold text-[#101828]">{payload[0].value} clients</span>
+                </div>
+              );
+            }}
+          />
+          <Bar
+            dataKey="clients"
+            fill="url(#gradClientGrowth)"
+            stroke="#7F98FF"
+            strokeWidth={1}
+            barSize={28}
+            radius={[4, 4, 0, 0]}
+          />
+          <Line
+            type="monotone"
+            dataKey="clients"
+            stroke="#2F5DFF"
+            strokeWidth={2.25}
+            dot={{ r: 4, fill: "#2F5DFF", stroke: "#fff", strokeWidth: 1.5 }}
+            activeDot={{ r: 5, stroke: "#fff", strokeWidth: 2 }}
+          >
+            <LabelList
+              dataKey="clients"
+              position="top"
+              offset={10}
+              fill="#2F5DFF"
+              fontSize={12}
+              fontWeight={800}
+            />
+          </Line>
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

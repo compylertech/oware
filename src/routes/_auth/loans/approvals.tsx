@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
-import { Panel, TypePill, fontMono } from "@/components/loans/ui";
+import { Table, Td, Th, THead, Tr, TypePill, fontMono } from "@/components/loans/ui";
 import { fmtGHS } from "@/api/loans";
-import { Tabs, Button } from "@/components/patterns";
+import { Tabs, Button, TableCard } from "@/components/patterns";
 import { Check, X } from "lucide-react";
 
 export const Route = createFileRoute("/_auth/loans/approvals")({
@@ -74,6 +74,10 @@ const TYPE_STYLE: Record<Row["type"], { c: string; bg: string }> = {
 function ApprovalsPage() {
   const [tab, setTab] = useState<"my" | "all" | "history">("my");
   const [confirm, setConfirm] = useState<{ row: Row; action: "approve" | "reject" } | null>(null);
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(ROWS.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageRows = ROWS.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   // Destructive actions (reject anything, or approve an irreversible Write-off)
   // are confirm-gated so a single mis-click can't action real money.
@@ -94,49 +98,68 @@ function ApprovalsPage() {
         ]}
       />
 
-      <Panel>
-        {ROWS.map((r, i) => {
-          const s = TYPE_STYLE[r.type];
-          return (
-            <div
-              key={i}
-              className="flex items-center gap-3"
-              style={{
-                padding: "14px 18px",
-                borderTop: i === 0 ? "none" : `1px solid ${LOAN.border}`,
-              }}
-            >
-              <TypePill label={r.type} color={s.c} bg={s.bg} />
-              <div className="flex-1 min-w-0">
-                <div style={{ fontSize: 13, fontWeight: 700, color: LOAN.ink }}>
-                  {r.client} · <span style={{ color: LOAN.ink }}>{r.amount}</span>
-                </div>
-                <div style={{ fontSize: 11, color: LOAN.muted, marginTop: 2 }}>
-                  <span style={fontMono}>{r.detail}</span> · maker: {r.maker} · {r.when} ago
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="danger"
-                  size="sm"
-                  icon={<X size={14} />}
-                  onClick={() => setConfirm({ row: r, action: "reject" })}
-                >
-                  Reject
-                </Button>
-                <Button
-                  variant="success"
-                  size="sm"
-                  icon={<Check size={14} />}
-                  onClick={() => onApprove(r)}
-                >
-                  Approve
-                </Button>
-              </div>
-            </div>
-          );
-        })}
-      </Panel>
+      <TableCard
+        title="Approval Queue"
+        resultLabel={`${ROWS.length} approvals`}
+        pagination={{
+          page: currentPage,
+          totalPages,
+          totalItems: ROWS.length,
+          itemLabel: "approvals",
+          onPageChange: setPage,
+        }}
+      >
+        <Table>
+          <THead>
+            <Th>Type</Th>
+            <Th>Client</Th>
+            <Th>Amount</Th>
+            <Th>Detail</Th>
+            <Th>Maker</Th>
+            <Th>Age</Th>
+            <Th style={{ textAlign: "right" }}>Actions</Th>
+          </THead>
+          <tbody>
+            {pageRows.map((r) => {
+              const s = TYPE_STYLE[r.type];
+              return (
+                <Tr key={`${r.type}-${r.client}-${r.detail}`} hover>
+                  <Td>
+                    <TypePill label={r.type} color={s.c} bg={s.bg} />
+                  </Td>
+                  <Td style={{ fontWeight: 300 }}>{r.client}</Td>
+                  <Td style={{ fontWeight: 100 }}>{r.amount}</Td>
+                  <Td>
+                    <span style={{ ...fontMono, color: LOAN.muted }}>{r.detail}</span>
+                  </Td>
+                  <Td>{r.maker}</Td>
+                  <Td>{r.when} ago</Td>
+                  <Td>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="dangerOutline"
+                        size="sm"
+                        icon={<X size={14} />}
+                        onClick={() => setConfirm({ row: r, action: "reject" })}
+                      >
+                        Reject
+                      </Button>
+                      <Button
+                        variant="successOutline"
+                        size="sm"
+                        icon={<Check size={14} />}
+                        onClick={() => onApprove(r)}
+                      >
+                        Approve
+                      </Button>
+                    </div>
+                  </Td>
+                </Tr>
+              );
+            })}
+          </tbody>
+        </Table>
+      </TableCard>
 
       {confirm && (
         <ConfirmDialog
@@ -149,6 +172,8 @@ function ApprovalsPage() {
     </LoansShell>
   );
 }
+
+const PAGE_SIZE = 10;
 
 function ConfirmDialog({
   row,
@@ -184,7 +209,7 @@ function ConfirmDialog({
         onClick={(e) => e.stopPropagation()}
         style={{ background: "#fff", borderRadius: 14, padding: 24, width: 400, maxWidth: "100%" }}
       >
-        <div style={{ fontSize: 17, fontWeight: 800, color: LOAN.ink }}>{title}</div>
+        <div style={{ fontSize: 17, fontWeight: 200, color: LOAN.ink }}>{title}</div>
         <p style={{ fontSize: 13, color: LOAN.muted, marginTop: 8, lineHeight: 1.5 }}>{body}</p>
         <div className="flex justify-end gap-2" style={{ marginTop: 20 }}>
           <Button variant="outline" onClick={onCancel}>

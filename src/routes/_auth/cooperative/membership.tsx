@@ -17,7 +17,19 @@ import {
 } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
-import { StatCard, StatGrid, Button, Pill } from "@/components/patterns";
+import {
+  EmptyRow,
+  StatCard,
+  StatGrid,
+  Button,
+  Pill,
+  Table,
+  TableCard,
+  Td,
+  Th,
+  THead,
+  Tr,
+} from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/cooperative/membership")({
   component: MembershipPage,
@@ -213,7 +225,7 @@ function MembershipPage() {
           style={{
             color: tokens.navy,
             fontSize: 13,
-            fontWeight: 600,
+            fontWeight: 300,
             display: "inline-flex",
             alignItems: "center",
             gap: 6,
@@ -235,7 +247,7 @@ function MembershipPage() {
         >
           <div>
             <div
-              style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: tokens.textMuted }}
+              style={{ fontSize: 11, fontWeight: 100, letterSpacing: 1.2, color: tokens.textMuted }}
             >
               COOPERATIVE
             </div>
@@ -243,7 +255,7 @@ function MembershipPage() {
               style={{
                 fontFamily: FONTS.display,
                 fontSize: 26,
-                fontWeight: 800,
+                fontWeight: 200,
                 color: tokens.text,
                 margin: "6px 0 6px",
               }}
@@ -385,7 +397,7 @@ function MembershipPage() {
                     padding: "6px 12px",
                     borderRadius: 8,
                     fontSize: 12,
-                    fontWeight: 700,
+                    fontWeight: 100,
                     cursor: "pointer",
                     fontFamily: FONTS.body,
                   }}
@@ -398,111 +410,82 @@ function MembershipPage() {
         </div>
 
         {/* Members table */}
-        <div
-          style={{
-            marginTop: 18,
-            background: tokens.surface,
-            border: `1px solid ${tokens.border}`,
-            borderRadius: 14,
-            overflow: "hidden",
-          }}
-        >
-          <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: FONTS.body }}>
-            <thead>
-              <tr style={{ borderBottom: `2px solid #002663` }}>
-                {[
-                  "Member",
-                  "ID",
-                  "Common bond group",
-                  "Class",
-                  "Shares",
-                  "Contributions",
-                  "Status",
-                  "",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    style={{
-                      textAlign: h === "Shares" || h === "Contributions" ? "right" : "left",
-                      padding: "11px 16px",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: "#5B6A86",
-                      letterSpacing: "0.05em",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
+        <TableCard style={{ marginTop: 18 }}>
+          <Table>
+            <THead>
+              {[
+                "Member",
+                "ID",
+                "Common bond group",
+                "Class",
+                "Shares",
+                "Contributions",
+                "Status",
+                "",
+              ].map((h) => (
+                <Th
+                  key={h}
+                  align={h === "Shares" || h === "Contributions" ? "right" : "left"}
+                  style={{ padding: "11px 16px", fontSize: 11, color: "#5B6A86" }}
+                >
+                  {h}
+                </Th>
+              ))}
+            </THead>
             <tbody>
               {filtered.map((m) => {
                 const k = KLASS_STYLE[m.klass];
                 return (
-                  <tr
-                    key={m.id}
-                    style={{ borderBottom: `1px solid ${tokens.border}`, cursor: "default" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "#F7FAFF")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                  >
-                    <td style={{ padding: "13px 16px", fontSize: 13 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: tokens.text }}>
+                  <Tr key={m.id} hover style={{ cursor: "default" }}>
+                    <Td>
+                      <div style={{ fontSize: 13, fontWeight: 100, color: tokens.text }}>
                         {m.name}
                       </div>
                       <div style={{ fontSize: 11, color: tokens.textMuted, marginTop: 2 }}>
                         {m.branch}
                       </div>
-                    </td>
-                    <td
+                    </Td>
+                    <Td
                       style={{
-                        padding: "13px 16px",
                         fontFamily: FONTS.mono,
                         fontSize: 12,
                         color: "#4A5878",
                       }}
                     >
                       {m.memberId}
-                    </td>
-                    <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>
-                      {m.group}
-                    </td>
-                    <td style={{ padding: "13px 16px" }}>
-                      <Pill color={k.fg} bg={k.bg} size="sm" style={{ fontWeight: 700 }}>
+                    </Td>
+                    <Td muted>{m.group}</Td>
+                    <Td>
+                      <Pill color={k.fg} bg={k.bg} size="sm" style={{ fontWeight: 100 }}>
                         Class {m.klass}
                       </Pill>
-                    </td>
-                    <td
+                    </Td>
+                    <Td
+                      numeric
+                      align="right"
                       style={{
-                        padding: "13px 16px",
-                        textAlign: "right",
                         fontFamily: FONTS.body,
                         fontWeight: 500,
-                        fontVariantNumeric: "tabular-nums",
                         color: "#4A5878",
-                        fontSize: 13,
                       }}
                     >
                       {m.shares.toLocaleString()}
-                    </td>
-                    <td
+                    </Td>
+                    <Td
+                      numeric
+                      align="right"
                       style={{
-                        padding: "13px 16px",
-                        textAlign: "right",
                         fontFamily: FONTS.body,
                         fontWeight: 500,
-                        fontVariantNumeric: "tabular-nums",
                         color: "#4A5878",
-                        fontSize: 13,
                       }}
                     >
                       {fmtMoney(m.contributions)}
-                    </td>
-                    <td style={{ padding: "13px 16px" }}>
+                    </Td>
+                    <Td>
                       <StatusPill status={m.status} />
-                    </td>
-                    <td style={{ padding: "13px 16px", textAlign: "right", position: "relative" }}>
+                    </Td>
+                    <Td align="right" style={{ position: "relative" }}>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -580,28 +563,16 @@ function MembershipPage() {
                           </MenuRow>
                         </div>
                       )}
-                    </td>
-                  </tr>
+                    </Td>
+                  </Tr>
                 );
               })}
               {filtered.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={8}
-                    style={{
-                      padding: 32,
-                      textAlign: "center",
-                      color: tokens.textMuted,
-                      fontSize: 13,
-                    }}
-                  >
-                    No members match these filters.
-                  </td>
-                </tr>
+                <EmptyRow colSpan={8}>No members match these filters.</EmptyRow>
               )}
             </tbody>
-          </table>
-        </div>
+          </Table>
+        </TableCard>
       </div>
     </div>
   );

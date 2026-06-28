@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
-import { Panel, PanelHead, Ava, Th, Td, fontMono } from "@/components/loans/ui";
+import { Ava, Table, THead, Tr, Th, Td, fontMono } from "@/components/loans/ui";
 import { StagePill } from "@/components/loans/StagePill";
 import { fmtGHS } from "@/lib/loanMock";
+import { TableCard } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/loans/collateral")({
   component: CollateralPage,
@@ -64,76 +66,107 @@ const GUAR = [
 ];
 
 function CollateralPage() {
+  const [collateralPage, setCollateralPage] = useState(1);
+  const [guarantorPage, setGuarantorPage] = useState(1);
+  const collateralTotalPages = Math.max(1, Math.ceil(COLLAT.length / PAGE_SIZE));
+  const collateralCurrentPage = Math.min(collateralPage, collateralTotalPages);
+  const collateralRows = COLLAT.slice(
+    (collateralCurrentPage - 1) * PAGE_SIZE,
+    collateralCurrentPage * PAGE_SIZE,
+  );
+  const guarantorTotalPages = Math.max(1, Math.ceil(GUAR.length / PAGE_SIZE));
+  const guarantorCurrentPage = Math.min(guarantorPage, guarantorTotalPages);
+  const guarantorRows = GUAR.slice(
+    (guarantorCurrentPage - 1) * PAGE_SIZE,
+    guarantorCurrentPage * PAGE_SIZE,
+  );
+
   return (
     <LoansShell>
-      <Panel>
-        <PanelHead title="Collateral Register" />
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <Th>Asset</Th>
-              <Th>Type</Th>
-              <Th>Valuation</Th>
-              <Th>Linked Loan</Th>
-              <Th>LTV</Th>
-              <Th>Status</Th>
-            </tr>
-          </thead>
+      <TableCard
+        title="Collateral Register"
+        resultLabel={`${COLLAT.length} assets`}
+        pagination={{
+          page: collateralCurrentPage,
+          totalPages: collateralTotalPages,
+          totalItems: COLLAT.length,
+          itemLabel: "assets",
+          onPageChange: setCollateralPage,
+        }}
+      >
+        <Table>
+          <THead>
+            <Th>Asset</Th>
+            <Th>Type</Th>
+            <Th>Valuation</Th>
+            <Th>Linked Loan</Th>
+            <Th>LTV</Th>
+            <Th>Status</Th>
+          </THead>
           <tbody>
-            {COLLAT.map((c) => (
-              <tr key={c.asset}>
-                <Td style={{ fontWeight: 600 }}>{c.asset}</Td>
+            {collateralRows.map((c) => (
+              <Tr key={c.asset} hover>
+                <Td style={{ fontWeight: 300 }}>{c.asset}</Td>
                 <Td>{c.type}</Td>
                 <Td>{fmtGHS(c.valuation)}</Td>
                 <Td>
-                  <span style={{ ...fontMono, fontWeight: 700, color: LOAN.navy }}>{c.loan}</span>
+                  <span style={{ ...fontMono, fontWeight: 100, color: LOAN.navy }}>{c.loan}</span>
                 </Td>
                 <Td>{c.ltv}</Td>
                 <Td>
                   <StagePill stage={c.status} />
                 </Td>
-              </tr>
+              </Tr>
             ))}
           </tbody>
-        </table>
-      </Panel>
+        </Table>
+      </TableCard>
 
       <div className="mt-4">
-        <Panel>
-          <PanelHead title="Guarantors" />
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <Th>Guarantor</Th>
-                <Th>Relationship</Th>
-                <Th>Guaranteed</Th>
-                <Th>For Loan</Th>
-                <Th>Status</Th>
-              </tr>
-            </thead>
+        <TableCard
+          title="Guarantors"
+          resultLabel={`${GUAR.length} guarantors`}
+          pagination={{
+            page: guarantorCurrentPage,
+            totalPages: guarantorTotalPages,
+            totalItems: GUAR.length,
+            itemLabel: "guarantors",
+            onPageChange: setGuarantorPage,
+          }}
+        >
+          <Table>
+            <THead>
+              <Th>Guarantor</Th>
+              <Th>Relationship</Th>
+              <Th>Guaranteed</Th>
+              <Th>For Loan</Th>
+              <Th>Status</Th>
+            </THead>
             <tbody>
-              {GUAR.map((g) => (
-                <tr key={g.name}>
+              {guarantorRows.map((g) => (
+                <Tr key={g.name} hover>
                   <Td>
                     <div className="flex items-center gap-2">
                       <Ava name={g.name} bg={g.avatar} size={28} />
-                      <span style={{ fontWeight: 600 }}>{g.name}</span>
+                      <span style={{ fontWeight: 300 }}>{g.name}</span>
                     </div>
                   </Td>
                   <Td>{g.relation}</Td>
                   <Td>{fmtGHS(g.amount)}</Td>
                   <Td>
-                    <span style={{ ...fontMono, fontWeight: 700, color: LOAN.navy }}>{g.loan}</span>
+                    <span style={{ ...fontMono, fontWeight: 100, color: LOAN.navy }}>{g.loan}</span>
                   </Td>
                   <Td>
                     <StagePill stage={g.status} />
                   </Td>
-                </tr>
+                </Tr>
               ))}
             </tbody>
-          </table>
-        </Panel>
+          </Table>
+        </TableCard>
       </div>
     </LoansShell>
   );
 }
+
+const PAGE_SIZE = 10;

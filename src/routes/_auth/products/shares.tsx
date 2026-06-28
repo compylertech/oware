@@ -2,16 +2,19 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, PieChart, Users2, TrendingUp, DollarSign, Plus } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
+import { Modal, MField, MInput, MTextarea, MSelect } from "@/components/common/Modal";
 import {
-  Modal,
-  MField,
-  MInput,
-  MTextarea,
-  MSelect,
-  MCancelBtn,
-  MNavyBtn,
-} from "@/components/common/Modal";
-import { StatCard, StatGrid, Button, Pill } from "@/components/patterns";
+  StatCard,
+  StatGrid,
+  Button,
+  Pill,
+  Table,
+  TableCard,
+  Td,
+  Th,
+  THead,
+  Tr,
+} from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/products/shares")({
   component: ShareCapitalPage,
@@ -154,7 +157,7 @@ function ShareCapitalPage() {
           style={{
             color: tokens.navy,
             fontSize: 13,
-            fontWeight: 600,
+            fontWeight: 300,
             display: "inline-flex",
             alignItems: "center",
             gap: 6,
@@ -176,7 +179,7 @@ function ShareCapitalPage() {
         >
           <div>
             <div
-              style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: tokens.textMuted }}
+              style={{ fontSize: 11, fontWeight: 100, letterSpacing: 1.2, color: tokens.textMuted }}
             >
               COOPERATIVE
             </div>
@@ -184,7 +187,7 @@ function ShareCapitalPage() {
               style={{
                 fontFamily: FONTS.display,
                 fontSize: 26,
-                fontWeight: 800,
+                fontWeight: 200,
                 color: tokens.text,
                 margin: "6px 0 6px",
               }}
@@ -234,7 +237,7 @@ function ShareCapitalPage() {
                   color: "#854F0B",
                   borderRadius: 7,
                   padding: "3px 8px",
-                  fontWeight: 600,
+                  fontWeight: 300,
                 }}
               >
                 Set by AGM/2026/02
@@ -251,155 +254,112 @@ function ShareCapitalPage() {
         </StatGrid>
 
         {/* Share Register */}
-        <div
-          style={{
-            marginTop: 22,
-            background: "#fff",
-            border: `1px solid ${tokens.border}`,
-            borderRadius: 14,
-            overflow: "hidden",
-          }}
+        <TableCard
+          title="Share Register"
+          description="Member share holdings by class."
+          style={{ marginTop: 22 }}
         >
-          <div style={{ padding: "16px 20px", borderBottom: `1px solid ${tokens.border}` }}>
-            <div
-              style={{
-                fontFamily: FONTS.display,
-                fontSize: 15,
-                fontWeight: 800,
-                color: tokens.text,
-              }}
-            >
-              Share Register
-            </div>
-            <div style={{ fontSize: 12, color: tokens.textSub, marginTop: 3 }}>
-              Member share holdings by class.
-            </div>
-          </div>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: FONTS.body }}>
-            <thead>
-              <tr style={{ borderBottom: `2px solid #002663` }}>
-                {["Member", "Class", "Shares held", "Share value", "Total value", "Joined"].map(
-                  (h, i) => (
-                    <th
-                      key={h}
-                      style={{
-                        textAlign: i >= 2 && i <= 4 ? "right" : "left",
-                        padding: "11px 16px",
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: "#5B6A86",
-                        letterSpacing: "0.05em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {h}
-                    </th>
-                  ),
-                )}
-              </tr>
-            </thead>
+          <Table>
+            <THead>
+              {["Member", "Class", "Shares held", "Share value", "Total value", "Joined"].map(
+                (h, i) => (
+                  <Th
+                    key={h}
+                    align={i >= 2 && i <= 4 ? "right" : "left"}
+                    style={{ padding: "11px 16px", fontSize: 11, color: "#5B6A86" }}
+                  >
+                    {h}
+                  </Th>
+                ),
+              )}
+            </THead>
             <tbody>
               {holders.map((m) => {
                 const k = KLASS_STYLE[m.klass];
                 const total = m.shares * m.shareValue;
                 return (
-                  <tr
-                    key={m.id}
-                    style={{ borderBottom: `1px solid ${tokens.border}` }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "#F7FAFF")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                  >
-                    <td style={{ padding: "13px 16px", fontSize: 13 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: tokens.text }}>
+                  <Tr key={m.id} hover>
+                    <Td>
+                      <div style={{ fontSize: 13, fontWeight: 100, color: tokens.text }}>
                         {m.name}
                       </div>
                       <div style={{ fontSize: 11, color: tokens.textMuted, marginTop: 2 }}>
                         {m.branch}
                       </div>
-                    </td>
-                    <td style={{ padding: "13px 16px" }}>
-                      <Pill color={k.fg} bg={k.bg} size="sm" style={{ fontWeight: 700 }}>
+                    </Td>
+                    <Td>
+                      <Pill color={k.fg} bg={k.bg} size="sm" style={{ fontWeight: 100 }}>
                         Class {m.klass}
                       </Pill>
-                    </td>
-                    <td
+                    </Td>
+                    <Td
+                      numeric
+                      align="right"
                       style={{
-                        padding: "13px 16px",
-                        textAlign: "right",
                         fontFamily: FONTS.body,
-                        fontWeight: 700,
-                        fontVariantNumeric: "tabular-nums",
+                        fontWeight: 100,
                         color: tokens.text,
-                        fontSize: 13,
                       }}
                     >
                       {m.shares.toLocaleString()}
-                    </td>
-                    <td
+                    </Td>
+                    <Td
+                      numeric
+                      align="right"
                       style={{
-                        padding: "13px 16px",
-                        textAlign: "right",
                         fontFamily: FONTS.body,
                         fontWeight: 500,
-                        fontVariantNumeric: "tabular-nums",
                         color: "#4A5878",
-                        fontSize: 13,
                       }}
                     >
                       GH₵ {m.shareValue.toFixed(2)}
-                    </td>
-                    <td
+                    </Td>
+                    <Td
+                      numeric
+                      align="right"
                       style={{
-                        padding: "13px 16px",
-                        textAlign: "right",
                         fontFamily: FONTS.body,
-                        fontWeight: 700,
-                        fontVariantNumeric: "tabular-nums",
+                        fontWeight: 100,
                         color: tokens.text,
-                        fontSize: 13,
                       }}
                     >
                       GH₵ {total.toLocaleString()}
-                    </td>
-                    <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>
-                      {m.joined}
-                    </td>
-                  </tr>
+                    </Td>
+                    <Td muted>{m.joined}</Td>
+                  </Tr>
                 );
               })}
             </tbody>
             <tfoot>
-              <tr style={{ background: "#FAFBFD" }}>
-                <td
+              <Tr style={{ background: "#FAFBFD" }}>
+                <Td
                   colSpan={2}
                   style={{
                     padding: "11px 16px",
-                    fontSize: 12,
-                    fontWeight: 700,
+                    fontWeight: 100,
                     color: tokens.textMuted,
                     letterSpacing: 0.4,
                     textTransform: "uppercase",
                   }}
                 >
                   Visible total
-                </td>
-                <td
+                </Td>
+                <Td
+                  numeric
+                  align="right"
                   style={{
                     padding: "11px 16px",
-                    textAlign: "right",
                     fontFamily: FONTS.body,
-                    fontWeight: 700,
-                    fontVariantNumeric: "tabular-nums",
+                    fontWeight: 100,
                     color: tokens.text,
-                    fontSize: 13,
                   }}
                 >
                   {totalShares.toLocaleString()}
-                </td>
-                <td colSpan={3} />
-              </tr>
+                </Td>
+                <Td colSpan={3} />
+              </Tr>
             </tfoot>
-          </table>
+          </Table>
           <div
             style={{
               padding: "12px 20px",
@@ -411,7 +371,7 @@ function ShareCapitalPage() {
           >
             Share Capital is governed — dividend rate and minimum holding are set by AGM resolution.
           </div>
-        </div>
+        </TableCard>
       </div>
 
       <Modal
@@ -421,8 +381,12 @@ function ShareCapitalPage() {
         maxWidth={500}
         footer={
           <>
-            <MCancelBtn onClick={() => setOpen(false)} />
-            <MNavyBtn onClick={issue}>Issue Shares</MNavyBtn>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="success" onClick={issue}>
+              Issue Shares
+            </Button>
           </>
         }
       >
@@ -490,7 +454,7 @@ function ShareCapitalPage() {
           }}
         >
           Total Value:{" "}
-          <span style={{ fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+          <span style={{ fontWeight: 100, fontVariantNumeric: "tabular-nums" }}>
             GH₵{" "}
             {total.toLocaleString(undefined, {
               minimumFractionDigits: 2,

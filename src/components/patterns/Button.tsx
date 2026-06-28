@@ -1,11 +1,20 @@
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 import { tokens } from "@/lib/tokens";
+import { cn } from "@/lib/utils";
 
 // Semantic convention: `success` (solid green) for affirmative actions —
 // add/create/approve/post/register/issue; `danger` (solid red) for negative
 // actions — reject/cancel/delete. `primary` (navy) is for neutral primaries.
-type Variant = "primary" | "success" | "outline" | "ghost" | "danger" | "dangerOutline";
-type Size = "md" | "sm";
+type Variant =
+  | "primary"
+  | "primaryOutline"
+  | "success"
+  | "outline"
+  | "ghost"
+  | "danger"
+  | "dangerOutline"
+  | "successOutline";
+type Size = "md" | "sm" | "lg";
 
 const GREEN = "#047857";
 
@@ -20,50 +29,89 @@ type ButtonProps = {
 const SIZES: Record<Size, { height: number; padding: string; fontSize: number }> = {
   md: { height: 36, padding: "0 16px", fontSize: 13 },
   sm: { height: 32, padding: "0 12px", fontSize: 12 },
+  lg: { height: 40, padding: "0 20px", fontSize: 14 },
 };
 
-function variantStyle(variant: Variant, disabled?: boolean): CSSProperties {
+type ButtonVariantStyle = CSSProperties & {
+  "--oware-button-bg": string;
+  "--oware-button-color": string;
+  "--oware-button-border": string;
+  "--oware-button-hover-bg"?: string;
+  "--oware-button-hover-color"?: string;
+  "--oware-button-hover-border"?: string;
+};
+
+function variantStyle(variant: Variant, disabled?: boolean): ButtonVariantStyle {
   if (variant === "primary") {
     return {
-      background: disabled ? "#94A3B8" : tokens.navy,
-      color: "#fff",
-      border: "none",
+      "--oware-button-bg": disabled ? "#94A3B8" : tokens.navy,
+      "--oware-button-color": "#fff",
+      "--oware-button-border": "none",
     };
   }
   if (variant === "success") {
     return {
-      background: disabled ? "#94A3B8" : GREEN,
-      color: "#fff",
-      border: "none",
+      "--oware-button-bg": disabled ? "#94A3B8" : GREEN,
+      "--oware-button-color": "#fff",
+      "--oware-button-border": "none",
     };
   }
   if (variant === "outline") {
     return {
-      background: tokens.surface,
-      color: tokens.text,
-      border: `1px solid ${tokens.border}`,
+      "--oware-button-bg": tokens.surface,
+      "--oware-button-color": tokens.text,
+      "--oware-button-border": `1px solid ${tokens.border}`,
+    };
+  }
+  if (variant === "primaryOutline") {
+    return {
+      "--oware-button-bg": tokens.surface,
+      "--oware-button-color": tokens.navy,
+      "--oware-button-border": "1px solid #B8C7E6",
+      "--oware-button-hover-bg": tokens.navy,
+      "--oware-button-hover-color": "#fff",
+      "--oware-button-hover-border": `1px solid ${tokens.navy}`,
     };
   }
   if (variant === "danger") {
     return {
-      background: disabled ? "#94A3B8" : tokens.danger,
-      color: "#fff",
-      border: "none",
+      "--oware-button-bg": disabled ? "#94A3B8" : tokens.danger,
+      "--oware-button-color": "#fff",
+      "--oware-button-border": "none",
     };
   }
   if (variant === "dangerOutline") {
     return {
-      background: tokens.surface,
-      color: tokens.danger,
-      border: "1px solid #FECDCA",
+      "--oware-button-bg": tokens.surface,
+      "--oware-button-color": tokens.danger,
+      "--oware-button-border": "1px solid #FECDCA",
+      "--oware-button-hover-bg": tokens.danger,
+      "--oware-button-hover-color": "#fff",
+      "--oware-button-hover-border": `1px solid ${tokens.danger}`,
     };
   }
-  return { background: "transparent", color: tokens.text, border: "none" };
+  if (variant === "successOutline") {
+    return {
+      "--oware-button-bg": tokens.surface,
+      "--oware-button-color": tokens.success,
+      "--oware-button-border": "1px solid #A7F3D0",
+      "--oware-button-hover-bg": tokens.success,
+      "--oware-button-hover-color": "#fff",
+      "--oware-button-hover-border": `1px solid ${tokens.success}`,
+    };
+  }
+  return {
+    "--oware-button-bg": "transparent",
+    "--oware-button-color": tokens.text,
+    "--oware-button-border": "none",
+  };
 }
 
 /**
- * Canonical button. Replaces the per-page inline navy/outline buttons and the
- * loans `NavyBtn`/`OutlineBtn` so primary actions look the same everywhere.
+ * Canonical button. The single button used across the app — every page action,
+ * modal footer, and toolbar button renders through this so they look the same
+ * everywhere. Use `variant` for intent and `size` for scale; pass `icon` /
+ * `iconRight` instead of nesting icons in children.
  */
 export function Button({
   variant = "primary",
@@ -73,6 +121,7 @@ export function Button({
   full,
   disabled,
   style,
+  className,
   children,
   ...rest
 }: ButtonProps) {
@@ -80,6 +129,7 @@ export function Button({
   return (
     <button
       disabled={disabled}
+      className={cn("oware-button", className)}
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -89,7 +139,7 @@ export function Button({
         padding: s.padding,
         borderRadius: 10,
         fontSize: s.fontSize,
-        fontWeight: 600,
+        fontWeight: 300,
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.7 : 1,
         width: full ? "100%" : undefined,

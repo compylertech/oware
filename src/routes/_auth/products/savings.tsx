@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Plus } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
 import { ProductCardGrid, type ProductCardData } from "@/components/products/ProductCard";
+import { Button } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/products/savings")({
   component: SavingsProductsPage,
@@ -90,7 +91,7 @@ function SavingsProductsPage() {
         style={{
           color: tokens.navy,
           fontSize: 13,
-          fontWeight: 600,
+          fontWeight: 300,
           display: "inline-flex",
           alignItems: "center",
           gap: 6,
@@ -113,7 +114,7 @@ function SavingsProductsPage() {
       >
         <div>
           <div
-            style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: tokens.textMuted }}
+            style={{ fontSize: 11, fontWeight: 100, letterSpacing: 1.2, color: tokens.textMuted }}
           >
             PRODUCTS
           </div>
@@ -121,7 +122,7 @@ function SavingsProductsPage() {
             style={{
               fontFamily: FONTS.display,
               fontSize: 26,
-              fontWeight: 800,
+              fontWeight: 200,
               color: tokens.text,
               margin: "6px 0 6px",
             }}
@@ -132,24 +133,9 @@ function SavingsProductsPage() {
             Deposit product catalogue — rates, fees and withdrawal rules.
           </p>
         </div>
-        <button
-          style={{
-            background: tokens.navy,
-            color: "#fff",
-            border: "none",
-            borderRadius: 10,
-            padding: "10px 16px",
-            fontSize: 13,
-            fontWeight: 700,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            cursor: "pointer",
-            fontFamily: FONTS.body,
-          }}
-        >
-          <Plus size={16} /> New product
-        </button>
+        <Button variant="primary" icon={<Plus size={16} />}>
+          New product
+        </Button>
       </div>
 
       <ProductCardGrid products={PRODUCTS} />

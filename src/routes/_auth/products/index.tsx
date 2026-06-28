@@ -82,7 +82,7 @@ function HubCard({ card }: { card: NavCard }) {
         <LayerTag label={card.tag.label} variant={card.tag.variant} />
       </div>
       <div>
-        <div style={{ fontSize: 15, fontWeight: 800, color: tokens.text }}>{card.title}</div>
+        <div style={{ fontSize: 15, fontWeight: 200, color: tokens.text }}>{card.title}</div>
         <div style={{ fontSize: 13, color: tokens.textSub, marginTop: 4, lineHeight: 1.5 }}>
           {card.desc}
         </div>
@@ -95,7 +95,7 @@ function HubCard({ card }: { card: NavCard }) {
           marginTop: "auto",
           color: tokens.accent,
           fontSize: 13,
-          fontWeight: 600,
+          fontWeight: 300,
         }}
       >
         View <ArrowRight size={14} />

@@ -1,11 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { CheckCircle, Clock } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState, type KeyboardEvent } from "react";
+import { Check, CheckCircle, Clock, Send } from "lucide-react";
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
-import { Panel, Ava, NavyBtn, OutlineBtn, fontMono } from "@/components/loans/ui";
+import { Ava, Table, Td, Th, THead, Tr, fontMono } from "@/components/loans/ui";
 import { fmtGHS } from "@/api/loans";
-import { Tabs } from "@/components/patterns";
+import { Button, Tabs, TableCard } from "@/components/patterns";
 
 type Row = {
   client: string;
@@ -52,7 +52,23 @@ export const Route = createFileRoute("/_auth/loans/disbursements")({
 });
 
 function DisbursementsPage() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<"pending" | "scheduled" | "disbursed">("pending");
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(ROWS.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageRows = ROWS.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  function openLoanDetails(loanId: string) {
+    navigate({ to: "/loans/$loanId", params: { loanId } });
+  }
+
+  function onRowKeyDown(event: KeyboardEvent<HTMLTableRowElement>, loanId: string) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    openLoanDetails(loanId);
+  }
+
   return (
     <LoansShell>
       <Tabs
@@ -66,60 +82,90 @@ function DisbursementsPage() {
         ]}
       />
 
-      <Panel>
-        {ROWS.map((r, i) => (
-          <div
-            key={r.loanId}
-            className="flex items-center gap-3"
-            style={{
-              padding: "16px 18px",
-              borderTop: i === 0 ? "none" : `1px solid ${LOAN.border}`,
-            }}
-          >
-            <Ava name={r.client} bg={r.avatar} size={36} />
-            <div className="flex-1 min-w-0">
-              <div style={{ fontSize: 13, fontWeight: 700, color: LOAN.ink }}>
-                {r.client} · <span style={{ color: LOAN.ink }}>{fmtGHS(r.amount)}</span>
-              </div>
-              <div style={{ fontSize: 12, color: LOAN.muted, marginTop: 2 }}>
-                {r.product} · <span style={fontMono}>{r.loanId}</span> · pending disbursement
-              </div>
-              <div
-                className="flex items-center gap-1 mt-2"
-                style={{
-                  fontSize: 11,
-                  color: r.approved ? LOAN.green : LOAN.amber,
-                  fontWeight: 600,
-                }}
+      <TableCard
+        title="Disbursement Queue"
+        resultLabel={`${ROWS.length} disbursements`}
+        pagination={{
+          page: currentPage,
+          totalPages,
+          totalItems: ROWS.length,
+          itemLabel: "disbursements",
+          onPageChange: setPage,
+        }}
+      >
+        <Table>
+          <THead>
+            <Th>Client</Th>
+            <Th>Loan</Th>
+            <Th>Product</Th>
+            <Th>Amount</Th>
+            <Th>Approval</Th>
+            <Th style={{ textAlign: "right" }}>Actions</Th>
+          </THead>
+          <tbody>
+            {pageRows.map((r) => (
+              <Tr
+                key={r.loanId}
+                hover
+                role="link"
+                tabIndex={0}
+                aria-label={`View ${r.loanId} details`}
+                onClick={() => openLoanDetails(r.loanId)}
+                onKeyDown={(event) => onRowKeyDown(event, r.loanId)}
+                style={{ cursor: "pointer" }}
               >
-                {r.approved ? <CheckCircle size={12} /> : <Clock size={12} />}
-                {r.approved ? `Approved by ${r.approver}` : r.approver}
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <OutlineBtn>View</OutlineBtn>
-              {r.approved ? (
-                <button
-                  style={{
-                    background: LOAN.green,
-                    color: "#fff",
-                    border: "none",
-                    height: 36,
-                    padding: "0 16px",
-                    borderRadius: 10,
-                    fontSize: 13,
-                    fontWeight: 600,
-                  }}
-                >
-                  Disburse
-                </button>
-              ) : (
-                <NavyBtn>Approve</NavyBtn>
-              )}
-            </div>
-          </div>
-        ))}
-      </Panel>
+                <Td>
+                  <div className="flex items-center gap-2">
+                    <Ava name={r.client} bg={r.avatar} size={28} />
+                    <span style={{ fontWeight: 300 }}>{r.client}</span>
+                  </div>
+                </Td>
+                <Td>
+                  <span style={{ ...fontMono, color: LOAN.navy }}>{r.loanId}</span>
+                </Td>
+                <Td>{r.product}</Td>
+                <Td style={{ fontWeight: 100 }}>{fmtGHS(r.amount)}</Td>
+                <Td>
+                  <span
+                    className="inline-flex items-center gap-1"
+                    style={{
+                      fontSize: 12,
+                      color: r.approved ? LOAN.green : LOAN.amber,
+                      fontWeight: 300,
+                    }}
+                  >
+                    {r.approved ? <CheckCircle size={12} /> : <Clock size={12} />}
+                    {r.approved ? `Approved by ${r.approver}` : r.approver}
+                  </span>
+                </Td>
+                <Td>
+                  <div className="flex justify-end gap-2">
+                    {r.approved ? (
+                      <Button
+                        variant="primaryOutline"
+                        icon={<Send size={14} />}
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        Disburse
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="successOutline"
+                        icon={<Check size={14} />}
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        Approve
+                      </Button>
+                    )}
+                  </div>
+                </Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Table>
+      </TableCard>
     </LoansShell>
   );
 }
+
+const PAGE_SIZE = 10;

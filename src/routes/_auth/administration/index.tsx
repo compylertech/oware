@@ -3,8 +3,8 @@ import { useState } from "react";
 import { Settings, Shield, Plus, Search, Download, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { FONTS, tokens } from "@/lib/tokens";
-import { Modal, MField, MInput, MSelect, MCancelBtn, MNavyBtn } from "@/components/common/Modal";
-import { Tabs, Pill } from "@/components/patterns";
+import { Modal, MField, MInput, MSelect } from "@/components/common/Modal";
+import { Pill, Table, TableCard, Td, Th, THead, Tr, Tabs, Button } from "@/components/patterns";
 import { StatusPill } from "@/components/common/StatusPill";
 
 export const Route = createFileRoute("/_auth/administration/")({
@@ -46,7 +46,7 @@ function AdminPage() {
           <div
             style={{
               fontSize: 11,
-              fontWeight: 700,
+              fontWeight: 100,
               letterSpacing: "0.14em",
               color: "#5B6A86",
               textTransform: "uppercase",
@@ -75,7 +75,7 @@ function AdminPage() {
                 style={{
                   fontFamily: FONTS.display,
                   fontSize: 26,
-                  fontWeight: 800,
+                  fontWeight: 200,
                   color: "#16233F",
                   letterSpacing: "-0.02em",
                   margin: 0,
@@ -90,7 +90,7 @@ function AdminPage() {
             </div>
           </div>
         </div>
-        <Pill color="#002663" bg="#EAF0FB" style={{ fontWeight: 700, padding: "5px 10px" }}>
+        <Pill color="#002663" bg="#EAF0FB" style={{ fontWeight: 100, padding: "5px 10px" }}>
           Core layer
         </Pill>
       </div>
@@ -114,25 +114,6 @@ const cardStyle: React.CSSProperties = {
   borderRadius: 12,
 };
 
-const thStyle: React.CSSProperties = {
-  textAlign: "left",
-  padding: "13px 16px",
-  fontSize: 12,
-  fontWeight: 700,
-  color: "#5B6A86",
-  textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  borderBottom: "2px solid #002663",
-  fontFamily: FONTS.body,
-};
-
-const tdStyle: React.CSSProperties = {
-  padding: "13px 16px",
-  fontSize: 13,
-  color: "#16233F",
-  borderBottom: `1px solid ${tokens.border}`,
-};
-
 function SectionHeader({ title, right }: { title: string; right?: React.ReactNode }) {
   return (
     <div
@@ -143,75 +124,9 @@ function SectionHeader({ title, right }: { title: string; right?: React.ReactNod
         marginBottom: 12,
       }}
     >
-      <div style={{ fontSize: 16, fontWeight: 700, color: "#16233F" }}>{title}</div>
+      <div style={{ fontSize: 16, fontWeight: 100, color: "#16233F" }}>{title}</div>
       {right}
     </div>
-  );
-}
-
-function NavyBtn({
-  onClick,
-  children,
-  icon,
-}: {
-  onClick: () => void;
-  children: React.ReactNode;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        background: "#047857",
-        color: "#fff",
-        border: "none",
-        borderRadius: 8,
-        padding: "9px 14px",
-        fontSize: 13,
-        fontWeight: 600,
-        fontFamily: FONTS.body,
-        cursor: "pointer",
-      }}
-    >
-      {icon}
-      {children}
-    </button>
-  );
-}
-
-function OutlineBtn({
-  onClick,
-  children,
-  icon,
-}: {
-  onClick: () => void;
-  children: React.ReactNode;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        background: "#fff",
-        color: "#16233F",
-        border: `1px solid ${tokens.border}`,
-        borderRadius: 8,
-        padding: "8px 13px",
-        fontSize: 13,
-        fontWeight: 600,
-        fontFamily: FONTS.body,
-        cursor: "pointer",
-      }}
-    >
-      {icon}
-      {children}
-    </button>
   );
 }
 
@@ -297,41 +212,36 @@ function UsersTab() {
 
   return (
     <>
-      <SectionHeader
+      <TableCard
         title="System Users"
-        right={
-          <NavyBtn onClick={() => setInviteOpen(true)} icon={<Plus size={14} />}>
+        actions={
+          <Button variant="success" onClick={() => setInviteOpen(true)} icon={<Plus size={14} />}>
             Invite user
-          </NavyBtn>
+          </Button>
         }
-      />
-      <div style={{ ...cardStyle, overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th style={thStyle}>Name</th>
-              <th style={thStyle}>User ID</th>
-              <th style={thStyle}>Role</th>
-              <th style={thStyle}>Branch</th>
-              <th style={thStyle}>Last Login</th>
-              <th style={thStyle}>Status</th>
-              <th style={thStyle}>Actions</th>
-            </tr>
-          </thead>
+      >
+        <Table>
+          <THead>
+            <Th>Name</Th>
+            <Th>User ID</Th>
+            <Th>Role</Th>
+            <Th>Branch</Th>
+            <Th>Last Login</Th>
+            <Th>Status</Th>
+            <Th>Actions</Th>
+          </THead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id}>
-                <td style={{ ...tdStyle, fontWeight: 600 }}>{u.name}</td>
-                <td style={{ ...tdStyle, fontFamily: FONTS.mono, fontSize: 12, color: "#4A5878" }}>
-                  {u.id}
-                </td>
-                <td style={tdStyle}>{u.role}</td>
-                <td style={tdStyle}>{u.branch}</td>
-                <td style={{ ...tdStyle, color: "#4A5878" }}>{u.lastLogin}</td>
-                <td style={tdStyle}>
+              <Tr key={u.id} hover>
+                <Td style={{ fontWeight: 300 }}>{u.name}</Td>
+                <Td style={{ fontFamily: FONTS.mono, fontSize: 12, color: "#4A5878" }}>{u.id}</Td>
+                <Td>{u.role}</Td>
+                <Td>{u.branch}</Td>
+                <Td muted>{u.lastLogin}</Td>
+                <Td>
                   <StatusPill status={u.status} />
-                </td>
-                <td style={tdStyle}>
+                </Td>
+                <Td>
                   <button
                     onClick={() => toast.info(`Edit ${u.name}`)}
                     style={{
@@ -339,7 +249,7 @@ function UsersTab() {
                       border: "none",
                       color: "#002663",
                       fontSize: 13,
-                      fontWeight: 600,
+                      fontWeight: 300,
                       cursor: "pointer",
                       padding: 0,
                     }}
@@ -355,7 +265,7 @@ function UsersTab() {
                         border: "none",
                         color: "#067647",
                         fontSize: 13,
-                        fontWeight: 600,
+                        fontWeight: 300,
                         cursor: "pointer",
                         padding: 0,
                       }}
@@ -370,7 +280,7 @@ function UsersTab() {
                         border: "none",
                         color: "#D92D20",
                         fontSize: 13,
-                        fontWeight: 600,
+                        fontWeight: 300,
                         cursor: "pointer",
                         padding: 0,
                       }}
@@ -378,12 +288,12 @@ function UsersTab() {
                       Suspend
                     </button>
                   )}
-                </td>
-              </tr>
+                </Td>
+              </Tr>
             ))}
           </tbody>
-        </table>
-      </div>
+        </Table>
+      </TableCard>
 
       <Modal
         open={inviteOpen}
@@ -392,8 +302,11 @@ function UsersTab() {
         maxWidth={460}
         footer={
           <>
-            <MCancelBtn onClick={() => setInviteOpen(false)} />
-            <MNavyBtn
+            <Button variant="outline" onClick={() => setInviteOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="success"
               onClick={() => {
                 setInviteOpen(false);
                 toast.success(`Invite sent to ${form.email || form.name}`);
@@ -401,7 +314,7 @@ function UsersTab() {
               }}
             >
               Send Invite
-            </MNavyBtn>
+            </Button>
           </>
         }
       >
@@ -488,9 +401,9 @@ function RolesTab() {
       <SectionHeader
         title="Roles & Permissions"
         right={
-          <NavyBtn onClick={() => toast.info("New role")} icon={<Plus size={14} />}>
+          <Button variant="success" onClick={() => toast.info("New role")} icon={<Plus size={14} />}>
             New role
-          </NavyBtn>
+          </Button>
         }
       />
       <div
@@ -527,7 +440,7 @@ function RolesTab() {
                   <Shield size={18} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "#16233F" }}>{r.name}</div>
+                  <div style={{ fontSize: 15, fontWeight: 100, color: "#16233F" }}>{r.name}</div>
                   <div style={{ fontSize: 12, color: "#5B6A86", marginTop: 2 }}>{r.desc}</div>
                 </div>
               </div>
@@ -538,7 +451,7 @@ function RolesTab() {
                   border: "none",
                   color: "#002663",
                   fontSize: 13,
-                  fontWeight: 600,
+                  fontWeight: 300,
                   cursor: "pointer",
                   padding: 0,
                 }}
@@ -553,52 +466,38 @@ function RolesTab() {
         ))}
       </div>
 
-      <div style={{ ...cardStyle, overflow: "hidden" }}>
-        <div
-          style={{
-            padding: "14px 16px",
-            borderBottom: `1px solid ${tokens.border}`,
-            fontSize: 14,
-            fontWeight: 700,
-            color: "#16233F",
-          }}
-        >
-          Permissions Matrix
-        </div>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th style={thStyle}>Module</th>
-              {ROLES.map((r) => (
-                <th key={r.name} style={{ ...thStyle, textAlign: "center" }}>
-                  {r.name}
-                </th>
-              ))}
-            </tr>
-          </thead>
+      <TableCard title="Permissions Matrix">
+        <Table>
+          <THead>
+            <Th>Module</Th>
+            {ROLES.map((r) => (
+              <Th key={r.name} align="center">
+                {r.name}
+              </Th>
+            ))}
+          </THead>
           <tbody>
             {MATRIX.map((row) => (
-              <tr key={row.module}>
-                <td style={{ ...tdStyle, fontWeight: 600 }}>{row.module}</td>
+              <Tr key={row.module} hover>
+                <Td style={{ fontWeight: 300 }}>{row.module}</Td>
                 {row.perms.map((on, i) => (
-                  <td
+                  <Td
                     key={i}
+                    align="center"
                     style={{
-                      ...tdStyle,
-                      textAlign: "center",
                       fontSize: 16,
                       color: on ? "#067647" : tokens.border,
-                      fontWeight: 700,
+                      fontWeight: 100,
                     }}
                   >
                     {on ? "✓" : "—"}
-                  </td>
+                  </Td>
                 ))}
-              </tr>
+              </Tr>
             ))}
           </tbody>
-        </table>
-      </div>
+        </Table>
+      </TableCard>
     </>
   );
 }
@@ -696,15 +595,20 @@ function AuditTab() {
         title="Audit Log"
         right={
           <div style={{ display: "flex", gap: 8 }}>
-            <OutlineBtn onClick={() => toast.info("Pick date range")} icon={<Calendar size={14} />}>
+            <Button
+              variant="outline"
+              onClick={() => toast.info("Pick date range")}
+              icon={<Calendar size={14} />}
+            >
               Last 7 days ▾
-            </OutlineBtn>
-            <OutlineBtn
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => toast.success("Audit log exported")}
               icon={<Download size={14} />}
             >
               Export
-            </OutlineBtn>
+            </Button>
           </div>
         }
       />
@@ -759,40 +663,36 @@ function AuditTab() {
         </select>
       </div>
 
-      <div style={{ ...cardStyle, overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th style={thStyle}>Timestamp</th>
-              <th style={thStyle}>User</th>
-              <th style={thStyle}>Action</th>
-              <th style={thStyle}>Module</th>
-              <th style={thStyle}>Record ID</th>
-              <th style={thStyle}>IP Address</th>
-              <th style={thStyle}>Status</th>
-            </tr>
-          </thead>
+      <TableCard title="Audit Log">
+        <Table>
+          <THead>
+            <Th>Timestamp</Th>
+            <Th>User</Th>
+            <Th>Action</Th>
+            <Th>Module</Th>
+            <Th>Record ID</Th>
+            <Th>IP Address</Th>
+            <Th>Status</Th>
+          </THead>
           <tbody>
             {rows.map((r, i) => (
-              <tr key={i}>
-                <td style={{ ...tdStyle, color: "#4A5878", whiteSpace: "nowrap" }}>{r.ts}</td>
-                <td style={{ ...tdStyle, fontWeight: 600 }}>{r.user}</td>
-                <td style={tdStyle}>{r.action}</td>
-                <td style={tdStyle}>{r.module}</td>
-                <td style={{ ...tdStyle, fontFamily: FONTS.mono, fontSize: 12, color: "#4A5878" }}>
-                  {r.rec}
-                </td>
-                <td style={{ ...tdStyle, fontFamily: FONTS.mono, fontSize: 12, color: "#4A5878" }}>
-                  {r.ip}
-                </td>
-                <td style={tdStyle}>
+              <Tr key={i} hover>
+                <Td muted style={{ whiteSpace: "nowrap" }}>
+                  {r.ts}
+                </Td>
+                <Td style={{ fontWeight: 300 }}>{r.user}</Td>
+                <Td>{r.action}</Td>
+                <Td>{r.module}</Td>
+                <Td style={{ fontFamily: FONTS.mono, fontSize: 12, color: "#4A5878" }}>{r.rec}</Td>
+                <Td style={{ fontFamily: FONTS.mono, fontSize: 12, color: "#4A5878" }}>{r.ip}</Td>
+                <Td>
                   <StatusPill status={r.status} />
-                </td>
-              </tr>
+                </Td>
+              </Tr>
             ))}
           </tbody>
-        </table>
-      </div>
+        </Table>
+      </TableCard>
     </>
   );
 }
@@ -807,7 +707,7 @@ function ConfigTab() {
     <div style={{ display: "grid", gridTemplateColumns: "60fr 40fr", gap: 20 }}>
       {/* General */}
       <div style={{ ...cardStyle, padding: 24 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: "#16233F", marginBottom: 16 }}>
+        <div style={{ fontSize: 15, fontWeight: 100, color: "#16233F", marginBottom: 16 }}>
           General Settings
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -828,14 +728,16 @@ function ConfigTab() {
           </CfgField>
         </div>
         <div style={{ marginTop: 20 }}>
-          <NavyBtn onClick={() => toast.success("Settings saved")}>Save changes</NavyBtn>
+          <Button variant="success" onClick={() => toast.success("Settings saved")}>
+            Save changes
+          </Button>
         </div>
       </div>
 
       <div>
         {/* Notifications */}
         <div style={{ ...cardStyle, padding: 20 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#16233F", marginBottom: 8 }}>
+          <div style={{ fontSize: 14, fontWeight: 100, color: "#16233F", marginBottom: 8 }}>
             Notifications
           </div>
           <ToggleRow
@@ -863,7 +765,7 @@ function ConfigTab() {
 
         {/* Security */}
         <div style={{ ...cardStyle, padding: 20, marginTop: 16 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#16233F", marginBottom: 8 }}>
+          <div style={{ fontSize: 14, fontWeight: 100, color: "#16233F", marginBottom: 8 }}>
             Security
           </div>
           <ToggleRow
@@ -890,7 +792,7 @@ function ConfigTab() {
               border: "none",
               color: "#002663",
               fontSize: 13,
-              fontWeight: 600,
+              fontWeight: 300,
               textDecoration: "underline",
               cursor: "pointer",
               padding: 0,
@@ -907,7 +809,7 @@ function ConfigTab() {
 function CfgField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <span style={{ fontSize: 13, fontWeight: 600, color: "#16233F" }}>{label}</span>
+      <span style={{ fontSize: 13, fontWeight: 300, color: "#16233F" }}>{label}</span>
       {children}
     </label>
   );

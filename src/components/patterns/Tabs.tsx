@@ -64,7 +64,7 @@ export function Tabs<K extends string>({
                   borderRadius: 999,
                   padding: "1px 8px",
                   fontSize: 10,
-                  fontWeight: 700,
+                  fontWeight: 100,
                 }}
               >
                 {t.badge}

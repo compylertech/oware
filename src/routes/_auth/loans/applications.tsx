@@ -3,9 +3,10 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
-import { Panel, Ava, Th, Td, fontDisplay, fontMono } from "@/components/loans/ui";
+import { Ava, Table, THead, Tr, Th, Td, fontDisplay, fontMono } from "@/components/loans/ui";
 import { StagePill } from "@/components/loans/StagePill";
 import { APPLICATIONS, fmtGHS, type AppStage } from "@/lib/loanMock";
+import { Button, TableCard } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/loans/applications")({
   component: ApplicationsPage,
@@ -21,15 +22,25 @@ const COLUMNS: { stage: AppStage; dot: string }[] = [
 
 function ApplicationsPage() {
   const [view, setView] = useState<"board" | "table">("board");
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(APPLICATIONS.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageRows = APPLICATIONS.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <LoansShell>
       <div className="flex items-center justify-between mb-4">
         <div className="flex gap-2">
           {["All Products", "All Branches", "Officer"].map((l) => (
-            <button key={l} style={chipBtn}>
-              {l} <ChevronDown size={12} />
-            </button>
+            <Button
+              key={l}
+              type="button"
+              variant="outline"
+              size="sm"
+              iconRight={<ChevronDown size={12} />}
+            >
+              {l}
+            </Button>
           ))}
         </div>
         <div
@@ -41,21 +52,19 @@ function ApplicationsPage() {
           }}
         >
           {(["board", "table"] as const).map((v) => (
-            <button
+            <Button
+              type="button"
               key={v}
               onClick={() => setView(v)}
+              variant={view === v ? "primary" : "outline"}
+              size="sm"
               style={{
-                padding: "8px 14px",
-                background: view === v ? LOAN.navy : "#fff",
-                color: view === v ? "#fff" : LOAN.ink,
-                fontSize: 12,
-                fontWeight: 600,
-                border: "none",
                 textTransform: "capitalize",
+                borderRadius: 0,
               }}
             >
               {v}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -75,7 +84,7 @@ function ApplicationsPage() {
                 >
                   <div className="flex items-center gap-2">
                     <span style={{ width: 8, height: 8, borderRadius: 999, background: col.dot }} />
-                    <span style={{ fontSize: 12, fontWeight: 700, color: LOAN.ink }}>
+                    <span style={{ fontSize: 12, fontWeight: 100, color: LOAN.ink }}>
                       {col.stage}
                     </span>
                   </div>
@@ -86,7 +95,7 @@ function ApplicationsPage() {
                       borderRadius: 999,
                       padding: "1px 8px",
                       fontSize: 10,
-                      fontWeight: 700,
+                      fontWeight: 100,
                       color: LOAN.muted,
                     }}
                   >
@@ -108,7 +117,7 @@ function ApplicationsPage() {
                       <div className="flex items-center gap-2">
                         <Ava name={a.client} bg={a.avatar} size={26} />
                         <div className="flex-1 min-w-0">
-                          <div style={{ fontSize: 12, fontWeight: 700, color: LOAN.ink }}>
+                          <div style={{ fontSize: 12, fontWeight: 100, color: LOAN.ink }}>
                             {a.client}
                           </div>
                           <div style={{ ...fontMono, fontSize: 10, color: LOAN.muted }}>{a.id}</div>
@@ -121,7 +130,7 @@ function ApplicationsPage() {
                         style={{
                           ...fontDisplay,
                           fontSize: 14,
-                          fontWeight: 800,
+                          fontWeight: 200,
                           color: LOAN.ink,
                           marginTop: 2,
                         }}
@@ -147,62 +156,53 @@ function ApplicationsPage() {
           })}
         </div>
       ) : (
-        <Panel>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <Th>Applicant</Th>
-                <Th>Product</Th>
-                <Th>Amount</Th>
-                <Th>Stage</Th>
-                <Th>Officer</Th>
-                <Th>Submitted</Th>
-              </tr>
-            </thead>
+        <TableCard
+          title="Loan Applications"
+          resultLabel={`${APPLICATIONS.length} applications`}
+          pagination={{
+            page: currentPage,
+            totalPages,
+            totalItems: APPLICATIONS.length,
+            itemLabel: "applications",
+            onPageChange: setPage,
+          }}
+        >
+          <Table>
+            <THead>
+              <Th>Applicant</Th>
+              <Th>Product</Th>
+              <Th>Amount</Th>
+              <Th>Stage</Th>
+              <Th>Officer</Th>
+              <Th>Submitted</Th>
+            </THead>
             <tbody>
-              {APPLICATIONS.map((a) => (
-                <tr
-                  key={a.id}
-                  style={{ cursor: "pointer" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = LOAN.rowHover)}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "")}
-                >
+              {pageRows.map((a) => (
+                <Tr key={a.id} hover style={{ cursor: "pointer" }}>
                   <Td>
                     <div className="flex items-center gap-2">
                       <Ava name={a.client} bg={a.avatar} size={28} />
                       <div>
-                        <div style={{ fontWeight: 600 }}>{a.client}</div>
+                        <div style={{ fontWeight: 300 }}>{a.client}</div>
                         <div style={{ ...fontMono, fontSize: 11, color: LOAN.muted }}>{a.id}</div>
                       </div>
                     </div>
                   </Td>
                   <Td>{a.product}</Td>
-                  <Td style={{ fontWeight: 700 }}>{fmtGHS(a.amount)}</Td>
+                  <Td style={{ fontWeight: 100 }}>{fmtGHS(a.amount)}</Td>
                   <Td>
                     <StagePill stage={a.stage} />
                   </Td>
                   <Td>{a.officer}</Td>
                   <Td>{a.submitted}</Td>
-                </tr>
+                </Tr>
               ))}
             </tbody>
-          </table>
-        </Panel>
+          </Table>
+        </TableCard>
       )}
     </LoansShell>
   );
 }
 
-const chipBtn: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 6,
-  height: 34,
-  padding: "0 12px",
-  borderRadius: 10,
-  border: `1px solid ${LOAN.border}`,
-  background: "#fff",
-  fontSize: 12,
-  color: LOAN.ink,
-  fontWeight: 600,
-};
+const PAGE_SIZE = 10;

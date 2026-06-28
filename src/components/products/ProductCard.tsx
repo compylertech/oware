@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { tokens, FONTS } from "@/lib/tokens";
+import { Button } from "@/components/patterns";
 
 export type ProductCardData = {
   name: string;
@@ -55,7 +56,7 @@ function ProductCard({
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div>
           <div
-            style={{ fontFamily: FONTS.display, fontSize: 15, fontWeight: 800, color: tokens.text }}
+            style={{ fontFamily: FONTS.display, fontSize: 15, fontWeight: 200, color: tokens.text }}
           >
             {product.name}
           </div>
@@ -66,7 +67,7 @@ function ProductCard({
               gap: 6,
               fontSize: 11,
               color: product.typeColor,
-              fontWeight: 600,
+              fontWeight: 300,
               marginTop: 4,
             }}
           >
@@ -86,14 +87,14 @@ function ProductCard({
               style={{
                 fontSize: 10,
                 color: tokens.textMuted,
-                fontWeight: 700,
+                fontWeight: 100,
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
               }}
             >
               {c.label}
             </div>
-            <div style={{ fontSize: 12, color: tokens.text, fontWeight: 600, marginTop: 2 }}>
+            <div style={{ fontSize: 12, color: tokens.text, fontWeight: 300, marginTop: 2 }}>
               {c.value}
             </div>
           </div>
@@ -111,19 +112,9 @@ function ProductCard({
         }}
       >
         <span style={{ fontSize: 12, color: tokens.textMuted }}>{product.footerLeft}</span>
-        <button
-          style={{
-            background: "transparent",
-            border: "none",
-            color: "#3B5BDB",
-            fontSize: 12,
-            fontWeight: 600,
-            cursor: "pointer",
-            padding: 0,
-          }}
-        >
+        <Button variant="ghost" size="sm">
           Edit
-        </button>
+        </Button>
       </div>
     </div>
   );

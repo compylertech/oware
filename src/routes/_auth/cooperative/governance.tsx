@@ -6,10 +6,6 @@ import {
   MapPin,
   Users,
   ChevronDown,
-  CheckCircle2,
-  Clock,
-  XCircle,
-  MinusCircle,
   FileText,
   Plus,
   LayoutGrid,
@@ -18,7 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
-import { Tabs, Pill } from "@/components/patterns";
+import { Button, Pill, Table, TableCard, Td, Th, THead, Tr, Tabs } from "@/components/patterns";
 import { StatusPill } from "@/components/common/StatusPill";
 
 export const Route = createFileRoute("/_auth/cooperative/governance")({
@@ -290,7 +286,7 @@ function FilterPill({
         borderRadius: 8,
         padding: "6px 12px",
         fontSize: 12,
-        fontWeight: 700,
+        fontWeight: 100,
         cursor: "pointer",
         fontFamily: FONTS.body,
       }}
@@ -325,54 +321,6 @@ function IconToggle({
         border: `1px solid ${active ? tokens.navy : tokens.border}`,
         borderRadius: 8,
         cursor: "pointer",
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function NavyButton({ onClick, children }: { onClick?: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        background: tokens.navy,
-        color: "#fff",
-        border: "none",
-        borderRadius: 8,
-        padding: "7px 14px",
-        fontSize: 13,
-        fontWeight: 700,
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        cursor: "pointer",
-        fontFamily: FONTS.body,
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function OutlineButton({ onClick, children }: { onClick?: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        background: "#fff",
-        color: tokens.text,
-        border: `1px solid ${tokens.border}`,
-        borderRadius: 8,
-        padding: "6px 12px",
-        fontSize: 12,
-        fontWeight: 700,
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        cursor: "pointer",
-        fontFamily: FONTS.body,
       }}
     >
       {children}
@@ -427,7 +375,7 @@ function QuorumBar({
       <div
         style={{
           fontSize: 12,
-          fontWeight: 800,
+          fontWeight: 200,
           color: textColor,
           fontVariantNumeric: "tabular-nums",
         }}
@@ -437,7 +385,7 @@ function QuorumBar({
       <span
         style={{
           fontSize: 10,
-          fontWeight: 700,
+          fontWeight: 100,
           padding: "2px 8px",
           borderRadius: 999,
           background: attendance === null ? "#F2F4F7" : met ? "#ECFDF3" : "#FFFBEB",
@@ -473,9 +421,9 @@ function VoteBar({ f, a, ab }: { f: number; a: number; ab: number }) {
         <div style={{ width: `${abp}%`, background: "#9AA4B8" }} />
       </div>
       <div style={{ fontSize: 12, color: tokens.textSub, fontVariantNumeric: "tabular-nums" }}>
-        <span style={{ color: "#067647", fontWeight: 700 }}>{f} for</span>
+        <span style={{ color: "#067647", fontWeight: 100 }}>{f} for</span>
         {" · "}
-        <span style={{ color: "#D92D20", fontWeight: 700 }}>{a} against</span>
+        <span style={{ color: "#D92D20", fontWeight: 100 }}>{a} against</span>
         {" · "}
         <span style={{ color: tokens.textMuted }}>{ab} abstain</span>
       </div>
@@ -540,7 +488,7 @@ function Modal({
               style={{
                 fontFamily: FONTS.display,
                 fontSize: 15,
-                fontWeight: 700,
+                fontWeight: 100,
                 color: tokens.text,
               }}
             >
@@ -582,7 +530,7 @@ function Modal({
 
 const labelStyle: React.CSSProperties = {
   fontSize: 11,
-  fontWeight: 700,
+  fontWeight: 100,
   color: tokens.textMuted,
   letterSpacing: 0.5,
   textTransform: "uppercase",
@@ -675,7 +623,7 @@ function GovernancePage() {
           style={{
             color: tokens.navy,
             fontSize: 13,
-            fontWeight: 600,
+            fontWeight: 300,
             display: "inline-flex",
             alignItems: "center",
             gap: 6,
@@ -689,7 +637,7 @@ function GovernancePage() {
         {/* Header */}
         <div style={{ marginTop: 14 }}>
           <div
-            style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: tokens.textMuted }}
+            style={{ fontSize: 11, fontWeight: 100, letterSpacing: 1.2, color: tokens.textMuted }}
           >
             COOPERATIVE
           </div>
@@ -697,7 +645,7 @@ function GovernancePage() {
             style={{
               fontFamily: FONTS.display,
               fontSize: 26,
-              fontWeight: 800,
+              fontWeight: 200,
               color: tokens.text,
               margin: "6px 0 6px",
             }}
@@ -768,7 +716,9 @@ function GovernancePage() {
                 >
                   <List size={14} />
                 </IconToggle>
-                <NavyButton
+                <Button
+                  variant="primary"
+                  icon={<Plus size={14} />}
                   onClick={() =>
                     setMeetingModal({
                       mode: "create",
@@ -776,8 +726,8 @@ function GovernancePage() {
                     })
                   }
                 >
-                  <Plus size={14} /> Schedule meeting
-                </NavyButton>
+                  Schedule meeting
+                </Button>
               </div>
             </div>
 
@@ -830,7 +780,7 @@ function GovernancePage() {
                               flexWrap: "wrap",
                             }}
                           >
-                            <div style={{ fontSize: 14, fontWeight: 800, color: tokens.text }}>
+                            <div style={{ fontSize: 14, fontWeight: 200, color: tokens.text }}>
                               {m.title}
                             </div>
                             <TypePill type={m.type} />
@@ -900,7 +850,7 @@ function GovernancePage() {
                                 style={{
                                   fontFamily: FONTS.display,
                                   fontSize: 18,
-                                  fontWeight: 800,
+                                  fontWeight: 200,
                                   color: tokens.text,
                                 }}
                               >
@@ -913,17 +863,16 @@ function GovernancePage() {
                                 style={{
                                   fontFamily: FONTS.display,
                                   fontSize: 18,
-                                  fontWeight: 800,
+                                  fontWeight: 200,
                                   color: tokens.text,
                                 }}
                               >
                                 {m.resolutions}
                               </div>
                             </div>
-                            <OutlineButton>
-                              <FileText size={12} />{" "}
+                            <Button variant="outline" size="sm" icon={<FileText size={12} />}>
                               {m.status === "Completed" ? "View minutes" : "View agenda"}
-                            </OutlineButton>
+                            </Button>
                           </div>
                         </div>
                       )}
@@ -932,52 +881,24 @@ function GovernancePage() {
                 })}
               </div>
             ) : (
-              <div
-                style={{
-                  marginTop: 16,
-                  background: "#fff",
-                  border: `1px solid ${tokens.border}`,
-                  borderRadius: 14,
-                  overflow: "hidden",
-                }}
-              >
-                <table
-                  style={{ width: "100%", borderCollapse: "collapse", fontFamily: FONTS.body }}
-                >
-                  <thead>
-                    <tr style={{ borderBottom: `2px solid ${tokens.navy}` }}>
-                      {["Meeting", "Type", "Date", "Location", "Quorum", "Status", ""].map((h) => (
-                        <th
-                          key={h}
-                          style={{
-                            textAlign: "left",
-                            padding: "11px 16px",
-                            fontSize: 11,
-                            fontWeight: 700,
-                            letterSpacing: 0.5,
-                            textTransform: "uppercase",
-                            color: "#5B6A86",
-                          }}
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
+              <TableCard style={{ marginTop: 16 }}>
+                <Table>
+                  <THead>
+                    {["Meeting", "Type", "Date", "Location", "Quorum", "Status", ""].map((h) => (
+                      <Th key={h} style={{ padding: "11px 16px", fontSize: 11, color: "#5B6A86" }}>
+                        {h}
+                      </Th>
+                    ))}
+                  </THead>
                   <tbody>
                     {filteredMeetings.map((m) => {
                       const met = m.attendance !== null && m.attendance >= m.quorumRequired;
                       const color =
                         m.attendance === null ? tokens.textMuted : met ? "#067647" : "#B45309";
                       return (
-                        <tr
-                          key={m.id}
-                          style={{ borderBottom: `1px solid ${tokens.border}` }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = "#F7FAFF")}
-                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                        >
-                          <td style={{ padding: "13px 16px", fontSize: 13 }}>
-                            <div style={{ fontWeight: 700, color: tokens.text }}>{m.title}</div>
+                        <Tr key={m.id} hover>
+                          <Td>
+                            <div style={{ fontWeight: 100, color: tokens.text }}>{m.title}</div>
                             <div
                               style={{
                                 fontFamily: FONTS.mono,
@@ -988,43 +909,39 @@ function GovernancePage() {
                             >
                               {m.id.toUpperCase()}
                             </div>
-                          </td>
-                          <td style={{ padding: "13px 16px" }}>
+                          </Td>
+                          <Td>
                             <TypePill type={m.type} />
-                          </td>
-                          <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>
-                            {m.date}
-                          </td>
-                          <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>
-                            {m.location}
-                          </td>
-                          <td
+                          </Td>
+                          <Td muted>{m.date}</Td>
+                          <Td muted>{m.location}</Td>
+                          <Td
+                            numeric
                             style={{
-                              padding: "13px 16px",
-                              fontSize: 13,
-                              fontWeight: 700,
+                              fontWeight: 100,
                               color,
-                              fontVariantNumeric: "tabular-nums",
                             }}
                           >
                             {m.attendance ?? "—"} / {m.quorumRequired}
-                          </td>
-                          <td style={{ padding: "13px 16px" }}>
+                          </Td>
+                          <Td>
                             <StatusPill status={m.status} />
-                          </td>
-                          <td style={{ padding: "13px 16px", textAlign: "right" }}>
-                            <OutlineButton
+                          </Td>
+                          <Td align="right">
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => setMeetingModal({ mode: "edit", data: m })}
                             >
                               Edit
-                            </OutlineButton>
-                          </td>
-                        </tr>
+                            </Button>
+                          </Td>
+                        </Tr>
                       );
                     })}
                   </tbody>
-                </table>
-              </div>
+                </Table>
+              </TableCard>
             )}
           </>
         ) : (
@@ -1072,13 +989,15 @@ function GovernancePage() {
                 >
                   <List size={14} />
                 </IconToggle>
-                <NavyButton
+                <Button
+                  variant="primary"
+                  icon={<Plus size={14} />}
                   onClick={() =>
                     setResModal({ mode: "create", data: { category: "Policy", status: "Pending" } })
                   }
                 >
-                  <Plus size={14} /> Table resolution
-                </NavyButton>
+                  Table resolution
+                </Button>
               </div>
             </div>
 
@@ -1116,7 +1035,7 @@ function GovernancePage() {
                               fontFamily: FONTS.mono,
                               fontSize: 12,
                               color: tokens.navy,
-                              fontWeight: 600,
+                              fontWeight: 300,
                             }}
                           >
                             {r.reference}
@@ -1127,7 +1046,7 @@ function GovernancePage() {
                         <div
                           style={{
                             fontSize: 14,
-                            fontWeight: 700,
+                            fontWeight: 100,
                             color: tokens.text,
                             marginTop: 6,
                           }}
@@ -1146,7 +1065,7 @@ function GovernancePage() {
                               borderRadius: 8,
                               padding: "8px 12px",
                               fontSize: 12,
-                              fontWeight: 600,
+                              fontWeight: 300,
                               display: "inline-flex",
                               alignItems: "center",
                               gap: 8,
@@ -1163,97 +1082,58 @@ function GovernancePage() {
                 ))}
               </div>
             ) : (
-              <div
-                style={{
-                  marginTop: 16,
-                  background: "#fff",
-                  border: `1px solid ${tokens.border}`,
-                  borderRadius: 14,
-                  overflow: "hidden",
-                }}
-              >
-                <table
-                  style={{ width: "100%", borderCollapse: "collapse", fontFamily: FONTS.body }}
-                >
-                  <thead>
-                    <tr style={{ borderBottom: `2px solid ${tokens.navy}` }}>
-                      {[
-                        "Reference",
-                        "Resolution",
-                        "Category",
-                        "Date",
-                        "Votes",
-                        "Governed change",
-                        "Status",
-                      ].map((h) => (
-                        <th
-                          key={h}
-                          style={{
-                            textAlign: "left",
-                            padding: "11px 16px",
-                            fontSize: 11,
-                            fontWeight: 700,
-                            letterSpacing: 0.5,
-                            textTransform: "uppercase",
-                            color: "#5B6A86",
-                          }}
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
+              <TableCard style={{ marginTop: 16 }}>
+                <Table>
+                  <THead>
+                    {[
+                      "Reference",
+                      "Resolution",
+                      "Category",
+                      "Date",
+                      "Votes",
+                      "Governed change",
+                      "Status",
+                    ].map((h) => (
+                      <Th key={h} style={{ padding: "11px 16px", fontSize: 11, color: "#5B6A86" }}>
+                        {h}
+                      </Th>
+                    ))}
+                  </THead>
                   <tbody>
                     {filteredResolutions.map((r) => (
-                      <tr
-                        key={r.id}
-                        style={{ borderBottom: `1px solid ${tokens.border}` }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "#F7FAFF")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                      >
-                        <td
+                      <Tr key={r.id} hover>
+                        <Td
                           style={{
-                            padding: "13px 16px",
                             fontFamily: FONTS.mono,
                             fontSize: 12,
                             color: tokens.navy,
-                            fontWeight: 600,
+                            fontWeight: 300,
                           }}
                         >
                           {r.reference}
-                        </td>
-                        <td
+                        </Td>
+                        <Td
                           style={{
-                            padding: "13px 16px",
-                            fontSize: 13,
-                            fontWeight: 600,
+                            fontWeight: 300,
                             color: tokens.text,
                           }}
                         >
                           {r.title}
-                        </td>
-                        <td style={{ padding: "13px 16px" }}>
+                        </Td>
+                        <Td>
                           <CategoryPill cat={r.category} />
-                        </td>
-                        <td style={{ padding: "13px 16px", fontSize: 13, color: tokens.textSub }}>
-                          {r.date}
-                        </td>
-                        <td
-                          style={{
-                            padding: "13px 16px",
-                            fontSize: 12,
-                            fontVariantNumeric: "tabular-nums",
-                          }}
-                        >
-                          <span style={{ color: "#067647", fontWeight: 700 }}>{r.votesFor}</span>
+                        </Td>
+                        <Td muted>{r.date}</Td>
+                        <Td numeric style={{ fontSize: 12 }}>
+                          <span style={{ color: "#067647", fontWeight: 100 }}>{r.votesFor}</span>
                           {" / "}
-                          <span style={{ color: "#D92D20", fontWeight: 700 }}>
+                          <span style={{ color: "#D92D20", fontWeight: 100 }}>
                             {r.votesAgainst}
                           </span>
                           {" / "}
                           <span style={{ color: tokens.textMuted }}>{r.abstain}</span>
-                        </td>
-                        <td style={{ padding: "13px 16px", fontSize: 12 }}>
+                        </Td>
+                        <Td style={{ fontSize: 12 }}>
                           {r.governedChange ? (
                             <span
                               style={{
@@ -1261,7 +1141,7 @@ function GovernancePage() {
                                 display: "inline-flex",
                                 alignItems: "center",
                                 gap: 6,
-                                fontWeight: 600,
+                                fontWeight: 300,
                               }}
                             >
                               <SlidersHorizontal size={12} /> {r.governedChange}
@@ -1269,15 +1149,15 @@ function GovernancePage() {
                           ) : (
                             <span style={{ color: tokens.textMuted }}>—</span>
                           )}
-                        </td>
-                        <td style={{ padding: "13px 16px" }}>
+                        </Td>
+                        <Td>
                           <StatusPill status={r.status} />
-                        </td>
-                      </tr>
+                        </Td>
+                      </Tr>
                     ))}
                   </tbody>
-                </table>
-              </div>
+                </Table>
+              </TableCard>
             )}
           </>
         )}
@@ -1344,10 +1224,12 @@ function MeetingForm({
       subtitle="Set up the meeting details, quorum and agenda count."
       footer={
         <>
-          <OutlineButton onClick={onCancel}>Cancel</OutlineButton>
-          <NavyButton onClick={() => onSubmit(f as Meeting)}>
+          <Button variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={() => onSubmit(f as Meeting)}>
             {mode === "create" ? "Schedule Meeting" : "Save Changes"}
-          </NavyButton>
+          </Button>
         </>
       }
     >
@@ -1487,8 +1369,12 @@ function ResolutionForm({
       subtitle="Record a new resolution and its vote outcome."
       footer={
         <>
-          <OutlineButton onClick={onCancel}>Cancel</OutlineButton>
-          <NavyButton onClick={() => onSubmit(f as Resolution)}>Table Resolution</NavyButton>
+          <Button variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={() => onSubmit(f as Resolution)}>
+            Table Resolution
+          </Button>
         </>
       }
     >

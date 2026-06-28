@@ -46,7 +46,7 @@ export function FilterSelect({
           border: `1px solid ${tokens.border}`,
           color: tokens.text,
           fontSize: 13,
-          fontWeight: 600,
+          fontWeight: 300,
           lineHeight: 1.2,
           borderRadius: 8,
           padding: "8px 12px",

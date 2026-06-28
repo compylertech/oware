@@ -64,7 +64,7 @@ export function PageHeader({
             <div
               style={{
                 fontSize: 11,
-                fontWeight: 700,
+                fontWeight: 100,
                 letterSpacing: 1.2,
                 textTransform: "uppercase",
                 color: eyebrowColor,
@@ -85,7 +85,7 @@ export function PageHeader({
               style={{
                 fontFamily: FONTS.display,
                 fontSize: 26,
-                fontWeight: 800,
+                fontWeight: 200,
                 color: titleColor,
                 margin: 0,
                 lineHeight: 1.15,

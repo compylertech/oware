@@ -58,7 +58,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
             Core Banking Platform
           </p>
           <h1
-            className="mt-5 font-extrabold text-white"
+            className="mt-5 font-semibold text-white"
             style={{ fontSize: "3.6rem", lineHeight: 1.08, letterSpacing: "-0.02em" }}
           >
             Banking built for

@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, useRef, useEffect } from "react";
 import { Search, ChevronDown, MoreVertical, Eye, Pencil, Trash2, Plus } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
+import { Button, EmptyRow, Table, TableCard, Td, Th, THead, Tr } from "@/components/patterns";
+import { FONTS } from "@/lib/tokens";
 import { useClients, removeClient, type Client, type ClientStatus } from "@/lib/mockStore";
 
 export const Route = createFileRoute("/_auth/clients/")({
@@ -109,16 +111,16 @@ function ClientsPage() {
                   fontSize: 11,
                   textTransform: "uppercase",
                   letterSpacing: "0.12em",
-                  fontWeight: 600,
+                  fontWeight: 300,
                 }}
               >
                 Oware
               </div>
               <h1
                 style={{
-                  fontFamily: "Sora, DM Sans, sans-serif",
+                  fontFamily: FONTS.body,
                   fontSize: 26,
-                  fontWeight: 700,
+                  fontWeight: 100,
                   color: "white",
                   letterSpacing: "-0.02em",
                   marginTop: 6,
@@ -136,23 +138,13 @@ function ClientsPage() {
                 Manage and view all registered clients
               </p>
             </div>
-            <button
+            <Button
               onClick={() => navigate({ to: "/clients/add" })}
-              className="inline-flex items-center gap-2 rounded-lg transition-colors"
-              style={{
-                color: "white",
-                padding: "9px 16px",
-                fontSize: 13,
-                fontWeight: 600,
-                background: "#047857",
-                border: "none",
-                cursor: "pointer",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#036848")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "#047857")}
+              variant="success"
+              icon={<Plus size={16} />}
             >
-              <Plus size={16} /> Create Client
-            </button>
+              Create Client
+            </Button>
           </div>
 
           {/* Stat strip */}
@@ -178,16 +170,16 @@ function ClientsPage() {
                     fontSize: 10,
                     textTransform: "uppercase",
                     letterSpacing: "0.1em",
-                    fontWeight: 600,
+                    fontWeight: 300,
                   }}
                 >
                   {s.label}
                 </div>
                 <div
                   style={{
-                    fontFamily: "Sora, DM Sans, sans-serif",
+                    fontFamily: FONTS.body,
                     fontSize: 28,
-                    fontWeight: 700,
+                    fontWeight: 100,
                     color: "white",
                     lineHeight: 1.2,
                     marginTop: 4,
@@ -260,7 +252,7 @@ function ClientsPage() {
               />
             )}
             <span>
-              Status: <span style={{ fontWeight: 600 }}>{statusFilter}</span>
+              Status: <span style={{ fontWeight: 300 }}>{statusFilter}</span>
             </span>
             <ChevronDown
               size={14}
@@ -308,204 +300,162 @@ function ClientsPage() {
       </div>
 
       {/* Table */}
-      <div
-        className="mt-4 bg-white overflow-hidden"
-        style={{ border: "1px solid #DDE4EF", borderRadius: 12 }}
-      >
-        <table className="w-full" style={{ borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "#F8FAFC" }}>
+      <div className="mt-4">
+        <TableCard
+          pagination={{
+            page: currentPage,
+            totalPages,
+            totalItems: filtered.length,
+            itemLabel: "clients",
+            onPageChange: setPage,
+          }}
+          style={{ borderRadius: 12 }}
+        >
+          <Table>
+            <THead>
               {["Name", "Client No.", "External ID", "Status", "Office Name", ""].map((h, i) => (
-                <th
-                  key={i}
-                  style={{
-                    textAlign: "left",
-                    fontSize: 12,
-                    fontWeight: 500,
-                    color: "#6B7A99",
-                    padding: "12px 14px",
-                  }}
-                >
+                <Th key={i} style={{ fontSize: 12, fontWeight: 500, padding: "12px 14px" }}>
                   {h}
-                </th>
+                </Th>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td
-                  colSpan={6}
-                  style={{
-                    textAlign: "center",
-                    padding: 56,
-                    color: "#6B7A99",
-                    fontSize: 13,
-                  }}
-                >
-                  Loading clients…
-                </td>
-              </tr>
-            ) : pageRows.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={6}
-                  style={{
-                    textAlign: "center",
-                    padding: 56,
-                    color: "#6B7A99",
-                    fontSize: 13,
-                  }}
-                >
-                  No clients found
-                </td>
-              </tr>
-            ) : (
-              pageRows.map((c) => (
-                <tr
-                  key={c.id}
-                  onClick={() => goToClient(c.id)}
-                  className="group cursor-pointer"
-                  style={{
-                    borderBottom: "1px solid #F0F3F8",
-                    transition: "background 0.15s",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "#F7FAFF")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                >
-                  <td style={{ padding: 14 }}>
-                    <div className="flex items-center gap-3">
-                      <div
-                        style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: 999,
-                          background: "#E0E9FF",
-                          color: "#002663",
-                          fontFamily: "Sora, sans-serif",
-                          fontWeight: 700,
-                          fontSize: 11,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        {initials(c.name)}
-                      </div>
-                      <span
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 500,
-                          color: "#0D1B3E",
-                        }}
-                      >
-                        {c.name}
-                      </span>
-                    </div>
-                  </td>
-                  <td
-                    style={{
-                      padding: 14,
-                      fontFamily: "DM Mono, monospace",
-                      fontSize: 13,
-                      color: "#374151",
-                    }}
+            </THead>
+            <tbody>
+              {loading ? (
+                <EmptyRow colSpan={6}>Loading clients…</EmptyRow>
+              ) : pageRows.length === 0 ? (
+                <EmptyRow colSpan={6}>No clients found</EmptyRow>
+              ) : (
+                pageRows.map((c) => (
+                  <Tr
+                    key={c.id}
+                    onClick={() => goToClient(c.id)}
+                    className="group cursor-pointer"
+                    hover
                   >
-                    {c.clientNumber}
-                  </td>
-                  <td
-                    style={{
-                      padding: 14,
-                      fontFamily: "DM Mono, monospace",
-                      fontSize: 13,
-                      color: "#6B7A99",
-                    }}
-                  >
-                    {c.externalId}
-                  </td>
-                  <td style={{ padding: 14 }}>
-                    <StatusPill status={c.status as StatusKind} />
-                  </td>
-                  <td style={{ padding: 14, fontSize: 13, color: "#6B7A99" }}>{c.officeName}</td>
-                  <td
-                    style={{ padding: 14, width: 60, textAlign: "right" }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="relative inline-block">
-                      <button
-                        onClick={() => setMenuOpen(menuOpen === c.id ? null : c.id)}
-                        className={
-                          menuOpen === c.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                        }
-                        style={{
-                          width: 30,
-                          height: 30,
-                          borderRadius: 6,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "#6B7A99",
-                          transition: "opacity 0.15s, background 0.15s",
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "#EEF2F8")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                      >
-                        <MoreVertical size={16} />
-                      </button>
-                      {menuOpen === c.id && (
+                    <Td style={{ padding: 14 }}>
+                      <div className="flex items-center gap-3">
                         <div
-                          className="absolute right-0 z-10 mt-1 bg-white"
                           style={{
-                            border: "1px solid #DDE4EF",
-                            borderRadius: 8,
-
-                            minWidth: 140,
-                            padding: 4,
+                            width: 32,
+                            height: 32,
+                            borderRadius: 999,
+                            background: "#E0E9FF",
+                            color: "#002663",
+                            fontFamily: FONTS.body,
+                            fontWeight: 100,
+                            fontSize: 11,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
-                          <MenuItem
-                            icon={<Eye size={14} />}
-                            label="View"
-                            onClick={() => {
-                              setMenuOpen(null);
-                              goToClient(c.id);
-                            }}
-                          />
-                          <MenuItem
-                            icon={<Pencil size={14} />}
-                            label="Edit"
-                            onClick={() => setMenuOpen(null)}
-                          />
-                          <MenuItem
-                            icon={<Trash2 size={14} />}
-                            label="Delete"
-                            danger
-                            onClick={() => {
-                              setMenuOpen(null);
-                              setConfirmDelete(c);
-                            }}
-                          />
+                          {initials(c.name)}
                         </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+                        <span
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 500,
+                            color: "#0D1B3E",
+                          }}
+                        >
+                          {c.name}
+                        </span>
+                      </div>
+                    </Td>
+                    <Td
+                      style={{
+                        padding: 14,
+                        fontFamily: FONTS.mono,
+                        fontSize: 13,
+                        color: "#374151",
+                      }}
+                    >
+                      {c.clientNumber}
+                    </Td>
+                    <Td
+                      muted
+                      style={{
+                        padding: 14,
+                        fontFamily: FONTS.mono,
+                        fontSize: 13,
+                      }}
+                    >
+                      {c.externalId}
+                    </Td>
+                    <Td style={{ padding: 14 }}>
+                      <StatusPill status={c.status as StatusKind} />
+                    </Td>
+                    <Td muted style={{ padding: 14, fontSize: 13 }}>
+                      {c.officeName}
+                    </Td>
+                    <Td
+                      style={{ padding: 14, width: 60, textAlign: "right" }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="relative inline-block">
+                        <button
+                          onClick={() => setMenuOpen(menuOpen === c.id ? null : c.id)}
+                          className={
+                            menuOpen === c.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                          }
+                          style={{
+                            width: 30,
+                            height: 30,
+                            borderRadius: 6,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "#6B7A99",
+                            transition: "opacity 0.15s, background 0.15s",
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "#EEF2F8")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                        >
+                          <MoreVertical size={16} />
+                        </button>
+                        {menuOpen === c.id && (
+                          <div
+                            className="absolute right-0 z-10 mt-1 bg-white"
+                            style={{
+                              border: "1px solid #DDE4EF",
+                              borderRadius: 8,
 
-        {/* Pagination footer */}
-        <div
-          className="flex items-center justify-between"
-          style={{ padding: "14px 18px", borderTop: "1px solid #F0F3F8" }}
-        >
-          <div style={{ fontSize: 12, color: "#5B6A86" }}>
-            Showing {filtered.length === 0 ? 0 : start + 1}–
-            {Math.min(start + PAGE_SIZE, filtered.length)} of {filtered.length} clients
-          </div>
-          <Pagination page={currentPage} totalPages={totalPages} onChange={setPage} />
-        </div>
+                              minWidth: 140,
+                              padding: 4,
+                            }}
+                          >
+                            <MenuItem
+                              icon={<Eye size={14} />}
+                              label="View"
+                              onClick={() => {
+                                setMenuOpen(null);
+                                goToClient(c.id);
+                              }}
+                            />
+                            <MenuItem
+                              icon={<Pencil size={14} />}
+                              label="Edit"
+                              onClick={() => setMenuOpen(null)}
+                            />
+                            <MenuItem
+                              icon={<Trash2 size={14} />}
+                              label="Delete"
+                              danger
+                              onClick={() => {
+                                setMenuOpen(null);
+                                setConfirmDelete(c);
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </Td>
+                  </Tr>
+                ))
+              )}
+            </tbody>
+          </Table>
+        </TableCard>
       </div>
 
       {/* Delete confirm */}
@@ -526,9 +476,9 @@ function ClientsPage() {
           >
             <h3
               style={{
-                fontFamily: "Sora, sans-serif",
+                fontFamily: FONTS.body,
                 fontSize: 17,
-                fontWeight: 700,
+                fontWeight: 100,
                 color: "#0D1B3E",
               }}
             >
@@ -539,37 +489,18 @@ function ClientsPage() {
               undone.
             </p>
             <div className="mt-5 flex justify-end gap-2">
-              <button
-                onClick={() => setConfirmDelete(null)}
-                style={{
-                  border: "1px solid #DDE4EF",
-                  borderRadius: 8,
-                  padding: "8px 14px",
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: "#0D1B3E",
-                  background: "white",
-                }}
-              >
+              <Button onClick={() => setConfirmDelete(null)} variant="outline">
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => {
                   removeClient(confirmDelete.id);
                   setConfirmDelete(null);
                 }}
-                style={{
-                  borderRadius: 8,
-                  padding: "8px 14px",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "white",
-                  background: "#EF4444",
-                  border: "none",
-                }}
+                variant="danger"
               >
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -607,77 +538,4 @@ function MenuItem({
       {label}
     </button>
   );
-}
-
-function Pagination({
-  page,
-  totalPages,
-  onChange,
-}: {
-  page: number;
-  totalPages: number;
-  onChange: (p: number) => void;
-}) {
-  const pages = computePages(page, totalPages);
-  const btn = (
-    key: string,
-    label: React.ReactNode,
-    active: boolean,
-    onClick: () => void,
-    disabled?: boolean,
-  ) => (
-    <button
-      key={key}
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        minWidth: 32,
-        height: 32,
-        padding: "0 10px",
-        borderRadius: 8,
-        fontSize: 12,
-        fontWeight: 600,
-        border: active ? "none" : "1px solid #DDE4EF",
-        background: active ? "#002663" : "white",
-        color: active ? "white" : disabled ? "#C7D0E0" : "#0D1B3E",
-        cursor: disabled ? "not-allowed" : "pointer",
-      }}
-    >
-      {label}
-    </button>
-  );
-
-  return (
-    <div className="flex items-center gap-1.5">
-      {btn("prev", "Prev", false, () => onChange(Math.max(1, page - 1)), page === 1)}
-      {pages.map((p, i) =>
-        p === "…" ? (
-          <span key={`e${i}`} style={{ padding: "0 6px", color: "#5B6A86", fontSize: 12 }}>
-            …
-          </span>
-        ) : (
-          btn(`p${p}`, p, p === page, () => onChange(p as number))
-        ),
-      )}
-      {btn(
-        "next",
-        "Next",
-        false,
-        () => onChange(Math.min(totalPages, page + 1)),
-        page === totalPages,
-      )}
-    </div>
-  );
-}
-
-function computePages(page: number, total: number): (number | "…")[] {
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-  const pages: (number | "…")[] = [1];
-  const start = Math.max(2, page - 1);
-  const end = Math.min(total - 1, page + 1);
-  if (start > 2) pages.push("…");
-  for (let i = start; i <= end; i++) pages.push(i);
-  if (end < total - 1) pages.push("…");
-  pages.push(total);
-  return pages;
 }

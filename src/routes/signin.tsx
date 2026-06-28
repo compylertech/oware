@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { AlertCircle, ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
+import { Button } from "@/components/patterns";
 
 export const Route = createFileRoute("/signin")({
   head: () => ({
@@ -40,7 +41,7 @@ function SignInPage() {
 
   return (
     <AuthLayout>
-      <h2 className="text-[2rem] font-extrabold tracking-tight text-gray-900">Sign in</h2>
+      <h2 className="text-[2rem] font-semibold tracking-tight text-gray-900">Sign in</h2>
       <p className="mt-2 text-[14px] text-gray-400">
         Enter your credentials to access your workspace.
       </p>
@@ -101,23 +102,15 @@ function SignInPage() {
           </div>
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#002663] py-3 text-[14px] font-bold text-white transition active:scale-[0.98] disabled:opacity-60"
+          full
+          icon={loading ? <Loader2 size={16} className="animate-spin" /> : undefined}
+          iconRight={!loading ? <ArrowRight size={16} /> : undefined}
         >
-          {loading ? (
-            <>
-              <Loader2 size={16} className="animate-spin" />
-              Signing in…
-            </>
-          ) : (
-            <>
-              Continue
-              <ArrowRight size={16} />
-            </>
-          )}
-        </button>
+          {loading ? "Signing in…" : "Continue"}
+        </Button>
       </form>
 
       <p className="mt-8 text-center text-[13px] text-gray-500">

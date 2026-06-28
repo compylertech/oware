@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, Loader2, MailCheck } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
+import { Button } from "@/components/patterns";
 
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({
@@ -43,7 +44,7 @@ function ForgotPasswordPage() {
             Back to sign in
           </Link>
 
-          <h2 className="mt-5 text-[2rem] font-extrabold tracking-tight text-gray-900">
+          <h2 className="mt-5 text-[2rem] font-semibold tracking-tight text-gray-900">
             Reset your password
           </h2>
           <p className="mt-2 text-[14px] text-gray-400">
@@ -66,23 +67,15 @@ function ForgotPasswordPage() {
               />
             </div>
 
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#002663] py-3 text-[14px] font-bold text-white transition active:scale-[0.98] disabled:opacity-60"
+              full
+              icon={loading ? <Loader2 size={16} className="animate-spin" /> : undefined}
+              iconRight={!loading ? <ArrowRight size={16} /> : undefined}
             >
-              {loading ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Sending…
-                </>
-              ) : (
-                <>
-                  Send reset link
-                  <ArrowRight size={16} />
-                </>
-              )}
-            </button>
+              {loading ? "Sending…" : "Send reset link"}
+            </Button>
           </form>
         </>
       ) : (
@@ -90,7 +83,7 @@ function ForgotPasswordPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#002663]/10">
             <MailCheck size={28} className="text-[#002663]" />
           </div>
-          <h2 className="mt-6 text-[2rem] font-extrabold tracking-tight text-gray-900">
+          <h2 className="mt-6 text-[2rem] font-semibold tracking-tight text-gray-900">
             Check your inbox
           </h2>
           <p className="mt-3 text-[14px] text-gray-400">

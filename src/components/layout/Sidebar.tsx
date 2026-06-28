@@ -16,6 +16,7 @@ import {
   Shield,
   type LucideIcon,
 } from "lucide-react";
+import { FONTS } from "@/lib/tokens";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -109,7 +110,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
           <div className="flex flex-col leading-tight">
             <span
               className="text-white"
-              style={{ fontFamily: "Sora, 'DM Sans', sans-serif", fontSize: 13, fontWeight: 700 }}
+              style={{ fontFamily: FONTS.body, fontSize: 13, fontWeight: 100 }}
             >
               Oware
             </span>
@@ -127,7 +128,7 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
                 className="mb-2 px-3"
                 style={{
                   fontSize: 10,
-                  fontWeight: 700,
+                  fontWeight: 100,
                   textTransform: "uppercase",
                   letterSpacing: "0.1em",
                   color: "rgba(255,255,255,0.3)",

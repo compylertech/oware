@@ -14,6 +14,7 @@ import {
   Shield,
   HelpCircle,
 } from "lucide-react";
+import { FONTS } from "@/lib/tokens";
 
 const NAVY = "#002663";
 const BORDER = "#DDE4EF";
@@ -59,7 +60,13 @@ const NOTIFS: Notif[] = [
   },
 ];
 
-export function Topbar() {
+export function Topbar({
+  collapsed,
+  onMenuClick,
+}: {
+  collapsed?: boolean;
+  onMenuClick?: () => void;
+}) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -83,7 +90,9 @@ export function Topbar() {
       <div className="flex items-center" style={{ gap: 14 }}>
         <button
           type="button"
-          aria-label="Menu"
+          aria-label={collapsed ? "Open sidebar" : "Close sidebar"}
+          aria-expanded={!collapsed}
+          onClick={onMenuClick}
           style={{ color: MUTED, cursor: "pointer", padding: 4 }}
         >
           <Menu size={20} />
@@ -112,7 +121,7 @@ export function Topbar() {
               fontSize: 13,
               color: INK,
               background: "transparent",
-              fontFamily: "DM Sans, sans-serif",
+              fontFamily: FONTS.body,
             }}
           />
           <span
@@ -122,8 +131,8 @@ export function Topbar() {
               background: "#F4F6FB",
               borderRadius: 5,
               padding: "2px 6px",
-              fontFamily: "DM Sans, sans-serif",
-              fontWeight: 600,
+              fontFamily: FONTS.body,
+              fontWeight: 300,
             }}
           >
             ⌘K
@@ -145,7 +154,7 @@ export function Topbar() {
             background: "#fff",
             color: INK,
             fontSize: 13,
-            fontWeight: 600,
+            fontWeight: 300,
             cursor: "pointer",
           }}
         >
@@ -184,7 +193,7 @@ export function Topbar() {
                 background: "#D92D20",
                 color: "#fff",
                 fontSize: 10,
-                fontWeight: 700,
+                fontWeight: 100,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -221,9 +230,9 @@ export function Topbar() {
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span
                     style={{
-                      fontFamily: "Sora, sans-serif",
+                      fontFamily: FONTS.body,
                       fontSize: 14,
-                      fontWeight: 700,
+                      fontWeight: 100,
                       color: INK,
                     }}
                   >
@@ -237,7 +246,7 @@ export function Topbar() {
                       borderRadius: 999,
                       padding: "1px 7px",
                       fontSize: 11,
-                      fontWeight: 700,
+                      fontWeight: 100,
                     }}
                   >
                     2 new
@@ -248,7 +257,7 @@ export function Topbar() {
                   style={{
                     color: NAVY,
                     fontSize: 12,
-                    fontWeight: 600,
+                    fontWeight: 300,
                     background: "transparent",
                     border: "none",
                     cursor: "pointer",
@@ -285,7 +294,7 @@ export function Topbar() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>{n.title}</span>
+                        <span style={{ fontSize: 13, fontWeight: 100, color: INK }}>{n.title}</span>
                         {n.unread && (
                           <span
                             style={{
@@ -315,7 +324,7 @@ export function Topbar() {
                   style={{
                     color: NAVY,
                     fontSize: 12,
-                    fontWeight: 600,
+                    fontWeight: 300,
                     background: "transparent",
                     border: "none",
                     cursor: "pointer",
@@ -360,8 +369,8 @@ export function Topbar() {
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: 13,
-                  fontWeight: 700,
-                  fontFamily: "DM Sans, sans-serif",
+                  fontWeight: 100,
+                  fontFamily: FONTS.body,
                 }}
               >
                 DQ
@@ -387,7 +396,7 @@ export function Topbar() {
                 lineHeight: 1.2,
               }}
             >
-              <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>Daniel Quaidoo</span>
+              <span style={{ fontSize: 13, fontWeight: 100, color: INK }}>Daniel Quaidoo</span>
               <span style={{ fontSize: 11, color: MUTED }}>Administrator</span>
             </div>
             <ChevronDown size={14} color={MUTED} />
@@ -412,9 +421,9 @@ export function Topbar() {
                 <div
                   style={{
                     fontSize: 13,
-                    fontWeight: 700,
+                    fontWeight: 100,
                     color: INK,
-                    fontFamily: "DM Sans, sans-serif",
+                    fontFamily: FONTS.body,
                   }}
                 >
                   Daniel Quaidoo

@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
-import { Panel, PanelHead, Chip, Th, Td, fontMono } from "@/components/loans/ui";
+import { Panel, PanelHead, Chip, Table, THead, Tr, Th, Td } from "@/components/loans/ui";
 import { StagePill } from "@/components/loans/StagePill";
 import { fmtGHS } from "@/lib/loanMock";
+import { TableCard } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/loans/arrears")({
   component: ArrearsPage,
@@ -16,6 +18,14 @@ const OVERDUE = [
 ];
 
 function ArrearsPage() {
+  const [overduePage, setOverduePage] = useState(1);
+  const overdueTotalPages = Math.max(1, Math.ceil(OVERDUE.length / PAGE_SIZE));
+  const overdueCurrentPage = Math.min(overduePage, overdueTotalPages);
+  const overdueRows = OVERDUE.slice(
+    (overdueCurrentPage - 1) * PAGE_SIZE,
+    overdueCurrentPage * PAGE_SIZE,
+  );
+
   return (
     <LoansShell>
       <div className="grid gap-3 mb-4" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
@@ -26,31 +36,38 @@ function ArrearsPage() {
       </div>
 
       <div className="grid gap-4" style={{ gridTemplateColumns: "1.4fr 1fr" }}>
-        <Panel>
-          <PanelHead title="Overdue Loans" />
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <Th>Client</Th>
-                <Th>Outstanding</Th>
-                <Th>Overdue</Th>
-                <Th>Bucket</Th>
-              </tr>
-            </thead>
+        <TableCard
+          title="Overdue Loans"
+          resultLabel={`${OVERDUE.length} loans`}
+          pagination={{
+            page: overdueCurrentPage,
+            totalPages: overdueTotalPages,
+            totalItems: OVERDUE.length,
+            itemLabel: "loans",
+            onPageChange: setOverduePage,
+          }}
+        >
+          <Table>
+            <THead>
+              <Th>Client</Th>
+              <Th>Outstanding</Th>
+              <Th>Overdue</Th>
+              <Th>Bucket</Th>
+            </THead>
             <tbody>
-              {OVERDUE.map((o) => (
-                <tr key={o.client}>
-                  <Td style={{ fontWeight: 600 }}>{o.client}</Td>
+              {overdueRows.map((o) => (
+                <Tr key={o.client} hover>
+                  <Td style={{ fontWeight: 300 }}>{o.client}</Td>
                   <Td>{fmtGHS(o.outstanding)}</Td>
-                  <Td style={{ color: LOAN.red, fontWeight: 700 }}>{o.days} days</Td>
+                  <Td style={{ color: LOAN.red, fontWeight: 100 }}>{o.days} days</Td>
                   <Td>
                     <StagePill stage={o.bucket} />
                   </Td>
-                </tr>
+                </Tr>
               ))}
             </tbody>
-          </table>
-        </Panel>
+          </Table>
+        </TableCard>
 
         <Panel>
           <PanelHead title="Aging Distribution" />
@@ -65,6 +82,8 @@ function ArrearsPage() {
     </LoansShell>
   );
 }
+
+const PAGE_SIZE = 10;
 
 function Aging({
   label,

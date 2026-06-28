@@ -49,9 +49,9 @@ export function SectionCard({
             borderBottom: `1px solid ${tokens.border}`,
           }}
         >
-          <div style={{ fontSize: 14, fontWeight: 700, color: tokens.text }}>{title}</div>
+          <div style={{ fontSize: 14, fontWeight: 100, color: tokens.text }}>{title}</div>
           {action != null ? (
-            <div style={{ fontSize: 12, color: tokens.accent, fontWeight: 600 }}>{action}</div>
+            <div style={{ fontSize: 12, color: tokens.accent, fontWeight: 300 }}>{action}</div>
           ) : null}
         </div>
       ) : null}

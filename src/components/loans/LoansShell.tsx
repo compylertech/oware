@@ -2,8 +2,9 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Download, Plus, Bell } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { LOAN } from "@/lib/tokens";
-import { fontDisplay, NavyBtn, OutlineBtn } from "./ui";
+import { fontDisplay } from "./ui";
 import { NewApplicationDrawer } from "./NewApplicationDrawer";
+import { Button } from "@/components/patterns";
 
 type Tab = { label: string; to: string; badge?: number };
 
@@ -71,7 +72,7 @@ export function LoansShell({ children }: { children: ReactNode }) {
                       borderRadius: 999,
                       padding: "1px 8px",
                       fontSize: 10,
-                      fontWeight: 700,
+                      fontWeight: 100,
                     }}
                   >
                     {fmtBadge(t.badge)}
@@ -89,7 +90,7 @@ export function LoansShell({ children }: { children: ReactNode }) {
           <div
             style={{
               fontSize: 10,
-              fontWeight: 700,
+              fontWeight: 100,
               letterSpacing: "0.12em",
               color: LOAN.muted,
               textTransform: "uppercase",
@@ -101,7 +102,7 @@ export function LoansShell({ children }: { children: ReactNode }) {
             style={{
               ...fontDisplay,
               fontSize: 26,
-              fontWeight: 800,
+              fontWeight: 200,
               color: LOAN.ink,
               marginTop: 4,
             }}
@@ -124,16 +125,34 @@ export function LoansShell({ children }: { children: ReactNode }) {
             const showRegisterCollat = path === "/loans/collateral";
             return (
               <>
-                {showExport && <OutlineBtn icon={<Download size={14} />}>Export</OutlineBtn>}
-                {showNewApp && (
-                  <NavyBtn icon={<Plus size={14} />} onClick={() => setOpenWizard(true)}>
-                    New Application
-                  </NavyBtn>
+                {showExport && (
+                  <Button variant="primary" icon={<Download size={14} />}>
+                    Export
+                  </Button>
                 )}
-                {showReminders && <NavyBtn icon={<Bell size={14} />}>Send Reminders</NavyBtn>}
-                {showNewProduct && <NavyBtn icon={<Plus size={14} />}>New Product</NavyBtn>}
+                {showNewApp && (
+                  <Button
+                    variant="success"
+                    icon={<Plus size={14} />}
+                    onClick={() => setOpenWizard(true)}
+                  >
+                    New Application
+                  </Button>
+                )}
+                {showReminders && (
+                  <Button variant="success" icon={<Bell size={14} />}>
+                    Send Reminders
+                  </Button>
+                )}
+                {showNewProduct && (
+                  <Button variant="success" icon={<Plus size={14} />}>
+                    New Product
+                  </Button>
+                )}
                 {showRegisterCollat && (
-                  <NavyBtn icon={<Plus size={14} />}>Register Collateral</NavyBtn>
+                  <Button variant="success" icon={<Plus size={14} />}>
+                    Register Collateral
+                  </Button>
                 )}
               </>
             );

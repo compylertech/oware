@@ -2,10 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { DollarSign, Clock, AlertTriangle, TrendingUp, BarChart2 } from "lucide-react";
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
-import { Ava, Th, Td, fontDisplay, fontMono } from "@/components/loans/ui";
+import { Ava, Table, THead, Tr, Th, Td, fontDisplay, fontMono } from "@/components/loans/ui";
 import { APPLICATIONS, fmtGHS } from "@/api/loans";
 import { StagePill } from "@/components/loans/StagePill";
-import { StatCard, StatGrid, SectionCard } from "@/components/patterns";
+import { StatCard, StatGrid, SectionCard, TableCard } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/loans/")({
   component: LoansOverview,
@@ -83,7 +83,7 @@ function LoansOverview() {
               >
                 <div className="flex items-center gap-2">
                   <span style={{ width: 8, height: 8, borderRadius: 999, background: c.dot }} />
-                  <span style={{ fontSize: 12, color: LOAN.muted, fontWeight: 600 }}>
+                  <span style={{ fontSize: 12, color: LOAN.muted, fontWeight: 300 }}>
                     {c.label}
                   </span>
                 </div>
@@ -91,7 +91,7 @@ function LoansOverview() {
                   style={{
                     ...fontDisplay,
                     fontSize: 22,
-                    fontWeight: 800,
+                    fontWeight: 200,
                     color: LOAN.ink,
                     marginTop: 6,
                   }}
@@ -106,42 +106,39 @@ function LoansOverview() {
       </div>
 
       <div className="grid gap-4 mt-4" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
-        <SectionCard
+        <TableCard
           title="Recent Applications"
-          action={<Link to="/loans/applications">View all →</Link>}
-          padded={false}
+          actions={<Link to="/loans/applications">View all →</Link>}
         >
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <Th>Applicant</Th>
-                <Th>Product</Th>
-                <Th>Amount</Th>
-                <Th>Status</Th>
-              </tr>
-            </thead>
+          <Table>
+            <THead>
+              <Th>Applicant</Th>
+              <Th>Product</Th>
+              <Th>Amount</Th>
+              <Th>Status</Th>
+            </THead>
             <tbody>
               {APPLICATIONS.slice(0, 3).map((a) => (
-                <tr key={a.id}>
+                <Tr key={a.id} hover>
                   <Td>
                     <div className="flex items-center gap-2">
                       <Ava name={a.client} bg={a.avatar} size={28} />
                       <div>
-                        <div style={{ fontWeight: 600 }}>{a.client}</div>
+                        <div style={{ fontWeight: 300 }}>{a.client}</div>
                         <div style={{ ...fontMono, fontSize: 11, color: LOAN.muted }}>{a.id}</div>
                       </div>
                     </div>
                   </Td>
                   <Td>{a.product}</Td>
-                  <Td style={{ fontWeight: 700 }}>{fmtGHS(a.amount)}</Td>
+                  <Td style={{ fontWeight: 100 }}>{fmtGHS(a.amount)}</Td>
                   <Td>
                     <StagePill stage={a.stage} />
                   </Td>
-                </tr>
+                </Tr>
               ))}
             </tbody>
-          </table>
-        </SectionCard>
+          </Table>
+        </TableCard>
 
         <SectionCard title="Arrears Aging">
           <div className="space-y-3">

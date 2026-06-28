@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Gavel, Users2, PieChart, SlidersHorizontal, ArrowRight } from "lucide-react";
+import { Gavel, Users2, PieChart, SlidersHorizontal, TrendingUp, ArrowRight } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
 import { Pill } from "@/components/patterns";
 import type { CSSProperties, ReactNode } from "react";
@@ -81,7 +81,7 @@ function HubCard({ card }: { card: NavCard }) {
         <LayerTag label={card.tag.label} variant={card.tag.variant} />
       </div>
       <div>
-        <div style={{ fontSize: 15, fontWeight: 800, color: tokens.text }}>{card.title}</div>
+        <div style={{ fontSize: 15, fontWeight: 200, color: tokens.text }}>{card.title}</div>
         <div style={{ fontSize: 13, color: tokens.textSub, marginTop: 4, lineHeight: 1.5 }}>
           {card.desc}
         </div>
@@ -94,7 +94,7 @@ function HubCard({ card }: { card: NavCard }) {
           marginTop: "auto",
           color: tokens.accent,
           fontSize: 13,
-          fontWeight: 600,
+          fontWeight: 300,
         }}
       >
         View <ArrowRight size={14} />
@@ -133,6 +133,15 @@ function CooperativeHub() {
       tag: { label: "AGM-governed", variant: "governed" },
     },
     {
+      title: "Investments",
+      desc: "Institutions, proposals, placements, maturity alerts and exposure limits.",
+      icon: <TrendingUp size={22} />,
+      iconBg: "#E1F5EE",
+      iconFg: "#0F6E56",
+      route: "/cooperative/investments",
+      tag: { label: "Treasury", variant: "overlay" },
+    },
+    {
       title: "Configurations",
       desc: "Policy engine, approval matrix and common bonds.",
       icon: <SlidersHorizontal size={22} />,
@@ -156,7 +165,7 @@ function CooperativeHub() {
         <div
           style={{
             fontSize: 11,
-            fontWeight: 700,
+            fontWeight: 100,
             letterSpacing: 1.2,
             color: tokens.textMuted,
           }}
@@ -167,7 +176,7 @@ function CooperativeHub() {
           style={{
             fontFamily: FONTS.display,
             fontSize: 26,
-            fontWeight: 800,
+            fontWeight: 200,
             color: tokens.text,
             margin: "6px 0 8px",
           }}

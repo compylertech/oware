@@ -36,14 +36,14 @@ export function Pill({
   const sized: CSSProperties = uppercase
     ? {
         fontSize: 10,
-        fontWeight: 700,
+        fontWeight: 100,
         letterSpacing: 0.3,
         textTransform: "uppercase",
         padding: "2px 8px",
       }
     : size === "sm"
-      ? { fontSize: 11, fontWeight: 600, padding: "2px 9px" }
-      : { fontSize: 12, fontWeight: 600, padding: "3px 10px" };
+      ? { fontSize: 11, fontWeight: 300, padding: "2px 9px" }
+      : { fontSize: 12, fontWeight: 300, padding: "3px 10px" };
 
   return (
     <span

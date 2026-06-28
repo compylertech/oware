@@ -57,12 +57,12 @@ export function StatCard({
 
   const body = (
     <div style={{ minWidth: 0 }}>
-      <div style={{ fontSize: 12, color: tokens.textMuted, fontWeight: 600 }}>{label}</div>
+      <div style={{ fontSize: 12, color: tokens.textMuted, fontWeight: 300 }}>{label}</div>
       <div
         style={{
           fontFamily: FONTS.display,
           fontSize: 22,
-          fontWeight: 800,
+          fontWeight: 200,
           color: tokens.text,
           marginTop: 2,
           fontVariantNumeric: "tabular-nums",
@@ -73,7 +73,7 @@ export function StatCard({
       </div>
       {delta != null ? (
         <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3, fontSize: 12 }}>
-          <span style={{ color: up ? tokens.success : tokens.danger, fontWeight: 700 }}>
+          <span style={{ color: up ? tokens.success : tokens.danger, fontWeight: 100 }}>
             {up ? "▲" : "▼"} {Math.abs(delta)}%
           </span>
           <span style={{ color: tokens.textMuted }}>vs last month</span>
@@ -84,7 +84,7 @@ export function StatCard({
             fontSize: 11,
             color: metaColor ?? tokens.textMuted,
             marginTop: 3,
-            fontWeight: 600,
+            fontWeight: 300,
           }}
         >
           {meta}

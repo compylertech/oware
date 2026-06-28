@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { X, Search, ArrowDownCircle, ArrowUpCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { Button } from "@/components/patterns";
 
 export type CashTxType = "deposit" | "withdraw";
 
@@ -107,8 +108,6 @@ export function CashTransactionDrawer({ type, onClose }: Props) {
   const canSubmit = account && amount && Number(amount) > 0 && !submitting;
   const accentBg = isDeposit ? "bg-emerald-50" : "bg-red-50";
   const accentText = isDeposit ? "text-emerald-600" : "text-red-600";
-  // Both deposit and withdrawal are affirmative "post" actions → solid green.
-  const submitColor = "#047857";
   const title = isDeposit ? "Cash Deposit" : "Cash Withdrawal";
   const subtitle = isDeposit ? "Credit funds into an account" : "Debit funds from an account";
 
@@ -161,13 +160,13 @@ export function CashTransactionDrawer({ type, onClose }: Props) {
                     placeholder="100..."
                     className="flex-1 h-10 px-3 rounded-lg border border-gray-200 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#002663]/20 focus:border-[#002663]"
                   />
-                  <button
+                  <Button
                     type="button"
                     onClick={handleLookup}
-                    className="h-10 px-3 rounded-lg bg-[#002663] text-white text-sm font-medium flex items-center gap-1.5 hover:opacity-90"
+                    icon={<Search className="h-4 w-4" />}
                   >
-                    <Search className="h-4 w-4" /> Search
-                  </button>
+                    Search
+                  </Button>
                 </div>
                 {lookupError && <div className="text-xs text-red-500 mt-1.5">{lookupError}</div>}
               </div>
@@ -227,29 +226,18 @@ export function CashTransactionDrawer({ type, onClose }: Props) {
 
             {/* Footer */}
             <div className="flex gap-2 p-5 border-t border-gray-100">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 h-10 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
+              <Button type="button" onClick={onClose} variant="outline" full>
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
                 disabled={!canSubmit}
-                style={{ backgroundColor: submitColor }}
-                className="flex-1 h-10 rounded-lg text-white text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                variant={isDeposit ? "success" : "danger"}
+                full
+                icon={submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}
               >
-                {submitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Processing…
-                  </>
-                ) : isDeposit ? (
-                  "Post Deposit"
-                ) : (
-                  "Post Withdrawal"
-                )}
-              </button>
+                {submitting ? "Processing…" : isDeposit ? "Post Deposit" : "Post Withdrawal"}
+              </Button>
             </div>
           </form>
         )}

@@ -2,7 +2,19 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useRef, useEffect } from "react";
 import { ArrowLeft, MoreVertical, Plus, Download, Pencil, Upload } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
-import { tokens, cardShadow } from "@/lib/tokens";
+import {
+  EmptyRow as PatternEmptyRow,
+  Table,
+  TableCard,
+  Td,
+  Th,
+  THead,
+  Tr,
+  Button,
+  DateRangeFilter,
+} from "@/components/patterns";
+import { isDisplayDateInRange } from "@/lib/dateFilters";
+import { FONTS, tokens, cardShadow } from "@/lib/tokens";
 
 export const Route = createFileRoute("/_auth/clients/$clientId")({
   component: ClientDetail,
@@ -96,9 +108,9 @@ function SectionCard({
           />
           <h3
             style={{
-              fontFamily: "Sora, sans-serif",
+              fontFamily: FONTS.body,
               fontSize: 11,
-              fontWeight: 700,
+              fontWeight: 100,
               letterSpacing: "0.09em",
               textTransform: "uppercase",
               color: tokens.text,
@@ -110,7 +122,7 @@ function SectionCard({
             <span
               style={{
                 fontSize: 9,
-                fontWeight: 700,
+                fontWeight: 100,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
                 color: tokens.teal,
@@ -130,106 +142,18 @@ function SectionCard({
   );
 }
 
-function GhostBtn({
-  children,
-  onClick,
-  icon: Icon,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  icon?: React.ComponentType<{ size?: number }>;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="inline-flex items-center gap-1.5 transition-colors"
-      style={{
-        border: `1px solid ${tokens.border}`,
-        background: "white",
-        borderRadius: 8,
-        padding: "6px 12px",
-        fontSize: 12,
-        fontWeight: 500,
-        color: tokens.textSub,
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F8FE")}
-      onMouseLeave={(e) => (e.currentTarget.style.background = "white")}
-    >
-      {Icon && <Icon size={13} />}
-      {children}
-    </button>
-  );
-}
-
-function SolidBtn({
-  children,
-  onClick,
-  icon: Icon,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  icon?: React.ComponentType<{ size?: number }>;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="inline-flex items-center gap-1.5"
-      style={{
-        background: tokens.navy,
-        color: "white",
-        borderRadius: 8,
-        padding: "6px 12px",
-        fontSize: 12,
-        fontWeight: 500,
-      }}
-    >
-      {Icon && <Icon size={13} />}
-      {children}
-    </button>
-  );
-}
-
 function TableHead({ cols }: { cols: string[] }) {
   return (
-    <thead>
-      <tr style={{ background: "#F8FAFC" }}>
-        {cols.map((c) => (
-          <th
-            key={c}
-            style={{
-              textAlign: "left",
-              padding: "10px 14px",
-              fontSize: 11,
-              fontWeight: 600,
-              color: tokens.textMuted,
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-            }}
-          >
-            {c}
-          </th>
-        ))}
-      </tr>
-    </thead>
+    <THead>
+      {cols.map((c) => (
+        <Th key={c}>{c}</Th>
+      ))}
+    </THead>
   );
 }
 
 function EmptyRow({ cols, text }: { cols: number; text: string }) {
-  return (
-    <tr>
-      <td
-        colSpan={cols}
-        style={{
-          padding: 36,
-          textAlign: "center",
-          fontSize: 13,
-          color: tokens.textMuted,
-        }}
-      >
-        {text}
-      </td>
-    </tr>
-  );
+  return <PatternEmptyRow colSpan={cols}>{text}</PatternEmptyRow>;
 }
 
 // ---- mock sub-data ----
@@ -251,6 +175,8 @@ const SECTIONS: Section[] = [
   "Documents",
   "Notes",
 ];
+
+const CLIENT_DETAIL_TX_PAGE_SIZE = 10;
 
 function ClientDetail() {
   const { clientId } = Route.useParams();
@@ -289,6 +215,9 @@ function ClientDetail() {
     },
   ]);
   const [accountFilter, setAccountFilter] = useState<string>("All");
+  const [txDateFrom, setTxDateFrom] = useState("");
+  const [txDateTo, setTxDateTo] = useState("");
+  const [txPage, setTxPage] = useState(1);
   const transactions = [
     {
       date: "18 Jun 2026",
@@ -296,6 +225,7 @@ function ClientDetail() {
       amount: 500,
       balance: 12950.75,
       ref: "TRX-0091",
+      narration: "Cash deposit",
       acc: "1001234567",
     },
     {
@@ -304,6 +234,7 @@ function ClientDetail() {
       amount: 120,
       balance: 12450.75,
       ref: "TRX-0088",
+      narration: "ATM withdrawal",
       acc: "1001234567",
     },
     {
@@ -312,10 +243,21 @@ function ClientDetail() {
       amount: 2000,
       balance: 3200,
       ref: "TRX-0075",
+      narration: "Account funding",
       acc: "1001234890",
     },
   ];
-  const txRows = transactions.filter((t) => accountFilter === "All" || t.acc === accountFilter);
+  const txRows = transactions.filter(
+    (t) =>
+      (accountFilter === "All" || t.acc === accountFilter) &&
+      isDisplayDateInRange(t.date, txDateFrom, txDateTo),
+  );
+  const txTotalPages = Math.max(1, Math.ceil(txRows.length / CLIENT_DETAIL_TX_PAGE_SIZE));
+  const txCurrentPage = Math.min(txPage, txTotalPages);
+  const txPageRows = txRows.slice(
+    (txCurrentPage - 1) * CLIENT_DETAIL_TX_PAGE_SIZE,
+    txCurrentPage * CLIENT_DETAIL_TX_PAGE_SIZE,
+  );
 
   const [residential, setResidential] = useState([
     { line1: "12 Independence Ave", line2: "East Legon", city: "Accra", region: "Greater Accra" },
@@ -395,8 +337,8 @@ function ClientDetail() {
                   alignItems: "center",
                   justifyContent: "center",
                   color: "white",
-                  fontFamily: "Sora, sans-serif",
-                  fontWeight: 700,
+                  fontFamily: FONTS.body,
+                  fontWeight: 100,
                   fontSize: 22,
                 }}
               >
@@ -406,9 +348,9 @@ function ClientDetail() {
                 <div className="flex items-center gap-2">
                   <h1
                     style={{
-                      fontFamily: "Sora, sans-serif",
+                      fontFamily: FONTS.body,
                       fontSize: 20,
-                      fontWeight: 700,
+                      fontWeight: 100,
                       color: "white",
                     }}
                   >
@@ -418,7 +360,7 @@ function ClientDetail() {
                     <span
                       style={{
                         fontSize: 9,
-                        fontWeight: 700,
+                        fontWeight: 100,
                         letterSpacing: "0.12em",
                         color: tokens.gold,
                         border: `1px solid ${tokens.gold}`,
@@ -506,7 +448,7 @@ function ClientDetail() {
                     fontSize: 9,
                     textTransform: "uppercase",
                     letterSpacing: "0.1em",
-                    fontWeight: 600,
+                    fontWeight: 300,
                   }}
                 >
                   {f.l}
@@ -517,7 +459,7 @@ function ClientDetail() {
                     fontSize: 13,
                     fontWeight: 500,
                     color: f.link ? "#9BC0FF" : "white",
-                    fontFamily: f.mono ? "DM Mono, monospace" : "DM Sans, sans-serif",
+                    fontFamily: f.mono ? FONTS.mono : FONTS.body,
                     cursor: f.link ? "pointer" : "default",
                   }}
                 >
@@ -603,7 +545,7 @@ function ClientDetail() {
                         background: tokens.tealBg,
                         padding: "3px 10px",
                         borderRadius: 999,
-                        fontWeight: 600,
+                        fontWeight: 300,
                       }}
                     >
                       Civil Service
@@ -640,7 +582,7 @@ function ClientDetail() {
                       fontSize: 10,
                       textTransform: "uppercase",
                       letterSpacing: "0.1em",
-                      fontWeight: 700,
+                      fontWeight: 100,
                       color: tokens.textMuted,
                       marginBottom: 10,
                     }}
@@ -655,12 +597,13 @@ function ClientDetail() {
                 </div>
               </SectionCard>
 
-              <SectionCard
+              <TableCard
                 title="Savings Accounts"
-                accent={tokens.gold}
                 actions={
-                  <SolidBtn
-                    icon={Plus}
+                  <Button
+                    variant="success"
+                    size="sm"
+                    icon={<Plus size={13} />}
                     onClick={() =>
                       setSavings((s) => [
                         ...s,
@@ -675,10 +618,10 @@ function ClientDetail() {
                     }
                   >
                     Create Account
-                  </SolidBtn>
+                  </Button>
                 }
               >
-                <table className="w-full" style={{ borderCollapse: "collapse" }}>
+                <Table>
                   <TableHead
                     cols={["Account No.", "Product", "Balance", "Status", "Activated", ""]}
                   />
@@ -687,56 +630,66 @@ function ClientDetail() {
                       <EmptyRow cols={6} text="No savings accounts found" />
                     ) : (
                       savings.map((a) => (
-                        <tr key={a.acc} style={{ borderTop: `1px solid #F0F3F8` }}>
-                          <td
+                        <Tr key={a.acc} hover>
+                          <Td
+                            numeric
                             style={{
-                              padding: 14,
-                              fontFamily: "DM Mono, monospace",
-                              fontSize: 13,
-                              color: tokens.text,
+                              fontFamily: FONTS.mono,
                             }}
                           >
                             {a.acc}
-                          </td>
-                          <td style={{ padding: 14, fontSize: 13, color: tokens.text }}>
-                            {a.product}
-                          </td>
-                          <td
+                          </Td>
+                          <Td>{a.product}</Td>
+                          <Td
+                            numeric
                             style={{
-                              padding: 14,
-                              fontFamily: "DM Mono, monospace",
-                              fontSize: 13,
-                              color: tokens.text,
+                              fontFamily: FONTS.mono,
                             }}
                           >
                             GH₵ {a.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                          </td>
-                          <td style={{ padding: 14 }}>
+                          </Td>
+                          <Td>
                             <StatusPill status={a.status} />
-                          </td>
-                          <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>
-                            {a.activated}
-                          </td>
-                          <td style={{ padding: 14, textAlign: "right" }}>
-                            <GhostBtn>View</GhostBtn>
-                          </td>
-                        </tr>
+                          </Td>
+                          <Td muted>{a.activated}</Td>
+                          <Td align="right">
+                            <Button variant="outline" size="sm">
+                              View
+                            </Button>
+                          </Td>
+                        </Tr>
                       ))
                     )}
                   </tbody>
-                </table>
-              </SectionCard>
+                </Table>
+              </TableCard>
             </>
           )}
 
           {section === "Transactions" && (
-            <SectionCard
+            <TableCard
               title="Transactions"
-              accent={tokens.accent}
+              filters={
+                <DateRangeFilter
+                  from={txDateFrom}
+                  to={txDateTo}
+                  onFromChange={(value) => {
+                    setTxDateFrom(value);
+                    setTxPage(1);
+                  }}
+                  onToChange={(value) => {
+                    setTxDateTo(value);
+                    setTxPage(1);
+                  }}
+                />
+              }
               actions={
                 <select
                   value={accountFilter}
-                  onChange={(e) => setAccountFilter(e.target.value)}
+                  onChange={(e) => {
+                    setAccountFilter(e.target.value);
+                    setTxPage(1);
+                  }}
                   style={{
                     border: `1px solid ${tokens.border}`,
                     borderRadius: 8,
@@ -754,75 +707,90 @@ function ClientDetail() {
                   ))}
                 </select>
               }
+              pagination={{
+                page: txCurrentPage,
+                totalPages: txTotalPages,
+                totalItems: txRows.length,
+                itemLabel: "transactions",
+                onPageChange: setTxPage,
+              }}
             >
-              <table className="w-full" style={{ borderCollapse: "collapse" }}>
-                <TableHead cols={["Date", "Type", "Amount", "Balance", "Reference"]} />
+              <Table>
+                <TableHead
+                  cols={["Date", "Narration", "Debit", "Credit", "Balance", "Reference"]}
+                />
                 <tbody>
                   {txRows.length === 0 ? (
-                    <EmptyRow cols={5} text="No transactions found" />
+                    <EmptyRow cols={6} text="No transactions found" />
                   ) : (
-                    txRows.map((t) => {
+                    txPageRows.map((t) => {
                       const isCredit = t.type === "Credit";
                       return (
-                        <tr key={t.ref} style={{ borderTop: `1px solid #F0F3F8` }}>
-                          <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>
-                            {t.date}
-                          </td>
-                          <td style={{ padding: 14, fontSize: 13, color: tokens.text }}>
-                            {t.type}
-                          </td>
-                          <td
+                        <Tr key={t.ref} hover>
+                          <Td muted>{t.date}</Td>
+                          <Td>{t.narration}</Td>
+                          <Td
+                            numeric
                             style={{
-                              padding: 14,
-                              fontFamily: "'DM Sans', sans-serif",
-                              fontSize: 13,
-                              color: tokens.text,
-                              fontWeight: 700,
-                              fontVariantNumeric: "tabular-nums",
+                              fontFamily: FONTS.body,
+                              fontWeight: 100,
                             }}
                           >
-                            {isCredit ? "+" : "−"} GH₵{" "}
-                            {t.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                          </td>
-                          <td
+                            {!isCredit
+                              ? `GH₵ ${t.amount.toLocaleString(undefined, {
+                                  minimumFractionDigits: 2,
+                                })}`
+                              : ""}
+                          </Td>
+                          <Td
+                            numeric
                             style={{
-                              padding: 14,
-                              fontFamily: "'DM Sans', sans-serif",
+                              fontFamily: FONTS.body,
+                              fontWeight: 100,
+                            }}
+                          >
+                            {isCredit
+                              ? `GH₵ ${t.amount.toLocaleString(undefined, {
+                                  minimumFractionDigits: 2,
+                                })}`
+                              : ""}
+                          </Td>
+                          <Td
+                            numeric
+                            style={{
+                              fontFamily: FONTS.body,
                               fontWeight: 500,
-                              fontSize: 13,
-                              fontVariantNumeric: "tabular-nums",
-                              color: tokens.text,
                             }}
                           >
                             GH₵ {t.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                          </td>
-                          <td
+                          </Td>
+                          <Td
+                            muted
                             style={{
-                              padding: 14,
-                              fontFamily: "DM Mono, monospace",
+                              fontFamily: FONTS.mono,
                               fontSize: 12,
-                              color: tokens.textSub,
                             }}
                           >
                             {t.ref}
-                          </td>
-                        </tr>
+                          </Td>
+                        </Tr>
                       );
                     })
                   )}
                 </tbody>
-              </table>
-            </SectionCard>
+              </Table>
+            </TableCard>
           )}
 
           {section === "Address" && (
             <>
-              <SectionCard
+              <TableCard
                 title="Residential Address"
-                accent={tokens.navy}
                 actions={
-                  <GhostBtn
-                    icon={Plus}
+                  <Button
+                    variant="success"
+                    size="sm"
+                    icon={<Plus size={13} />}
                     onClick={() =>
                       setResidential((r) => [
                         ...r,
@@ -830,18 +798,19 @@ function ClientDetail() {
                       ])
                     }
                   >
-                    Add
-                  </GhostBtn>
+                    Add Residential Address
+                  </Button>
                 }
               >
                 <AddressTable rows={residential} empty="No residential address found" />
-              </SectionCard>
-              <SectionCard
+              </TableCard>
+              <TableCard
                 title="Office Address"
-                accent={tokens.navy}
                 actions={
-                  <GhostBtn
-                    icon={Plus}
+                  <Button
+                    variant="success"
+                    size="sm"
+                    icon={<Plus size={13} />}
                     onClick={() =>
                       setOffice((r) => [
                         ...r,
@@ -854,22 +823,23 @@ function ClientDetail() {
                       ])
                     }
                   >
-                    Add
-                  </GhostBtn>
+                    Add Office Address
+                  </Button>
                 }
               >
                 <AddressTable rows={office} empty="No office address found" />
-              </SectionCard>
+              </TableCard>
             </>
           )}
 
           {section === "Family Members" && (
-            <SectionCard
+            <TableCard
               title="Family Members"
-              accent={tokens.accent}
               actions={
-                <GhostBtn
-                  icon={Plus}
+                <Button
+                  variant="success"
+                  size="sm"
+                  icon={<Plus size={13} />}
                   onClick={() =>
                     setFamily((f) => [
                       ...f,
@@ -877,43 +847,38 @@ function ClientDetail() {
                     ])
                   }
                 >
-                  Add
-                </GhostBtn>
+                  Add Family Member
+                </Button>
               }
             >
-              <table className="w-full" style={{ borderCollapse: "collapse" }}>
+              <Table>
                 <TableHead cols={["Name", "Relationship", "Age", "Gender"]} />
                 <tbody>
                   {family.length === 0 ? (
                     <EmptyRow cols={4} text="No family members found" />
                   ) : (
                     family.map((f) => (
-                      <tr key={f.name} style={{ borderTop: `1px solid #F0F3F8` }}>
-                        <td style={{ padding: 14, fontSize: 13, color: tokens.text }}>{f.name}</td>
-                        <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>
-                          {f.rel}
-                        </td>
-                        <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>
-                          {f.age}
-                        </td>
-                        <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>
-                          {f.gender}
-                        </td>
-                      </tr>
+                      <Tr key={f.name} hover>
+                        <Td>{f.name}</Td>
+                        <Td muted>{f.rel}</Td>
+                        <Td muted>{f.age}</Td>
+                        <Td muted>{f.gender}</Td>
+                      </Tr>
                     ))
                   )}
                 </tbody>
-              </table>
-            </SectionCard>
+              </Table>
+            </TableCard>
           )}
 
           {section === "Identities" && (
-            <SectionCard
+            <TableCard
               title="Identities"
-              accent={tokens.gold}
               actions={
-                <GhostBtn
-                  icon={Plus}
+                <Button
+                  variant="success"
+                  size="sm"
+                  icon={<Plus size={13} />}
                   onClick={() =>
                     setIdentities((i) => [
                       ...i,
@@ -921,38 +886,35 @@ function ClientDetail() {
                     ])
                   }
                 >
-                  Add
-                </GhostBtn>
+                  Add New Identity
+                </Button>
               }
             >
-              <table className="w-full" style={{ borderCollapse: "collapse" }}>
+              <Table>
                 <TableHead cols={["Type", "Document No.", "Status"]} />
                 <tbody>
                   {identities.length === 0 ? (
                     <EmptyRow cols={3} text="No identities found" />
                   ) : (
                     identities.map((i) => (
-                      <tr key={i.no} style={{ borderTop: `1px solid #F0F3F8` }}>
-                        <td style={{ padding: 14, fontSize: 13, color: tokens.text }}>{i.type}</td>
-                        <td
+                      <Tr key={i.no} hover>
+                        <Td>{i.type}</Td>
+                        <Td
                           style={{
-                            padding: 14,
-                            fontFamily: "DM Mono, monospace",
-                            fontSize: 13,
-                            color: tokens.text,
+                            fontFamily: FONTS.mono,
                           }}
                         >
                           {i.no}
-                        </td>
-                        <td style={{ padding: 14 }}>
+                        </Td>
+                        <Td>
                           <StatusPill status={i.status} />
-                        </td>
-                      </tr>
+                        </Td>
+                      </Tr>
                     ))
                   )}
                 </tbody>
-              </table>
-            </SectionCard>
+              </Table>
+            </TableCard>
           )}
 
           {section === "Documents" && (
@@ -960,12 +922,14 @@ function ClientDetail() {
               title="Documents"
               accent={tokens.navy}
               actions={
-                <SolidBtn
-                  icon={Upload}
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<Upload size={13} />}
                   onClick={() => setDocs((d) => [...d, { name: "New_Doc.pdf", type: "Other" }])}
                 >
                   Upload
-                </SolidBtn>
+                </Button>
               }
             >
               {docs.length === 0 ? (
@@ -1025,11 +989,14 @@ function ClientDetail() {
                   color: tokens.text,
                   outline: "none",
                   resize: "vertical",
-                  fontFamily: "DM Sans, sans-serif",
+                  fontFamily: FONTS.body,
                 }}
               />
               <div className="flex justify-end mt-2">
-                <SolidBtn
+                <Button
+                  variant="success"
+                  size="sm"
+                  icon={<Plus size={13} />}
                   onClick={() => {
                     if (!noteDraft.trim()) return;
                     setNotes((n) => [
@@ -1044,7 +1011,7 @@ function ClientDetail() {
                   }}
                 >
                   Add Note
-                </SolidBtn>
+                </Button>
               </div>
               <div className="mt-5 space-y-3">
                 {notes.length === 0 ? (
@@ -1076,8 +1043,8 @@ function ClientDetail() {
                           borderRadius: 999,
                           background: "#E0E9FF",
                           color: tokens.navy,
-                          fontFamily: "Sora, sans-serif",
-                          fontWeight: 700,
+                          fontFamily: FONTS.body,
+                          fontWeight: 100,
                           fontSize: 11,
                           display: "flex",
                           alignItems: "center",
@@ -1089,7 +1056,7 @@ function ClientDetail() {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <span style={{ fontSize: 12, fontWeight: 600, color: tokens.text }}>
+                          <span style={{ fontSize: 12, fontWeight: 300, color: tokens.text }}>
                             {n.author}
                           </span>
                           <span style={{ fontSize: 11, color: tokens.textMuted }}>{n.at}</span>
@@ -1126,7 +1093,7 @@ function Field({
           fontSize: 10,
           textTransform: "uppercase",
           letterSpacing: "0.1em",
-          fontWeight: 700,
+          fontWeight: 100,
           color: tokens.textMuted,
           marginBottom: 6,
         }}
@@ -1146,7 +1113,7 @@ function Mono({ label, value }: { label: string; value: string }) {
           fontSize: 10,
           textTransform: "uppercase",
           letterSpacing: "0.1em",
-          fontWeight: 700,
+          fontWeight: 100,
           color: tokens.textMuted,
           marginBottom: 6,
         }}
@@ -1155,10 +1122,10 @@ function Mono({ label, value }: { label: string; value: string }) {
       </div>
       <div
         style={{
-          fontFamily: "DM Mono, monospace",
+          fontFamily: FONTS.mono,
           fontSize: 14,
           color: tokens.text,
-          fontWeight: 600,
+          fontWeight: 300,
         }}
       >
         {value}
@@ -1175,27 +1142,27 @@ function AddressTable({
   empty: string;
 }) {
   return (
-    <table className="w-full" style={{ borderCollapse: "collapse" }}>
+    <Table>
       <TableHead cols={["Line 1", "Line 2", "City", "Region", ""]} />
       <tbody>
         {rows.length === 0 ? (
           <EmptyRow cols={5} text={empty} />
         ) : (
           rows.map((r, i) => (
-            <tr key={i} style={{ borderTop: `1px solid #F0F3F8` }}>
-              <td style={{ padding: 14, fontSize: 13, color: tokens.text }}>{r.line1}</td>
-              <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>{r.line2 || "—"}</td>
-              <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>{r.city}</td>
-              <td style={{ padding: 14, fontSize: 13, color: tokens.textSub }}>{r.region}</td>
-              <td style={{ padding: 14, textAlign: "right" }}>
+            <Tr key={i} hover>
+              <Td>{r.line1}</Td>
+              <Td muted>{r.line2 || "—"}</Td>
+              <Td muted>{r.city}</Td>
+              <Td muted>{r.region}</Td>
+              <Td align="right">
                 <button style={{ color: tokens.textSub }} aria-label="Edit">
                   <Pencil size={14} />
                 </button>
-              </td>
-            </tr>
+              </Td>
+            </Tr>
           ))
         )}
       </tbody>
-    </table>
+    </Table>
   );
 }

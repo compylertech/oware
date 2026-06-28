@@ -35,6 +35,7 @@ import { Route as AuthLoansApplicationsRouteImport } from './routes/_auth/loans/
 import { Route as AuthLoansActiveRouteImport } from './routes/_auth/loans/active'
 import { Route as AuthLoansLoanIdRouteImport } from './routes/_auth/loans/$loanId'
 import { Route as AuthCooperativeMembershipRouteImport } from './routes/_auth/cooperative/membership'
+import { Route as AuthCooperativeInvestmentsRouteImport } from './routes/_auth/cooperative/investments'
 import { Route as AuthCooperativeGovernanceRouteImport } from './routes/_auth/cooperative/governance'
 import { Route as AuthCooperativeConfigurationsRouteImport } from './routes/_auth/cooperative/configurations'
 import { Route as AuthClientsAddRouteImport } from './routes/_auth/clients/add'
@@ -171,6 +172,12 @@ const AuthCooperativeMembershipRoute =
     path: '/cooperative/membership',
     getParentRoute: () => AuthRoute,
   } as any)
+const AuthCooperativeInvestmentsRoute =
+  AuthCooperativeInvestmentsRouteImport.update({
+    id: '/cooperative/investments',
+    path: '/cooperative/investments',
+    getParentRoute: () => AuthRoute,
+  } as any)
 const AuthCooperativeGovernanceRoute =
   AuthCooperativeGovernanceRouteImport.update({
     id: '/cooperative/governance',
@@ -211,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/clients/add': typeof AuthClientsAddRoute
   '/cooperative/configurations': typeof AuthCooperativeConfigurationsRoute
   '/cooperative/governance': typeof AuthCooperativeGovernanceRoute
+  '/cooperative/investments': typeof AuthCooperativeInvestmentsRoute
   '/cooperative/membership': typeof AuthCooperativeMembershipRoute
   '/loans/$loanId': typeof AuthLoansLoanIdRoute
   '/loans/active': typeof AuthLoansActiveRoute
@@ -243,6 +251,7 @@ export interface FileRoutesByTo {
   '/clients/add': typeof AuthClientsAddRoute
   '/cooperative/configurations': typeof AuthCooperativeConfigurationsRoute
   '/cooperative/governance': typeof AuthCooperativeGovernanceRoute
+  '/cooperative/investments': typeof AuthCooperativeInvestmentsRoute
   '/cooperative/membership': typeof AuthCooperativeMembershipRoute
   '/loans/$loanId': typeof AuthLoansLoanIdRoute
   '/loans/active': typeof AuthLoansActiveRoute
@@ -277,6 +286,7 @@ export interface FileRoutesById {
   '/_auth/clients/add': typeof AuthClientsAddRoute
   '/_auth/cooperative/configurations': typeof AuthCooperativeConfigurationsRoute
   '/_auth/cooperative/governance': typeof AuthCooperativeGovernanceRoute
+  '/_auth/cooperative/investments': typeof AuthCooperativeInvestmentsRoute
   '/_auth/cooperative/membership': typeof AuthCooperativeMembershipRoute
   '/_auth/loans/$loanId': typeof AuthLoansLoanIdRoute
   '/_auth/loans/active': typeof AuthLoansActiveRoute
@@ -311,6 +321,7 @@ export interface FileRouteTypes {
     | '/clients/add'
     | '/cooperative/configurations'
     | '/cooperative/governance'
+    | '/cooperative/investments'
     | '/cooperative/membership'
     | '/loans/$loanId'
     | '/loans/active'
@@ -343,6 +354,7 @@ export interface FileRouteTypes {
     | '/clients/add'
     | '/cooperative/configurations'
     | '/cooperative/governance'
+    | '/cooperative/investments'
     | '/cooperative/membership'
     | '/loans/$loanId'
     | '/loans/active'
@@ -376,6 +388,7 @@ export interface FileRouteTypes {
     | '/_auth/clients/add'
     | '/_auth/cooperative/configurations'
     | '/_auth/cooperative/governance'
+    | '/_auth/cooperative/investments'
     | '/_auth/cooperative/membership'
     | '/_auth/loans/$loanId'
     | '/_auth/loans/active'
@@ -589,6 +602,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCooperativeMembershipRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/cooperative/investments': {
+      id: '/_auth/cooperative/investments'
+      path: '/cooperative/investments'
+      fullPath: '/cooperative/investments'
+      preLoaderRoute: typeof AuthCooperativeInvestmentsRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/cooperative/governance': {
       id: '/_auth/cooperative/governance'
       path: '/cooperative/governance'
@@ -635,6 +655,7 @@ interface AuthRouteChildren {
   AuthClientsAddRoute: typeof AuthClientsAddRoute
   AuthCooperativeConfigurationsRoute: typeof AuthCooperativeConfigurationsRoute
   AuthCooperativeGovernanceRoute: typeof AuthCooperativeGovernanceRoute
+  AuthCooperativeInvestmentsRoute: typeof AuthCooperativeInvestmentsRoute
   AuthCooperativeMembershipRoute: typeof AuthCooperativeMembershipRoute
   AuthLoansLoanIdRoute: typeof AuthLoansLoanIdRoute
   AuthLoansActiveRoute: typeof AuthLoansActiveRoute
@@ -665,6 +686,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthClientsAddRoute: AuthClientsAddRoute,
   AuthCooperativeConfigurationsRoute: AuthCooperativeConfigurationsRoute,
   AuthCooperativeGovernanceRoute: AuthCooperativeGovernanceRoute,
+  AuthCooperativeInvestmentsRoute: AuthCooperativeInvestmentsRoute,
   AuthCooperativeMembershipRoute: AuthCooperativeMembershipRoute,
   AuthLoansLoanIdRoute: AuthLoansLoanIdRoute,
   AuthLoansActiveRoute: AuthLoansActiveRoute,
@@ -698,3 +720,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

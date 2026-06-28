@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { X, ShieldCheck, Check, AlertTriangle } from "lucide-react";
 import { LOAN } from "@/lib/tokens";
-import { fontDisplay, fontMono, NavyBtn, OutlineBtn } from "./ui";
+import { fontDisplay, fontMono } from "./ui";
+import { Button } from "@/components/patterns";
 import { WIZARD_PRODUCTS, fmtGHS } from "@/lib/loanMock";
 
 type Collateral = { asset: string; type: string; valuation: number };
@@ -107,7 +108,7 @@ export function NewApplicationDrawer({ open, onClose }: { open: boolean; onClose
           className="flex items-center justify-between px-6"
           style={{ height: 64, borderBottom: `1px solid ${LOAN.border}` }}
         >
-          <div style={{ ...fontDisplay, fontSize: 18, fontWeight: 800, color: LOAN.ink }}>
+          <div style={{ ...fontDisplay, fontSize: 18, fontWeight: 200, color: LOAN.ink }}>
             New loan application
           </div>
           <button
@@ -147,13 +148,13 @@ export function NewApplicationDrawer({ open, onClose }: { open: boolean; onClose
                       alignItems: "center",
                       justifyContent: "center",
                       fontSize: 11,
-                      fontWeight: 700,
+                      fontWeight: 100,
                       border: current ? `1px solid ${LOAN.blueBorder}` : undefined,
                     }}
                   >
                     {completed ? <Check size={12} /> : idx}
                   </div>
-                  <span style={{ fontSize: 11, color, fontWeight: 600 }}>{label}</span>
+                  <span style={{ fontSize: 11, color, fontWeight: 300 }}>{label}</span>
                 </div>
                 <div style={{ height: 4, borderRadius: 999, background: bg }} />
               </div>
@@ -192,7 +193,7 @@ export function NewApplicationDrawer({ open, onClose }: { open: boolean; onClose
                           padding: 10,
                         }}
                       >
-                        <div style={{ fontSize: 13, fontWeight: 700, color: LOAN.ink }}>
+                        <div style={{ fontSize: 13, fontWeight: 100, color: LOAN.ink }}>
                           {p.name}
                         </div>
                         <div style={{ fontSize: 11, color: LOAN.muted, marginTop: 2 }}>
@@ -210,7 +211,7 @@ export function NewApplicationDrawer({ open, onClose }: { open: boolean; onClose
                   placeholder="0"
                 />
                 {exceeds && (
-                  <div style={{ color: LOAN.red, fontSize: 11, marginTop: 4, fontWeight: 600 }}>
+                  <div style={{ color: LOAN.red, fontSize: 11, marginTop: 4, fontWeight: 300 }}>
                     Exceeds product max ({fmtGHS(product!.max)})
                   </div>
                 )}
@@ -281,7 +282,7 @@ export function NewApplicationDrawer({ open, onClose }: { open: boolean; onClose
                     <span
                       style={{
                         fontSize: 11,
-                        fontWeight: 700,
+                        fontWeight: 100,
                         color: ltv > 70 ? LOAN.red : LOAN.green,
                         background: ltv > 70 ? LOAN.redBg : LOAN.greenBg,
                         padding: "2px 10px",
@@ -403,7 +404,7 @@ export function NewApplicationDrawer({ open, onClose }: { open: boolean; onClose
           {step === 4 && (
             <div className="space-y-4">
               <div style={{ border: `1px solid ${LOAN.border}`, borderRadius: 12, padding: 16 }}>
-                <div style={{ ...fontDisplay, fontSize: 16, fontWeight: 800, color: LOAN.ink }}>
+                <div style={{ ...fontDisplay, fontSize: 16, fontWeight: 200, color: LOAN.ink }}>
                   {name || "—"}
                 </div>
                 <div style={{ fontSize: 12, color: LOAN.muted }}>
@@ -436,7 +437,7 @@ export function NewApplicationDrawer({ open, onClose }: { open: boolean; onClose
 
               <div style={{ border: `1px solid ${LOAN.border}`, borderRadius: 12, padding: 16 }}>
                 <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: LOAN.ink }}>Eligibility</div>
+                  <div style={{ fontSize: 13, fontWeight: 100, color: LOAN.ink }}>Eligibility</div>
                   <OutcomePill outcome={eligibility.outcome} />
                 </div>
                 <div className="space-y-1.5">
@@ -459,7 +460,7 @@ export function NewApplicationDrawer({ open, onClose }: { open: boolean; onClose
                         )}
                         <span style={{ color: LOAN.ink }}>{c.label}</span>
                       </div>
-                      <span style={{ color: LOAN.muted, fontWeight: 600 }}>{c.value}</span>
+                      <span style={{ color: LOAN.muted, fontWeight: 300 }}>{c.value}</span>
                     </div>
                   ))}
                 </div>
@@ -477,18 +478,28 @@ export function NewApplicationDrawer({ open, onClose }: { open: boolean; onClose
           className="flex items-center justify-between px-6"
           style={{ height: 64, borderTop: `1px solid ${LOAN.border}`, background: "#fff" }}
         >
-          {step > 1 ? <OutlineBtn onClick={() => setStep(step - 1)}>Back</OutlineBtn> : <span />}
+          {step > 1 ? (
+            <Button variant="outline" onClick={() => setStep(step - 1)}>
+              Back
+            </Button>
+          ) : (
+            <span />
+          )}
           <div style={{ fontSize: 11, color: LOAN.muted }}>Step {step} of 4</div>
           {step < 4 ? (
-            <NavyBtn onClick={() => setStep(step + 1)} disabled={!canContinue}>
+            <Button variant="success" onClick={() => setStep(step + 1)} disabled={!canContinue}>
               Continue
-            </NavyBtn>
+            </Button>
           ) : (
-            <NavyBtn onClick={close} disabled={eligibility.outcome === "Ineligible"}>
+            <Button
+              variant="success"
+              onClick={close}
+              disabled={eligibility.outcome === "Ineligible"}
+            >
               {eligibility.outcome === "Needs review"
                 ? "Submit for approval"
                 : "Submit application"}
-            </NavyBtn>
+            </Button>
           )}
         </div>
       </div>
@@ -516,7 +527,7 @@ function Label({ children }: { children: React.ReactNode }) {
     <label
       style={{
         fontSize: 11,
-        fontWeight: 600,
+        fontWeight: 300,
         color: LOAN.muted,
         textTransform: "uppercase",
         letterSpacing: "0.04em",
@@ -589,8 +600,8 @@ function Select({
 function SummaryRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
-      <div style={{ fontSize: 11, color: LOAN.muted, fontWeight: 600 }}>{label}</div>
-      <div style={{ fontSize: 13, color: LOAN.ink, fontWeight: 600 }}>{value}</div>
+      <div style={{ fontSize: 11, color: LOAN.muted, fontWeight: 300 }}>{label}</div>
+      <div style={{ fontSize: 13, color: LOAN.ink, fontWeight: 300 }}>{value}</div>
     </div>
   );
 }
@@ -610,7 +621,7 @@ function OutcomePill({ outcome }: { outcome: "Eligible" | "Needs review" | "Inel
         padding: "3px 10px",
         borderRadius: 999,
         fontSize: 11,
-        fontWeight: 700,
+        fontWeight: 100,
       }}
     >
       {outcome}

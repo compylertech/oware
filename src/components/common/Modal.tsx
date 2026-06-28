@@ -47,7 +47,7 @@ export function Modal({
           style={{
             fontFamily: FONTS.display,
             fontSize: 18,
-            fontWeight: 700,
+            fontWeight: 100,
             color: "#16233F",
             marginBottom: 18,
           }}
@@ -68,7 +68,7 @@ export function Modal({
 export function MField({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <span style={{ fontSize: 12, fontWeight: 600, color: "#16233F", fontFamily: FONTS.body }}>
+      <span style={{ fontSize: 12, fontWeight: 300, color: "#16233F", fontFamily: FONTS.body }}>
         {label}
       </span>
       {children}
@@ -114,52 +114,3 @@ export function MSelect({
   );
 }
 
-export function MCancelBtn({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        border: `1px solid ${tokens.border}`,
-        background: "#fff",
-        color: "#16233F",
-        borderRadius: 8,
-        padding: "8px 16px",
-        fontSize: 13,
-        fontWeight: 600,
-        fontFamily: FONTS.body,
-        cursor: "pointer",
-      }}
-    >
-      Cancel
-    </button>
-  );
-}
-export function MNavyBtn({
-  onClick,
-  children,
-  disabled,
-}: {
-  onClick: () => void;
-  children: ReactNode;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        background: disabled ? "#94A3B8" : "#047857",
-        color: "#fff",
-        border: "none",
-        borderRadius: 8,
-        padding: "8px 16px",
-        fontSize: 13,
-        fontWeight: 600,
-        fontFamily: FONTS.body,
-        cursor: disabled ? "not-allowed" : "pointer",
-      }}
-    >
-      {children}
-    </button>
-  );
-}

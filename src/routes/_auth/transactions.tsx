@@ -2,7 +2,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw, Download, Search, MoreVertical } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
-import { FilterSelect } from "@/components/patterns";
+import {
+  Button,
+  DateRangeFilter,
+  EmptyRow,
+  FilterSelect,
+  Table,
+  TableCard,
+  Td,
+  Th,
+  THead,
+  Tr,
+} from "@/components/patterns";
+import { isDisplayDateInRange } from "@/lib/dateFilters";
+import { FONTS } from "@/lib/tokens";
 
 export const Route = createFileRoute("/_auth/transactions")({
   component: TransactionsPage,
@@ -13,6 +26,7 @@ const BORDER = "#DDE4EF";
 const MUTED = "#5B6A86";
 const INK = "#16233F";
 const BG = "#F4F6FB";
+const PAGE_SIZE = 10;
 
 type Row = {
   acct: string;
@@ -160,7 +174,7 @@ function showToast(msg: string) {
     padding: "10px 16px",
     borderRadius: "8px",
     fontSize: "13px",
-    fontFamily: "DM Sans, sans-serif",
+    fontFamily: FONTS.body,
     zIndex: "9999",
     boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
   } as Partial<CSSStyleDeclaration>);
@@ -177,6 +191,9 @@ function TransactionsPage() {
   const [office, setOffice] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -191,6 +208,7 @@ function TransactionsPage() {
     if (office !== "All" && OFFICE_BY_ACCT[r.acct] !== office) return false;
     if (typeFilter !== "All" && r.type !== typeFilter) return false;
     if (statusFilter !== "All" && r.status !== statusFilter) return false;
+    if (!isDisplayDateInRange(r.date, dateFrom, dateTo)) return false;
     if (q && !`${r.acct} ${r.client} ${r.narration}`.toLowerCase().includes(q)) return false;
     return true;
   });
@@ -202,6 +220,39 @@ function TransactionsPage() {
     .filter((r) => r.type === "Debit" && r.status === "Completed")
     .reduce((s, r) => s + r.amount, 0);
   const pendingCount = filtered.filter((r) => r.status === "Pending").length;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  function updateSearch(value: string) {
+    setSearch(value);
+    setPage(1);
+  }
+
+  function updateOffice(value: string) {
+    setOffice(value);
+    setPage(1);
+  }
+
+  function updateType(value: string) {
+    setTypeFilter(value);
+    setPage(1);
+  }
+
+  function updateStatus(value: string) {
+    setStatusFilter(value);
+    setPage(1);
+  }
+
+  function updateDateFrom(value: string) {
+    setDateFrom(value);
+    setPage(1);
+  }
+
+  function updateDateTo(value: string) {
+    setDateTo(value);
+    setPage(1);
+  }
 
   return (
     <div style={{ background: BG, minHeight: "100%", padding: "24px 28px" }}>
@@ -216,9 +267,9 @@ function TransactionsPage() {
         <div>
           <h1
             style={{
-              fontFamily: "Sora, sans-serif",
+              fontFamily: FONTS.body,
               fontSize: 26,
-              fontWeight: 800,
+              fontWeight: 200,
               color: INK,
               margin: 0,
             }}
@@ -230,8 +281,12 @@ function TransactionsPage() {
           </p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
-          <OutlineBtn icon={<RefreshCw size={14} />}>Refresh</OutlineBtn>
-          <OutlineBtn icon={<Download size={14} />}>Export</OutlineBtn>
+          <Button variant="outline" icon={<RefreshCw size={14} />}>
+            Refresh
+          </Button>
+          <Button variant="primary" icon={<Download size={14} />}>
+            Export
+          </Button>
         </div>
       </div>
 
@@ -269,122 +324,141 @@ function TransactionsPage() {
         />
       </div>
 
-      <Card
-        style={{ padding: 16, marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}
+      <TableCard
+        title="Transaction Register"
+        filters={
+          <>
+            <div
+              style={{
+                width: 280,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                border: `1px solid ${BORDER}`,
+                borderRadius: 10,
+                padding: "8px 12px",
+              }}
+            >
+              <Search size={16} color={MUTED} />
+              <input
+                value={search}
+                onChange={(e) => updateSearch(e.target.value)}
+                placeholder="Search reference, client, account…"
+                style={{
+                  minWidth: 0,
+                  flex: 1,
+                  border: "none",
+                  outline: "none",
+                  fontSize: 13,
+                  color: INK,
+                  background: "transparent",
+                }}
+              />
+            </div>
+            <FilterSelect
+              label="Office"
+              value={office}
+              onChange={updateOffice}
+              options={OFFICE_OPTIONS}
+            />
+            <FilterSelect
+              label="Type"
+              value={typeFilter}
+              onChange={updateType}
+              options={TYPE_OPTIONS}
+            />
+            <FilterSelect
+              label="Status"
+              value={statusFilter}
+              onChange={updateStatus}
+              options={STATUS_OPTIONS}
+            />
+            <DateRangeFilter
+              from={dateFrom}
+              to={dateTo}
+              onFromChange={updateDateFrom}
+              onToChange={updateDateTo}
+            />
+          </>
+        }
+        resultLabel={`${filtered.length} results`}
+        pagination={{
+          page: currentPage,
+          totalPages,
+          totalItems: filtered.length,
+          itemLabel: "transactions",
+          onPageChange: setPage,
+        }}
       >
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            border: `1px solid ${BORDER}`,
-            borderRadius: 10,
-            padding: "8px 12px",
-          }}
-        >
-          <Search size={16} color={MUTED} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search reference, client, account…"
-            style={{
-              flex: 1,
-              border: "none",
-              outline: "none",
-              fontSize: 13,
-              color: INK,
-              background: "transparent",
-            }}
-          />
-        </div>
-        <FilterSelect label="Office" value={office} onChange={setOffice} options={OFFICE_OPTIONS} />
-        <FilterSelect
-          label="Type"
-          value={typeFilter}
-          onChange={setTypeFilter}
-          options={TYPE_OPTIONS}
-        />
-        <FilterSelect
-          label="Status"
-          value={statusFilter}
-          onChange={setStatusFilter}
-          options={STATUS_OPTIONS}
-        />
-        <span style={{ fontSize: 13, color: MUTED, marginLeft: 4 }}>{filtered.length} results</span>
-      </Card>
-
-      <Card>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ borderBottom: `2px solid ${NAVY}` }}>
-              {["ACCOUNT NO.", "CLIENT", "TYPE", "AMOUNT", "NARRATION", "STATUS", "DATE", ""].map(
-                (h) => (
-                  <th
-                    key={h}
-                    style={{
-                      textAlign: "left",
-                      padding: "14px 18px",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: MUTED,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.08em",
-                    }}
-                  >
-                    {h}
-                  </th>
-                ),
-              )}
-            </tr>
-          </thead>
+        <Table>
+          <THead>
+            {["ACCOUNT NO.", "CLIENT", "DEBIT", "CREDIT", "NARRATION", "STATUS", "DATE", ""].map(
+              (h) => (
+                <Th
+                  key={h}
+                  style={{
+                    padding: "14px 18px",
+                    fontSize: 12,
+                    color: MUTED,
+                    letterSpacing: "0.08em",
+                  }}
+                >
+                  {h}
+                </Th>
+              ),
+            )}
+          </THead>
           <tbody>
             {filtered.length === 0 && (
-              <tr>
-                <td
-                  colSpan={8}
-                  style={{ ...td, textAlign: "center", color: MUTED, padding: "32px 18px" }}
-                >
-                  No transactions match the current filters.
-                </td>
-              </tr>
+              <EmptyRow colSpan={8}>No transactions match the current filters.</EmptyRow>
             )}
-            {filtered.map((r, i) => (
-              <tr
-                key={i}
-                style={{ borderBottom: i < filtered.length - 1 ? `1px solid ${BORDER}` : "none" }}
+            {pageRows.map((r, i) => (
+              <Tr
+                key={`${r.acct}-${r.date}-${r.narration}`}
+                hover
+                style={{ borderBottom: i < pageRows.length - 1 ? `1px solid ${BORDER}` : "none" }}
               >
-                <td style={td}>
-                  <span style={{ fontFamily: "DM Mono, monospace", color: NAVY, fontSize: 13 }}>
+                <Td style={td}>
+                  <span style={{ fontFamily: FONTS.mono, color: NAVY, fontSize: 13 }}>
                     {r.acct}
                   </span>
-                </td>
-                <td style={td}>
+                </Td>
+                <Td style={td}>
                   <span style={{ fontSize: 13, color: INK }}>{r.client}</span>
-                </td>
-                <td style={td}>{r.type}</td>
-                <td
+                </Td>
+                <Td
                   style={{
                     ...td,
-                    fontWeight: 700,
+                    fontWeight: 100,
                     color: INK,
                     fontVariantNumeric: "tabular-nums",
                   }}
                 >
-                  {r.type === "Credit" ? "+" : "−"}GH₵ {fmt(r.amount)}
-                </td>
-                <td style={{ ...td, color: INK }}>{r.narration}</td>
-                <td style={td}>
+                  {r.type === "Debit" ? `GH₵ ${fmt(r.amount)}` : ""}
+                </Td>
+                <Td
+                  style={{
+                    ...td,
+                    fontWeight: 100,
+                    color: INK,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {r.type === "Credit" ? `GH₵ ${fmt(r.amount)}` : ""}
+                </Td>
+                <Td style={{ ...td, color: INK }}>{r.narration}</Td>
+                <Td style={td}>
                   <StatusPill status={r.status} />
-                </td>
-                <td style={{ ...td, color: INK }}>{r.date}</td>
-                <td style={{ ...td, textAlign: "right", position: "relative" }}>
+                </Td>
+                <Td style={{ ...td, color: INK }}>{r.date}</Td>
+                <Td style={{ ...td, textAlign: "right", position: "relative" }}>
                   <button
                     type="button"
                     aria-label="Actions"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setOpenMenu(openMenu === i ? null : i);
+                      const menuKey = (currentPage - 1) * PAGE_SIZE + i;
+                      setOpenMenu(openMenu === menuKey ? null : menuKey);
                     }}
                     style={{
                       background: "transparent",
@@ -396,7 +470,7 @@ function TransactionsPage() {
                   >
                     <MoreVertical size={16} />
                   </button>
-                  {openMenu === i && (
+                  {openMenu === (currentPage - 1) * PAGE_SIZE + i && (
                     <div
                       ref={menuRef}
                       style={{
@@ -438,12 +512,12 @@ function TransactionsPage() {
                       </MenuItem>
                     </div>
                   )}
-                </td>
-              </tr>
+                </Td>
+              </Tr>
             ))}
           </tbody>
-        </table>
-      </Card>
+        </Table>
+      </TableCard>
 
       {detail && (
         <div
@@ -477,9 +551,9 @@ function TransactionsPage() {
             >
               <h3
                 style={{
-                  fontFamily: "Sora, sans-serif",
+                  fontFamily: FONTS.body,
                   fontSize: 18,
-                  fontWeight: 700,
+                  fontWeight: 100,
                   color: INK,
                   margin: 0,
                 }}
@@ -533,8 +607,8 @@ function DetailRow({ label, value, mono }: { label: string; value: string; mono?
       <span
         style={{
           color: INK,
-          fontWeight: 600,
-          fontFamily: mono ? "DM Mono, monospace" : "DM Sans, sans-serif",
+          fontWeight: 300,
+          fontFamily: mono ? FONTS.mono : FONTS.body,
         }}
       >
         {value}
@@ -558,7 +632,7 @@ function MenuItem({ children, onClick }: { children: React.ReactNode; onClick: (
         padding: "8px 14px",
         fontSize: 13,
         color: INK,
-        fontFamily: "DM Sans, sans-serif",
+        fontFamily: FONTS.body,
         borderRadius: 6,
       }}
       onMouseEnter={(e) => (e.currentTarget.style.background = "#F4F6FB")}
@@ -593,7 +667,7 @@ function Kpi({
       <div
         style={{
           fontSize: 11,
-          fontWeight: 700,
+          fontWeight: 100,
           color: MUTED,
           textTransform: "uppercase",
           letterSpacing: "0.1em",
@@ -603,9 +677,9 @@ function Kpi({
       </div>
       <div
         style={{
-          fontFamily: "Sora, sans-serif",
+          fontFamily: FONTS.body,
           fontSize: 28,
-          fontWeight: 800,
+          fontWeight: 200,
           color: valueColor,
           marginTop: 6,
           fontVariantNumeric: "tabular-nums",
@@ -618,28 +692,3 @@ function Kpi({
   );
 }
 
-function OutlineBtn({ children, icon }: { children: React.ReactNode; icon?: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        background: "#fff",
-        border: `1px solid ${BORDER}`,
-        color: INK,
-        fontSize: 13,
-        fontWeight: 600,
-        lineHeight: 1.2,
-        borderRadius: 8,
-        padding: "8px 16px",
-        height: 36,
-        cursor: "pointer",
-      }}
-    >
-      {icon}
-      {children}
-    </button>
-  );
-}

@@ -10,7 +10,9 @@ import {
   Check,
   ChevronRight,
 } from "lucide-react";
+import { FONTS } from "@/lib/tokens";
 import { addClient, addCoopMember, nextClientNumber, type Client } from "@/lib/mockStore";
+import { Button } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/clients/add")({
   component: AddClientPage,
@@ -225,7 +227,7 @@ function AddClientPage() {
         className="mt-3"
         style={{
           fontSize: 20,
-          fontWeight: 800,
+          fontWeight: 200,
           color: "#101828",
           letterSpacing: "-0.01em",
         }}
@@ -253,7 +255,7 @@ function AddClientPage() {
               textTransform: "uppercase",
               letterSpacing: "0.1em",
               color: "#9CA3AF",
-              fontWeight: 600,
+              fontWeight: 300,
               marginBottom: 10,
               padding: "0 4px",
             }}
@@ -303,7 +305,7 @@ function AddClientPage() {
                           : "#F3F4F6",
                       color: isCurrent ? "white" : isDone ? "#059669" : "#9CA3AF",
                       fontSize: 11,
-                      fontWeight: 700,
+                      fontWeight: 100,
                     }}
                   >
                     {isDone ? <Check size={13} /> : s.id}
@@ -342,7 +344,7 @@ function AddClientPage() {
               <StepIcon size={18} color={NAVY} />
             </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#101828" }}>{stepLabel}</div>
+              <div style={{ fontSize: 14, fontWeight: 100, color: "#101828" }}>{stepLabel}</div>
               <div style={{ fontSize: 12, color: "#667085" }}>Step {step} of 5</div>
             </div>
           </div>
@@ -381,77 +383,28 @@ function AddClientPage() {
             }}
           >
             {step === 1 ? (
-              <button
-                type="button"
-                onClick={() => navigate({ to: "/clients" })}
-                className="cursor-pointer"
-                style={{
-                  border: "1px solid #E5E7EB",
-                  background: "white",
-                  color: "#374151",
-                  padding: "9px 16px",
-                  borderRadius: 10,
-                  fontSize: 13,
-                  fontWeight: 500,
-                }}
-              >
+              <Button type="button" onClick={() => navigate({ to: "/clients" })} variant="outline">
                 Cancel
-              </button>
+              </Button>
             ) : (
-              <button
-                type="button"
-                onClick={goBack}
-                className="cursor-pointer"
-                style={{
-                  border: "1px solid #E5E7EB",
-                  background: "white",
-                  color: "#374151",
-                  padding: "9px 16px",
-                  borderRadius: 10,
-                  fontSize: 13,
-                  fontWeight: 500,
-                }}
-              >
+              <Button type="button" onClick={goBack} variant="outline">
                 Back
-              </button>
+              </Button>
             )}
 
             {step < 5 ? (
-              <button
+              <Button
                 type="button"
                 onClick={goNext}
-                className="cursor-pointer inline-flex items-center gap-1.5"
-                style={{
-                  background: NAVY,
-                  color: "white",
-                  padding: "9px 18px",
-                  borderRadius: 10,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  border: "none",
-                }}
+                variant="primary"
+                iconRight={<ChevronRight size={14} />}
               >
-                Next <ChevronRight size={14} />
-              </button>
+                Next
+              </Button>
             ) : (
-              <button
-                type="button"
-                onClick={submit}
-                disabled={submitting}
-                className="cursor-pointer"
-                style={{
-                  background: "#047857",
-                  color: "white",
-                  padding: "9px 18px",
-                  borderRadius: 10,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  border: "none",
-                  opacity: submitting ? 0.75 : 1,
-                }}
-              >
+              <Button type="button" onClick={submit} disabled={submitting} variant="success">
                 {submitting ? "Saving…" : "Create Client"}
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -480,7 +433,7 @@ function Field({
       <label
         style={{
           fontSize: 12,
-          fontWeight: 600,
+          fontWeight: 300,
           color: "#475467",
         }}
       >
@@ -504,7 +457,7 @@ function inputStyle(error?: boolean): React.CSSProperties {
     color: "#101828",
     outline: "none",
     width: "100%",
-    fontFamily: "DM Sans, sans-serif",
+    fontFamily: FONTS.body,
   };
 }
 

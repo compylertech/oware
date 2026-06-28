@@ -3,7 +3,7 @@
 @import "tw-animate-css";
 
 @theme {
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--oware-font-body, sans-serif);
   --color-navy: #002663;
 }
 
@@ -146,7 +146,7 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--oware-font-body, sans-serif);
   }
 
   button:not(:disabled),
@@ -161,3 +161,20 @@
   }
 }
 
+@layer components {
+  .oware-button {
+    background: var(--oware-button-bg);
+    color: var(--oware-button-color);
+    border: var(--oware-button-border);
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
+  }
+
+  .oware-button:not(:disabled):hover {
+    background: var(--oware-button-hover-bg, var(--oware-button-bg));
+    color: var(--oware-button-hover-color, var(--oware-button-color));
+    border: var(--oware-button-hover-border, var(--oware-button-border));
+  }
+}

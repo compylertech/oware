@@ -1,7 +1,14 @@
 import { LOAN } from "@/lib/tokens";
 import { FONTS } from "@/lib/tokens";
-import type { CSSProperties, ReactNode } from "react";
-import { Button, Pill } from "@/components/patterns";
+import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
+import {
+  Pill,
+  Table as BaseTable,
+  THead as BaseTHead,
+  Tr as BaseTr,
+  Th as BaseTh,
+  Td as BaseTd,
+} from "@/components/patterns";
 
 export const fontBody = { fontFamily: FONTS.body };
 export const fontDisplay = { fontFamily: FONTS.display };
@@ -40,9 +47,9 @@ export function PanelHead({ title, action }: { title: ReactNode; action?: ReactN
         borderBottom: `1px solid ${LOAN.border}`,
       }}
     >
-      <div style={{ fontSize: 14, fontWeight: 700, color: LOAN.ink }}>{title}</div>
+      <div style={{ fontSize: 14, fontWeight: 100, color: LOAN.ink }}>{title}</div>
       {action ? (
-        <div style={{ fontSize: 12, color: LOAN.blue, fontWeight: 600 }}>{action}</div>
+        <div style={{ fontSize: 12, color: LOAN.blue, fontWeight: 300 }}>{action}</div>
       ) : null}
     </div>
   );
@@ -71,7 +78,7 @@ export function Ava({
         height: size,
         background: bg,
         fontSize: Math.max(10, size * 0.38),
-        fontWeight: 700,
+        fontWeight: 100,
       }}
     >
       {initials}
@@ -99,7 +106,7 @@ export function MiniBar({ pct, color = LOAN.green }: { pct: number; color?: stri
           }}
         />
       </div>
-      <span style={{ fontSize: 12, color: LOAN.muted, fontWeight: 600 }}>{pct}%</span>
+      <span style={{ fontSize: 12, color: LOAN.muted, fontWeight: 300 }}>{pct}%</span>
     </div>
   );
 }
@@ -117,12 +124,12 @@ export function Chip({
 }) {
   return (
     <Panel style={{ padding: 16 }}>
-      <div style={{ fontSize: 12, color: LOAN.muted, fontWeight: 600 }}>{label}</div>
+      <div style={{ fontSize: 12, color: LOAN.muted, fontWeight: 300 }}>{label}</div>
       <div
         style={{
           ...fontDisplay,
           fontSize: 20,
-          fontWeight: 800,
+          fontWeight: 200,
           color: LOAN.ink,
           marginTop: 4,
         }}
@@ -135,7 +142,7 @@ export function Chip({
             fontSize: 11,
             color: metaColor ?? LOAN.muted,
             marginTop: 4,
-            fontWeight: 600,
+            fontWeight: 300,
           }}
         >
           {meta}
@@ -145,40 +152,60 @@ export function Chip({
   );
 }
 
+export function Table({ children, style }: { children: ReactNode; style?: CSSProperties }) {
+  return <BaseTable style={style}>{children}</BaseTable>;
+}
+
+export function THead({ children }: { children: ReactNode }) {
+  return <BaseTHead>{children}</BaseTHead>;
+}
+
+export function Tr({
+  children,
+  hover,
+  style,
+  ...props
+}: {
+  children: ReactNode;
+  hover?: boolean;
+} & HTMLAttributes<HTMLTableRowElement>) {
+  return (
+    <BaseTr
+      hover={hover}
+      style={{
+        ...style,
+      }}
+      {...props}
+    >
+      {children}
+    </BaseTr>
+  );
+}
+
 export function Th({ children, style }: { children: ReactNode; style?: CSSProperties }) {
   return (
-    <th
+    <BaseTh
       style={{
-        textAlign: "left",
-        fontSize: 11,
-        fontWeight: 700,
-        textTransform: "uppercase",
-        letterSpacing: "0.04em",
         color: LOAN.muted,
-        background: "#F8FAFD",
-        padding: "10px 14px",
         ...style,
       }}
     >
       {children}
-    </th>
+    </BaseTh>
   );
 }
 
 export function Td({ children, style }: { children: ReactNode; style?: CSSProperties }) {
   return (
-    <td
+    <BaseTd
+      numeric
       style={{
-        fontSize: 13,
         color: LOAN.ink,
-        padding: "12px 14px",
-        borderTop: `1px solid ${LOAN.border}`,
-        fontVariantNumeric: "tabular-nums",
         ...style,
       }}
     >
       {children}
-    </td>
+    </BaseTd>
   );
 }
 
@@ -190,39 +217,3 @@ export function TypePill({ label, color, bg }: { label: string; color: string; b
   );
 }
 
-// Thin wrappers over the shared Button so loans pages share one button style.
-export function OutlineBtn({
-  children,
-  onClick,
-  icon,
-}: {
-  children: ReactNode;
-  onClick?: () => void;
-  icon?: ReactNode;
-}) {
-  return (
-    <Button variant="outline" onClick={onClick} icon={icon}>
-      {children}
-    </Button>
-  );
-}
-
-export function NavyBtn({
-  children,
-  onClick,
-  icon,
-  disabled,
-  full,
-}: {
-  children: ReactNode;
-  onClick?: () => void;
-  icon?: ReactNode;
-  disabled?: boolean;
-  full?: boolean;
-}) {
-  return (
-    <Button variant="success" onClick={onClick} icon={icon} disabled={disabled} full={full}>
-      {children}
-    </Button>
-  );
-}

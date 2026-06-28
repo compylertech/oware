@@ -3,10 +3,10 @@ import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
-import { Panel, PanelHead, Ava, Th, Td, fontDisplay, fontMono } from "@/components/loans/ui";
+import { Panel, Ava, Table, THead, Tr, Th, Td, fontDisplay, fontMono } from "@/components/loans/ui";
 import { StagePill } from "@/components/loans/StagePill";
-import { ACTIVE_LOANS, fmtGHS } from "@/api/loans";
-import { Tabs } from "@/components/patterns";
+import { ACTIVE_LOANS, APPLICATIONS, fmtGHS } from "@/api/loans";
+import { Tabs, TableCard } from "@/components/patterns";
 import { StatusPill } from "@/components/common/StatusPill";
 
 export const Route = createFileRoute("/_auth/loans/$loanId")({
@@ -15,7 +15,13 @@ export const Route = createFileRoute("/_auth/loans/$loanId")({
 
 function LoanDetail() {
   const { loanId } = Route.useParams();
-  const loan = ACTIVE_LOANS.find((l) => l.id === loanId) ?? ACTIVE_LOANS[0];
+  const activeLoan = ACTIVE_LOANS.find((l) => l.id === loanId);
+  const applicationLoan = APPLICATIONS.find((l) => l.id === loanId);
+  const loan = activeLoan ?? applicationLoan ?? ACTIVE_LOANS[0];
+  const stage = activeLoan?.status ?? applicationLoan?.stage ?? ACTIVE_LOANS[0].status;
+  const backLink = activeLoan
+    ? { to: "/loans/active" as const, label: "Back to Active Loans" }
+    : { to: "/loans/disbursements" as const, label: "Back to Disbursements" };
   const [tab, setTab] = useState<"schedule" | "transactions" | "documents">("schedule");
 
   const schedule = Array.from({ length: 12 }).map((_, i) => {
@@ -37,18 +43,18 @@ function LoanDetail() {
   return (
     <LoansShell>
       <Link
-        to="/loans/active"
+        to={backLink.to}
         className="inline-flex items-center gap-2"
-        style={{ color: LOAN.blue, fontSize: 12, fontWeight: 600, marginBottom: 14 }}
+        style={{ color: LOAN.blue, fontSize: 12, fontWeight: 300, marginBottom: 14 }}
       >
-        <ArrowLeft size={14} /> Back to Active Loans
+        <ArrowLeft size={14} /> {backLink.label}
       </Link>
 
       <Panel style={{ padding: 18, marginBottom: 14 }}>
         <div className="flex items-center gap-3">
           <Ava name={loan.client} bg={loan.avatar} size={48} />
           <div>
-            <div style={{ ...fontDisplay, fontSize: 20, fontWeight: 800, color: LOAN.ink }}>
+            <div style={{ ...fontDisplay, fontSize: 20, fontWeight: 200, color: LOAN.ink }}>
               {loan.client}
             </div>
             <div style={{ ...fontMono, fontSize: 12, color: LOAN.muted }}>
@@ -56,7 +62,7 @@ function LoanDetail() {
             </div>
           </div>
           <div className="ml-auto">
-            <StagePill stage={loan.status} />
+            <StagePill stage={stage} />
           </div>
         </div>
       </Panel>
@@ -72,53 +78,50 @@ function LoanDetail() {
         ]}
       />
 
-      <Panel>
-        <PanelHead
-          title={
-            tab === "schedule"
-              ? "Repayment Schedule"
-              : tab === "transactions"
-                ? "Transactions"
-                : "Documents"
-          }
-        />
+      <TableCard
+        title={
+          tab === "schedule"
+            ? "Repayment Schedule"
+            : tab === "transactions"
+              ? "Transactions"
+              : "Documents"
+        }
+      >
         {tab === "schedule" && (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <Th style={{ textAlign: "right" }}>No.</Th>
-                <Th>Date</Th>
-                <Th style={{ textAlign: "right" }}>Principal</Th>
-                <Th style={{ textAlign: "right" }}>Interest</Th>
-                <Th style={{ textAlign: "right" }}>Total</Th>
-                <Th>Status</Th>
-              </tr>
-            </thead>
+          <Table>
+            <THead>
+              <Th style={{ textAlign: "right" }}>No.</Th>
+              <Th>Date</Th>
+              <Th style={{ textAlign: "right" }}>Principal</Th>
+              <Th style={{ textAlign: "right" }}>Interest</Th>
+              <Th style={{ textAlign: "right" }}>Total</Th>
+              <Th>Status</Th>
+            </THead>
             <tbody>
               {schedule.map((r) => (
-                <tr key={r.no}>
+                <Tr key={r.no} hover>
                   <Td style={{ textAlign: "right" }}>{r.no}</Td>
                   <Td>{r.date}</Td>
                   <Td style={{ textAlign: "right" }}>{fmtGHS(r.principal)}</Td>
                   <Td style={{ textAlign: "right" }}>{fmtGHS(r.interest)}</Td>
-                  <Td style={{ textAlign: "right", fontWeight: 700 }}>{fmtGHS(r.total)}</Td>
+                  <Td style={{ textAlign: "right", fontWeight: 100 }}>{fmtGHS(r.total)}</Td>
                   <Td>
                     <StatusPill
                       label={r.status}
                       tone={r.status === "Paid" ? "green" : r.status === "Due" ? "amber" : "gray"}
                     />
                   </Td>
-                </tr>
+                </Tr>
               ))}
             </tbody>
-          </table>
+          </Table>
         )}
         {tab !== "schedule" && (
           <div style={{ padding: 40, textAlign: "center", color: LOAN.muted, fontSize: 13 }}>
             No {tab} yet.
           </div>
         )}
-      </Panel>
+      </TableCard>
     </LoansShell>
   );
 }

@@ -3,7 +3,8 @@ import { useMemo, useState } from "react";
 import { BarChart3, Download, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { FONTS, tokens } from "@/lib/tokens";
-import { Modal, MField, MSelect, MCancelBtn, MNavyBtn } from "@/components/common/Modal";
+import { Modal, MField, MSelect } from "@/components/common/Modal";
+import { Button } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/reports/")({
   component: ReportsPage,
@@ -127,7 +128,7 @@ function ReportsPage() {
           <div
             style={{
               fontSize: 11,
-              fontWeight: 700,
+              fontWeight: 100,
               letterSpacing: "0.14em",
               color: "#5B6A86",
               textTransform: "uppercase",
@@ -156,7 +157,7 @@ function ReportsPage() {
                 style={{
                   fontFamily: FONTS.display,
                   fontSize: 26,
-                  fontWeight: 800,
+                  fontWeight: 200,
                   color: "#16233F",
                   letterSpacing: "-0.02em",
                   margin: 0,
@@ -172,44 +173,20 @@ function ReportsPage() {
           </div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <button
+          <Button
+            variant="outline"
             onClick={() => setScheduleOpen(true)}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              border: `1px solid ${tokens.border}`,
-              background: "#fff",
-              color: "#16233F",
-              borderRadius: 8,
-              padding: "9px 14px",
-              fontSize: 13,
-              fontWeight: 600,
-              fontFamily: FONTS.body,
-              cursor: "pointer",
-            }}
+            icon={<CalendarClock size={14} />}
           >
-            <CalendarClock size={14} /> Schedule report
-          </button>
-          <button
+            Schedule report
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => toast.success("All reports queued for export")}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              background: "#002663",
-              color: "#fff",
-              border: "none",
-              borderRadius: 8,
-              padding: "9px 14px",
-              fontSize: 13,
-              fontWeight: 600,
-              fontFamily: FONTS.body,
-              cursor: "pointer",
-            }}
+            icon={<Download size={14} />}
           >
-            <Download size={14} /> Export all
-          </button>
+            Export all
+          </Button>
         </div>
       </div>
 
@@ -236,7 +213,7 @@ function ReportsPage() {
                 borderRadius: 8,
                 padding: "7px 14px",
                 fontSize: 13,
-                fontWeight: 600,
+                fontWeight: 300,
                 fontFamily: FONTS.body,
                 cursor: "pointer",
               }}
@@ -272,7 +249,7 @@ function ReportsPage() {
                     background: cs.bg,
                     color: cs.fg,
                     fontSize: 11,
-                    fontWeight: 700,
+                    fontWeight: 100,
                     padding: "3px 9px",
                     borderRadius: 999,
                     letterSpacing: "0.02em",
@@ -282,7 +259,7 @@ function ReportsPage() {
                 </span>
                 <span style={{ fontSize: 12, color: "#5B6A86" }}>{r.frequency}</span>
               </div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "#16233F", lineHeight: 1.3 }}>
+              <div style={{ fontSize: 15, fontWeight: 100, color: "#16233F", lineHeight: 1.3 }}>
                 {r.title}
               </div>
               <div style={{ fontSize: 13, color: "#5B6A86", lineHeight: 1.45, flex: 1 }}>
@@ -300,21 +277,9 @@ function ReportsPage() {
                 <span style={{ fontSize: 12, color: "#5B6A86" }}>
                   Last generated: {r.lastGenerated}
                 </span>
-                <button
-                  onClick={() => setGenerating(r)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#002663",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    fontFamily: FONTS.body,
-                    cursor: "pointer",
-                    padding: 0,
-                  }}
-                >
+                <Button variant="ghost" size="sm" onClick={() => setGenerating(r)}>
                   Generate →
-                </button>
+                </Button>
               </div>
             </div>
           );
@@ -339,15 +304,18 @@ function ReportsPage() {
         maxWidth={460}
         footer={
           <>
-            <MCancelBtn onClick={() => setScheduleOpen(false)} />
-            <MNavyBtn
+            <Button variant="outline" onClick={() => setScheduleOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="success"
               onClick={() => {
                 setScheduleOpen(false);
                 toast.success("Report scheduled.");
               }}
             >
               Schedule
-            </MNavyBtn>
+            </Button>
           </>
         }
       >
@@ -383,8 +351,12 @@ function GenerateModal({
       maxWidth={460}
       footer={
         <>
-          <MCancelBtn onClick={onClose} />
-          <MNavyBtn onClick={onSubmit}>Generate Report</MNavyBtn>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button variant="success" onClick={onSubmit}>
+            Generate Report
+          </Button>
         </>
       }
     >
@@ -411,7 +383,7 @@ function GenerateModal({
                   borderRadius: 8,
                   padding: "6px 16px",
                   fontSize: 13,
-                  fontWeight: 600,
+                  fontWeight: 300,
                   fontFamily: FONTS.body,
                   cursor: "pointer",
                 }}

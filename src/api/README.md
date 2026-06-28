@@ -13,6 +13,8 @@ api/
   loans/           Applications, active loans, product catalogue
   clients/         Client registry + store accessors
   cooperative/     Membership register (layered on clients)
+  investments/     Institutions, proposals, positions, alerts, exposure
+                   (types.ts · data.ts · store.ts · index.ts)
   <domain>/        types.ts · data.ts (fixtures) · index.ts (public API)
 ```
 
