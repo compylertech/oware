@@ -1,0 +1,16 @@
+name = "compylertech-oware"
+compatibility_date = "2026-06-14"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
+
+# Non-secret runtime variables. On Cloudflare these are exposed to the server
+# worker at runtime and read in src/lib/config.server.ts as process.env.*.
+#
+# Do NOT put SESSION_SECRET here — it is a SECRET. Set it instead via:
+#   Cloudflare dashboard → project → Settings → Variables and Secrets → add Secret
+#   (or:  npx wrangler pages secret put SESSION_SECRET)
+[vars]
+# Public base URL of the project-x backend. MUST be reachable from Cloudflare
+# (localhost / ngrok dev URLs won't work for a real deployment) — set the real one.
+BACKEND_URL = "https://projectx-api-prod.compyler.io"
+DEFAULT_TENANT_ID = "default"
