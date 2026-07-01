@@ -4,6 +4,10 @@ import { AlertCircle, ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { Button } from "@/components/patterns";
 
+const DEFAULT_ADMIN_EMAIL = "admin@oware.com";
+const DEFAULT_ADMIN_PASSWORD = "SecurePass123!";
+const MOCK_SESSION_KEY = "oware.mockSession";
+
 export const Route = createFileRoute("/signin")({
   head: () => ({
     meta: [
@@ -28,14 +32,26 @@ function SignInPage() {
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!email.trim() || !password) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail || !password) {
       setError("Please enter your email and password.");
       return;
     }
+
+    if (normalizedEmail !== DEFAULT_ADMIN_EMAIL || password !== DEFAULT_ADMIN_PASSWORD) {
+      setError("Invalid email or password.");
+      return;
+    }
+
     setLoading(true);
     setTimeout(() => {
+      window.localStorage.setItem(
+        MOCK_SESSION_KEY,
+        JSON.stringify({ email: DEFAULT_ADMIN_EMAIL, role: "Administrator" }),
+      );
       setLoading(false);
-      navigate({ to: "/" });
+      navigate({ to: "/dashboard", replace: true });
     }, 900);
   }
 
@@ -62,7 +78,7 @@ function SignInPage() {
             id="email"
             type="email"
             autoComplete="email"
-            placeholder="you@chelseabank.com"
+            placeholder="admin@oware.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className={inputCls}
