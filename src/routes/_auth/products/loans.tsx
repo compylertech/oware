@@ -2,28 +2,32 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Plus } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
 import { ProductCardGrid, type ProductCardData } from "@/components/products/ProductCard";
-import { PRODUCTS as LOAN_PRODUCTS } from "@/lib/loanMock";
+import { PRODUCTS as SEED_LOAN_PRODUCTS, loanProductsApi, type LoanProduct } from "@/api/loans";
+import { useBackendData } from "@/api/useBackendData";
 import { Button } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/products/loans")({
   component: LoanProductsPage,
 });
 
-const PRODUCTS: ProductCardData[] = LOAN_PRODUCTS.map((p) => ({
-  name: p.name,
-  type: p.type,
-  typeColor: p.typeColor,
-  cells: [
-    { label: "Interest", value: p.rate },
-    { label: "Term", value: p.term },
-    { label: "Max amount", value: p.max },
-    { label: "Extra", value: p.extra },
-  ],
-  footerLeft: `${p.count} active loans`,
-  active: p.active,
-}));
+function toCards(products: LoanProduct[]): ProductCardData[] {
+  return products.map((p) => ({
+    name: p.name,
+    type: p.type,
+    typeColor: p.typeColor,
+    cells: [
+      { label: "Interest", value: p.rate },
+      { label: "Term", value: p.term },
+      { label: "Max amount", value: p.max },
+      { label: "Extra", value: p.extra },
+    ],
+    footerLeft: `${p.count} active loans`,
+    active: p.active,
+  }));
+}
 
 function LoanProductsPage() {
+  const PRODUCTS = toCards(useBackendData(() => loanProductsApi.list(), SEED_LOAN_PRODUCTS));
   return (
     <div
       style={{

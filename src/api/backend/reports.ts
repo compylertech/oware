@@ -20,12 +20,29 @@ import type {
 import { request, withMock } from "./http";
 import { mapActiveLoan, mapApplication, mapApproval, mapArrears, mapDisbursement } from "./mappers";
 
+export type PipelineStage = { count: number; amount: number };
+
 export type LoanOverview = {
   activeCount: number;
   activeAmount: number;
   pendingApprovals: number;
   arrears: number;
+  // Richer stats used by the loans landing tiles (0 when unavailable).
+  pendingDisbCount: number;
+  pendingDisbAmount: number;
+  par30Rate: number;
+  arrearsAmount: number;
+  collections: number;
+  pipeline: Record<string, PipelineStage>;
 };
+
+function pipeline(dto: OverviewDto): Record<string, PipelineStage> {
+  const out: Record<string, PipelineStage> = {};
+  for (const [k, v] of Object.entries(dto.pipeline ?? {})) {
+    out[k] = { count: v.count ?? 0, amount: v.amount ?? 0 };
+  }
+  return out;
+}
 
 export const loanReportsApi = {
   overview(): Promise<LoanOverview> {
@@ -38,6 +55,12 @@ export const loanReportsApi = {
           activeAmount: stats.activeLoansOutstanding ?? 0,
           pendingApprovals: dto.pipeline?.submitted?.count ?? 0,
           arrears: stats.arrearsCount ?? 0,
+          pendingDisbCount: stats.pendingDisbursementsCount ?? 0,
+          pendingDisbAmount: stats.pendingDisbursementsAmount ?? 0,
+          par30Rate: stats.par30Rate ?? 0,
+          arrearsAmount: stats.arrearsAmount ?? 0,
+          collections: stats.collectionsThisMonth ?? 0,
+          pipeline: pipeline(dto),
         };
       },
       () => ({
@@ -45,6 +68,18 @@ export const loanReportsApi = {
         activeAmount: ACTIVE_LOANS.reduce((s, l) => s + l.outstanding, 0),
         pendingApprovals: APPLICATIONS.filter((a) => a.stage === "Under Review").length,
         arrears: ACTIVE_LOANS.filter((l) => l.status === "In Arrears").length,
+        pendingDisbCount: APPLICATIONS.filter((a) => a.stage === "To Disburse").length,
+        pendingDisbAmount: APPLICATIONS.filter((a) => a.stage === "To Disburse").reduce(
+          (s, a) => s + a.amount,
+          0,
+        ),
+        par30Rate: 0,
+        arrearsAmount: ACTIVE_LOANS.filter((l) => l.status === "In Arrears").reduce(
+          (s, l) => s + l.outstanding,
+          0,
+        ),
+        collections: 0,
+        pipeline: {},
       }),
     );
   },
@@ -115,4 +150,38 @@ export const loanReportsApi = {
       () => ACTIVE_LOANS.filter((l) => l.status === "In Arrears"),
     );
   },
+
+  /** Overdue rows shaped for the Arrears "Overdue Loans" table. */
+  arrearsRows(): Promise<ArrearsRow[]> {
+    return withMock(
+      async () => {
+        const dto = await request<{ arrears?: ArrearsRowDto[] }>("/loan-accounts/reports/arrears");
+        return (dto.arrears ?? []).map((a) => {
+          const days = a.daysOverdue ?? 0;
+          return {
+            client: a.clientName ?? "",
+            outstanding: (a.principalOutstanding ?? 0) + (a.interestOutstanding ?? 0),
+            days,
+            bucket: bucketFor(days),
+          };
+        });
+      },
+      () => [],
+    );
+  },
 };
+
+export type ArrearsBucket = "1–30" | "31–60" | "61–90" | "90+";
+export type ArrearsRow = {
+  client: string;
+  outstanding: number;
+  days: number;
+  bucket: ArrearsBucket;
+};
+
+function bucketFor(days: number): ArrearsBucket {
+  if (days <= 30) return "1–30";
+  if (days <= 60) return "31–60";
+  if (days <= 90) return "61–90";
+  return "90+";
+}

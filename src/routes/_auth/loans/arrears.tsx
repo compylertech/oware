@@ -4,24 +4,29 @@ import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
 import { Panel, PanelHead, Chip, Table, THead, Tr, Th, Td } from "@/components/loans/ui";
 import { StagePill } from "@/components/loans/StagePill";
-import { fmtGHS } from "@/lib/loanMock";
+import { fmtGHS, loanReportsApi, type ArrearsRow } from "@/api/loans";
+import { useBackendData } from "@/api/useBackendData";
 import { TableCard } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/loans/arrears")({
   component: ArrearsPage,
 });
 
-const OVERDUE = [
-  { client: "Adwoa Mensa", outstanding: 4200, days: 14, bucket: "1–30" as const },
-  { client: "Sena Ofori", outstanding: 9800, days: 42, bucket: "31–60" as const },
-  { client: "Paa Anann", outstanding: 21500, days: 96, bucket: "90+" as const },
+const OVERDUE: ArrearsRow[] = [
+  { client: "Adwoa Mensa", outstanding: 4200, days: 14, bucket: "1–30" },
+  { client: "Sena Ofori", outstanding: 9800, days: 42, bucket: "31–60" },
+  { client: "Paa Anann", outstanding: 21500, days: 96, bucket: "90+" },
 ];
 
 function ArrearsPage() {
+  const OVERDUE_ROWS = useBackendData(async () => {
+    const rows = await loanReportsApi.arrearsRows();
+    return rows.length ? rows : OVERDUE;
+  }, OVERDUE);
   const [overduePage, setOverduePage] = useState(1);
-  const overdueTotalPages = Math.max(1, Math.ceil(OVERDUE.length / PAGE_SIZE));
+  const overdueTotalPages = Math.max(1, Math.ceil(OVERDUE_ROWS.length / PAGE_SIZE));
   const overdueCurrentPage = Math.min(overduePage, overdueTotalPages);
-  const overdueRows = OVERDUE.slice(
+  const overdueRows = OVERDUE_ROWS.slice(
     (overdueCurrentPage - 1) * PAGE_SIZE,
     overdueCurrentPage * PAGE_SIZE,
   );

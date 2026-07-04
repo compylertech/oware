@@ -5,7 +5,13 @@ import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
 import { Ava, Table, THead, Tr, Th, Td, fontDisplay, fontMono } from "@/components/loans/ui";
 import { StagePill } from "@/components/loans/StagePill";
-import { APPLICATIONS, fmtGHS, type AppStage } from "@/lib/loanMock";
+import {
+  APPLICATIONS as SEED_APPLICATIONS,
+  fmtGHS,
+  loanReportsApi,
+  type AppStage,
+} from "@/api/loans";
+import { useBackendData } from "@/api/useBackendData";
 import { Button, TableCard } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/loans/applications")({
@@ -21,6 +27,10 @@ const COLUMNS: { stage: AppStage; dot: string }[] = [
 ];
 
 function ApplicationsPage() {
+  const APPLICATIONS = useBackendData(
+    () => loanReportsApi.applications({ limit: 200 }),
+    SEED_APPLICATIONS,
+  );
   const [view, setView] = useState<"board" | "table">("board");
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(APPLICATIONS.length / PAGE_SIZE));

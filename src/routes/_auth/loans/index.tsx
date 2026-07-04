@@ -3,7 +3,8 @@ import { DollarSign, Clock, AlertTriangle, TrendingUp, BarChart2 } from "lucide-
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
 import { Ava, Table, THead, Tr, Th, Td, fontDisplay, fontMono } from "@/components/loans/ui";
-import { APPLICATIONS, fmtGHS } from "@/api/loans";
+import { APPLICATIONS as SEED_APPLICATIONS, fmtGHS, loanReportsApi } from "@/api/loans";
+import { useBackendData } from "@/api/useBackendData";
 import { StagePill } from "@/components/loans/StagePill";
 import { StatCard, StatGrid, SectionCard, TableCard } from "@/components/patterns";
 
@@ -11,7 +12,29 @@ export const Route = createFileRoute("/_auth/loans/")({
   component: LoansOverview,
 });
 
+// Compact Ghana-cedi amount, e.g. GH₵ 18.4M / GH₵ 612K.
+function fmtCompact(n: number): string {
+  if (n >= 1_000_000) return `GH₵ ${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `GH₵ ${Math.round(n / 1_000)}K`;
+  return `GH₵ ${n.toLocaleString("en-GH", { maximumFractionDigits: 0 })}`;
+}
+
+const SEED_OVERVIEW = {
+  activeCount: 1284,
+  activeAmount: 18_400_000,
+  pendingApprovals: 37,
+  arrears: 92,
+  pendingDisbCount: 37,
+  pendingDisbAmount: 2_100_000,
+  par30Rate: 4.8,
+  arrearsAmount: 612_000,
+  collections: 3_200_000,
+  pipeline: {},
+};
+
 function LoansOverview() {
+  const ov = useBackendData(() => loanReportsApi.overview(), SEED_OVERVIEW);
+  const recent = useBackendData(() => loanReportsApi.applications({ limit: 5 }), SEED_APPLICATIONS);
   return (
     <LoansShell>
       <StatGrid columns={5}>
@@ -21,8 +44,8 @@ function LoansOverview() {
           iconBg="#EEF2FF"
           iconColor="#3B5BDB"
           label="Active Loans"
-          value="1,284"
-          meta="GH₵ 18.4M out"
+          value={ov.activeCount.toLocaleString("en-GH")}
+          meta={`${fmtCompact(ov.activeAmount)} out`}
         />
         <StatCard
           orientation="vertical"
@@ -30,8 +53,8 @@ function LoansOverview() {
           iconBg="#FFFBEB"
           iconColor="#B45309"
           label="Pending Disb."
-          value="37"
-          meta="GH₵ 2.1M"
+          value={ov.pendingDisbCount.toLocaleString("en-GH")}
+          meta={fmtCompact(ov.pendingDisbAmount)}
         />
         <StatCard
           orientation="vertical"
@@ -39,8 +62,8 @@ function LoansOverview() {
           iconBg="#FEF2F2"
           iconColor="#DC2626"
           label="PAR (30+)"
-          value="4.8%"
-          meta="▲ 0.6%"
+          value={`${ov.par30Rate.toFixed(1)}%`}
+          meta="30+ days"
           metaColor={LOAN.red}
         />
         <StatCard
@@ -49,8 +72,8 @@ function LoansOverview() {
           iconBg="#F5F3FF"
           iconColor="#7C3AED"
           label="Arrears"
-          value="GH₵ 612K"
-          meta="92 loans"
+          value={fmtCompact(ov.arrearsAmount)}
+          meta={`${ov.arrears} loans`}
         />
         <StatCard
           orientation="vertical"
@@ -58,8 +81,8 @@ function LoansOverview() {
           iconBg="#ECFDF5"
           iconColor="#059669"
           label="Collections"
-          value="GH₵ 3.2M"
-          meta="▲ 91%"
+          value={fmtCompact(ov.collections)}
+          meta="this month"
           metaColor={LOAN.green}
         />
       </StatGrid>
@@ -118,7 +141,7 @@ function LoansOverview() {
               <Th>Status</Th>
             </THead>
             <tbody>
-              {APPLICATIONS.slice(0, 3).map((a) => (
+              {recent.slice(0, 3).map((a) => (
                 <Tr key={a.id} hover>
                   <Td>
                     <div className="flex items-center gap-2">

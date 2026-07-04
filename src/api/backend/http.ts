@@ -1,15 +1,17 @@
-// HTTP transport for the corebanking-starter backend.
+// HTTP transport for the corebanking backend.
+//
+// Requests go to the app's own same-origin proxy (`/api/v1/*`, handled in
+// src/server.ts), which forwards to the real backend with server-side auth.
+// This keeps the browser free of CORS problems and credentials.
 //
 // Responsibilities:
-//   - prefix requests with the configured base URL and /api/v1
-//   - attach HTTP Basic auth and JSON headers
+//   - build the same-origin URL and attach JSON headers
 //   - attach an Idempotency-Key on writes (matches the Postman collection)
-//   - unwrap the `{ data }` envelope when present
-//   - surface a typed BackendUnavailable error so services can fall back to mock
-//
-// Nothing here is UI-aware; services in this folder compose it.
+//   - unwrap the `{ success, message, data, error }` envelope
+//   - surface BackendUnavailable (mock/SSR/proxy-down) so services fall back to
+//     the in-memory fixtures, keeping the UI working with no backend
 
-import { API_BASE_URL, USE_MOCK, basicAuthHeader } from "./config";
+import { API_PREFIX, FORCE_MOCK } from "./config";
 import type { ApiEnvelope } from "./dto";
 
 export class BackendUnavailable extends Error {
@@ -41,8 +43,9 @@ type RequestOptions = {
 };
 
 function buildUrl(path: string, query?: RequestOptions["query"]): string {
+  const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost";
   const clean = path.startsWith("/") ? path : `/${path}`;
-  const url = new URL(`${API_BASE_URL}/api/v1${clean}`);
+  const url = new URL(`${API_PREFIX}${clean}`, origin);
   if (query) {
     for (const [k, v] of Object.entries(query)) {
       if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, String(v));
@@ -69,19 +72,18 @@ function unwrap<T>(payload: ApiEnvelope<T> | T): T {
 }
 
 /**
- * Perform a JSON request against the backend. Throws {@link BackendUnavailable}
- * in mock mode or on a network failure so callers can fall back to fixtures,
- * and {@link ApiError} on a non-2xx response.
+ * Perform a JSON request against the same-origin proxy. Throws
+ * {@link BackendUnavailable} in mock mode, during SSR, or when the proxy/backend
+ * is unreachable so callers can fall back to fixtures; {@link ApiError} on other
+ * non-2xx responses.
  */
 export async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
-  if (USE_MOCK) throw new BackendUnavailable();
+  // Only run in the browser: SSR renders fixtures, the browser hydrates live data.
+  if (FORCE_MOCK || typeof window === "undefined") throw new BackendUnavailable();
 
   const method = opts.method ?? "GET";
   const isWrite = method !== "GET";
-  const headers: Record<string, string> = {
-    Accept: "application/json",
-    Authorization: basicAuthHeader(),
-  };
+  const headers: Record<string, string> = { Accept: "application/json" };
   if (opts.body !== undefined) headers["Content-Type"] = "application/json";
   if (isWrite && opts.idempotent !== false) headers["Idempotency-Key"] = guid();
 
@@ -94,8 +96,12 @@ export async function request<T>(path: string, opts: RequestOptions = {}): Promi
       signal: opts.signal,
     });
   } catch (err) {
-    // DNS/refused/CORS/offline → treat as unavailable so the UI degrades to mock.
     throw new BackendUnavailable(err);
+  }
+
+  // Proxy signals a missing/unreachable backend with 502/503/504 → fall back.
+  if (res.status === 502 || res.status === 503 || res.status === 504) {
+    throw new BackendUnavailable();
   }
 
   if (!res.ok) {

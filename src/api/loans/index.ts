@@ -6,7 +6,7 @@ export { APPLICATIONS, ACTIVE_LOANS, PRODUCTS, WIZARD_PRODUCTS } from "./data";
 export { loanProductsApi } from "../backend/products";
 export { loanAccountsApi } from "../backend/accounts";
 export { loanReportsApi } from "../backend/reports";
-export type { LoanOverview } from "../backend/reports";
+export type { LoanOverview, ArrearsRow, ArrearsBucket } from "../backend/reports";
 export type { LoanAccountCreate } from "../backend/accounts";
 
 /** Format a number as Ghana cedis with no decimals (e.g. GH₵85,000). */
