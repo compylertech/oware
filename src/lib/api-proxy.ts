@@ -4,20 +4,23 @@
 // requests to the corebanking backend with server-side HTTP Basic auth. Keeping
 // it server-side avoids CORS and never exposes credentials to the client.
 //
-// Configuration (server env; on Cloudflare these arrive via the `env` binding,
-// locally via process.env):
-//   OWARE_BACKEND_URL       backend base, e.g. https://host  (no /api/v1)
-//   OWARE_BACKEND_USER      Basic-auth user (default: admin)
-//   OWARE_BACKEND_PASSWORD  Basic-auth pass (default: admin)
+// Configuration (server env; on Cloudflare these arrive via the `env` binding
+// per wrangler.toml, locally via process.env):
+//   BACKEND_URL       backend base, e.g. https://host  (no /api/v1) — set as a
+//                     [vars] entry in wrangler.toml (see there)
+//   BACKEND_USER      Basic-auth user (default: admin) — set as a Cloudflare
+//                     secret (`wrangler pages secret put BACKEND_USER`), not
+//                     a [vars] entry
+//   BACKEND_PASSWORD  Basic-auth pass (default: admin) — same, as a secret
 //
 // If no backend URL is configured the proxy returns 503 and the frontend
 // transparently falls back to its in-memory fixtures.
 
 const PROXY_PREFIX = "/api/v1/";
 
-// Temporary default so the app shows live data out of the box against the
-// current demo backend. Override with OWARE_BACKEND_URL in any real deployment
-// (the demo tunnel is ephemeral and will stop resolving).
+// Temporary default so the app shows live data out of the box before BACKEND_URL
+// is set. Override via wrangler.toml [vars] (deployed) or the BACKEND_URL env var
+// (local) — the demo tunnel below is ephemeral and will stop resolving.
 const DEFAULT_BACKEND_URL = "https://2d62-41-210-20-252.ngrok-free.app";
 
 type Env = Record<string, string | undefined> | undefined;
@@ -36,9 +39,9 @@ function base64(input: string): string {
 }
 
 function backendConfig(env: Env) {
-  const base = (readEnv("OWARE_BACKEND_URL", env) ?? DEFAULT_BACKEND_URL).replace(/\/$/, "");
-  const user = readEnv("OWARE_BACKEND_USER", env) ?? "admin";
-  const pass = readEnv("OWARE_BACKEND_PASSWORD", env) ?? "admin";
+  const base = (readEnv("BACKEND_URL", env) ?? DEFAULT_BACKEND_URL).replace(/\/$/, "");
+  const user = readEnv("BACKEND_USER", env) ?? "admin";
+  const pass = readEnv("BACKEND_PASSWORD", env) ?? "admin";
   return { base, auth: `Basic ${base64(`${user}:${pass}`)}` };
 }
 
