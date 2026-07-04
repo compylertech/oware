@@ -83,15 +83,56 @@ export type ClientUpdateDto = Partial<
   >
 >;
 
+// GET /clients/{id}/addresses row shape (verified against a live instance —
+// note this differs from the create/update payload shape below: it carries
+// display names (addressType, stateName, countryName) and numeric Fineract
+// ids, not the codes the write endpoints take).
 export type ClientAddressDto = {
-  id?: string;
-  addressTypeCode?: string;
+  clientId?: number;
+  addressId?: number;
+  addressType?: string; // e.g. "Home", "Office" — display name
+  addressTypeId?: number;
+  active?: boolean;
+  street?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  addressLine3?: string;
+  townVillage?: string;
+  city?: string;
+  countyDistrict?: string;
+  stateProvinceId?: number;
+  stateName?: string;
+  countryId?: number;
+  countryName?: string;
+  postalCode?: string;
+  createdOn?: string;
+  updatedOn?: string;
+};
+
+/** POST/PUT /clients/{id}/addresses[/{addressId}] payload shape. */
+export type ClientAddressWriteDto = {
+  addressTypeCode: string; // e.g. "HOME", "OFFICE" — reference code
   addressLine1?: string;
   addressLine2?: string | null;
   city?: string;
   stateProvinceCode?: string | null;
   countryCode?: string | null;
   postalCode?: string | null;
+  active?: boolean;
+};
+
+/** GET /references?category=&provider= row shape. */
+export type ReferenceValueDto = {
+  id?: string;
+  category?: string;
+  provider?: string;
+  code: string;
+  name: string;
+  providerId?: number;
+  providerCode?: string | null;
+  sourceType?: string;
+  providerGroupId?: number;
+  providerGroupName?: string;
   active?: boolean;
 };
 

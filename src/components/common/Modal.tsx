@@ -99,18 +99,23 @@ export function MTextarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElemen
     />
   );
 }
+export type MSelectOption = string | { value: string; label: string };
+
 export function MSelect({
   options,
   ...props
-}: React.SelectHTMLAttributes<HTMLSelectElement> & { options: string[] }) {
+}: React.SelectHTMLAttributes<HTMLSelectElement> & { options: MSelectOption[] }) {
   return (
     <select {...props} style={{ ...baseInputStyle, ...(props.style ?? {}) }}>
-      {options.map((o) => (
-        <option key={o} value={o}>
-          {o}
-        </option>
-      ))}
+      {options.map((o) => {
+        const value = typeof o === "string" ? o : o.value;
+        const label = typeof o === "string" ? o : o.label;
+        return (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        );
+      })}
     </select>
   );
 }
-

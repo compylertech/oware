@@ -17,6 +17,7 @@ export { ApiError, BackendUnavailable } from "./http";
 export { clientsApi } from "./clients";
 export type {
   ClientAddressDto,
+  ClientAddressWriteDto,
   ClientFamilyMemberDto,
   ClientIdentifierDto,
   ClientNoteDto,
@@ -28,11 +29,13 @@ export { loanReportsApi } from "./reports";
 export type { LoanOverview } from "./reports";
 export type { SavingsAccountCreate, LoanAccountCreate, MoneyTxn } from "./accounts";
 export type { ClientSearch } from "./clients";
+export { referencesApi } from "./references";
 
 import { clientsApi } from "./clients";
 import { loanProductsApi, savingsProductsApi } from "./products";
 import { loanAccountsApi, savingsAccountsApi } from "./accounts";
 import { loanReportsApi } from "./reports";
+import { referencesApi } from "./references";
 
 /** Aggregate API surface grouped by domain. */
 export const api = {
@@ -42,6 +45,7 @@ export const api = {
   loanAccounts: loanAccountsApi,
   savingsAccounts: savingsAccountsApi,
   loanReports: loanReportsApi,
+  references: referencesApi,
 };
 
 export type Api = typeof api;

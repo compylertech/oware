@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { ArrowLeft, MoreVertical, Plus, Download, Pencil, Upload } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
+import { Modal, MField, MInput, MSelect } from "@/components/common/Modal";
 import {
   EmptyRow as PatternEmptyRow,
   Table,
@@ -19,13 +20,17 @@ import { useClients, type Client as BackendClient } from "@/api/clients";
 import {
   clientsApi,
   loanAccountsApi,
+  referencesApi,
   savingsAccountsApi,
   savingsProductsApi,
   type AccountDto,
   type ClientAddressDto,
+  type ClientAddressWriteDto,
   type ClientFamilyMemberDto,
   type ClientIdentifierDto,
   type ClientNoteDto,
+  type ProductDto,
+  type ReferenceValueDto,
   type TransactionDto,
 } from "@/api/backend";
 
@@ -210,11 +215,15 @@ type TransactionRow = {
 };
 
 type AddressRow = {
-  id: string;
+  addressId?: number;
+  addressTypeId?: number;
+  type: string;
   line1: string;
   line2: string;
   city: string;
   region: string;
+  postalCode: string;
+  active: boolean;
 };
 
 type FamilyRow = {
@@ -243,12 +252,11 @@ type LoadedClientDetail = {
   client: BackendClient | null;
   savings: SavingsAccountRow[];
   transactions: TransactionRow[];
-  residential: AddressRow[];
-  office: AddressRow[];
+  addresses: AddressRow[];
   family: FamilyRow[];
   identities: IdentityRow[];
   notes: NoteRow[];
-  defaultSavingsProductCode: string;
+  savingsProducts: ProductDto[];
 };
 
 const EMPTY_CLIENT: BackendClient = {
@@ -318,11 +326,15 @@ function mapTransaction(tx: TransactionDto, accountRef: string, index: number): 
 
 function mapAddress(address: ClientAddressDto): AddressRow {
   return {
-    id: address.id ?? `${address.addressTypeCode ?? "address"}-${address.addressLine1 ?? ""}`,
+    addressId: address.addressId,
+    addressTypeId: address.addressTypeId,
+    type: address.addressType ?? "—",
     line1: address.addressLine1 ?? "",
     line2: address.addressLine2 ?? "",
     city: address.city ?? "",
-    region: address.stateProvinceCode ?? "",
+    region: address.stateName ?? "",
+    postalCode: address.postalCode ?? "",
+    active: address.active ?? false,
   };
 }
 
@@ -393,25 +405,15 @@ async function loadClientDetail(
     )
   ).flat();
 
-  const residential = addresses.filter((address) => {
-    const type = (address.addressTypeCode ?? "").toUpperCase();
-    return type.includes("HOME") || type.includes("RESIDENTIAL") || !type;
-  });
-  const office = addresses.filter((address) => {
-    const type = (address.addressTypeCode ?? "").toUpperCase();
-    return type.includes("OFFICE");
-  });
-
   return {
     client: client ?? null,
     savings,
     transactions,
-    residential: residential.map(mapAddress),
-    office: office.map(mapAddress),
+    addresses: addresses.map(mapAddress),
     family: familyMembers.map(mapFamilyMember),
     identities: identifiers.map(mapIdentifier),
     notes: notes.map(mapNote),
-    defaultSavingsProductCode: products[0]?.code ?? "",
+    savingsProducts: products,
   };
 }
 
@@ -431,8 +433,7 @@ function ClientDetail() {
   const [txDateTo, setTxDateTo] = useState("");
   const [txPage, setTxPage] = useState(1);
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
-  const [residential, setResidential] = useState<AddressRow[]>([]);
-  const [office, setOffice] = useState<AddressRow[]>([]);
+  const [addresses, setAddresses] = useState<AddressRow[]>([]);
   const [family, setFamily] = useState<FamilyRow[]>([]);
   const [identities, setIdentities] = useState<IdentityRow[]>([]);
   const [docs, setDocs] = useState([
@@ -441,7 +442,33 @@ function ClientDetail() {
   ]);
   const [notes, setNotes] = useState<NoteRow[]>([]);
   const [noteDraft, setNoteDraft] = useState("");
-  const [defaultSavingsProductCode, setDefaultSavingsProductCode] = useState("");
+  const [savingsProducts, setSavingsProducts] = useState<ProductDto[]>([]);
+  const [addressTypeOptions, setAddressTypeOptions] = useState<ReferenceValueDto[]>([]);
+
+  const [createAcctOpen, setCreateAcctOpen] = useState(false);
+  const [createAcctForm, setCreateAcctForm] = useState({ productCode: "", externalId: "" });
+
+  const [addressModalOpen, setAddressModalOpen] = useState(false);
+  const [addressForm, setAddressForm] = useState<{
+    addressId?: number;
+    addressTypeCode: string;
+    addressLine1: string;
+    addressLine2: string;
+    city: string;
+    stateProvinceCode: string;
+    countryCode: string;
+    postalCode: string;
+    active: boolean;
+  }>({
+    addressTypeCode: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    stateProvinceCode: "",
+    countryCode: "GH",
+    postalCode: "",
+    active: true,
+  });
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
@@ -455,17 +482,26 @@ function ClientDetail() {
     setClientState(storeClient ?? null);
   }, [storeClient]);
 
+  useEffect(() => {
+    let alive = true;
+    void referencesApi.list("ADDRESS_TYPE").then((opts) => {
+      if (alive) setAddressTypeOptions(opts);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   async function reloadDetail() {
     const data = await loadClientDetail(clientId, txDateFrom, txDateTo);
     setClientState(data.client);
     setSavings(data.savings);
     setTransactions(data.transactions);
-    setResidential(data.residential);
-    setOffice(data.office);
+    setAddresses(data.addresses);
     setFamily(data.family);
     setIdentities(data.identities);
     setNotes(data.notes);
-    setDefaultSavingsProductCode(data.defaultSavingsProductCode);
+    setSavingsProducts(data.savingsProducts);
   }
 
   useEffect(() => {
@@ -476,12 +512,11 @@ function ClientDetail() {
       setClientState(data.client);
       setSavings(data.savings);
       setTransactions(data.transactions);
-      setResidential(data.residential);
-      setOffice(data.office);
+      setAddresses(data.addresses);
       setFamily(data.family);
       setIdentities(data.identities);
       setNotes(data.notes);
-      setDefaultSavingsProductCode(data.defaultSavingsProductCode);
+      setSavingsProducts(data.savingsProducts);
     })();
     return () => {
       alive = false;
@@ -491,6 +526,80 @@ function ClientDetail() {
   useEffect(() => {
     setTxPage(1);
   }, [accountFilter, txDateFrom, txDateTo]);
+
+  function viewAccountTransactions(accountRef: string) {
+    setAccountFilter(accountRef);
+    setSection("Transactions");
+  }
+
+  function openCreateAccount() {
+    setCreateAcctForm({ productCode: savingsProducts[0]?.code ?? "", externalId: "" });
+    setCreateAcctOpen(true);
+  }
+
+  async function submitCreateAccount() {
+    if (!createAcctForm.productCode) return;
+    await savingsAccountsApi.create({
+      clientId,
+      productCode: createAcctForm.productCode,
+      externalId: createAcctForm.externalId.trim() || null,
+      // Hidden from the UI per spec — the backend requires it, so we send today's date.
+      submittedOnDate: new Date().toISOString().slice(0, 10),
+    });
+    setCreateAcctOpen(false);
+    await reloadDetail();
+  }
+
+  function openAddAddress() {
+    setAddressForm({
+      addressTypeCode: addressTypeOptions[0]?.code ?? "",
+      addressLine1: "",
+      addressLine2: "",
+      city: "",
+      stateProvinceCode: "",
+      countryCode: "GH",
+      postalCode: "",
+      active: true,
+    });
+    setAddressModalOpen(true);
+  }
+
+  function openEditAddress(row: AddressRow) {
+    const matchedType = addressTypeOptions.find((o) => o.providerId === row.addressTypeId);
+    setAddressForm({
+      addressId: row.addressId,
+      addressTypeCode: matchedType?.code ?? addressTypeOptions[0]?.code ?? "",
+      addressLine1: row.line1,
+      addressLine2: row.line2,
+      city: row.city,
+      stateProvinceCode: "",
+      countryCode: "GH",
+      postalCode: row.postalCode,
+      active: row.active,
+    });
+    setAddressModalOpen(true);
+  }
+
+  async function submitAddressForm() {
+    if (!addressForm.addressTypeCode) return;
+    const body: ClientAddressWriteDto = {
+      addressTypeCode: addressForm.addressTypeCode,
+      addressLine1: addressForm.addressLine1,
+      addressLine2: addressForm.addressLine2 || null,
+      city: addressForm.city,
+      stateProvinceCode: addressForm.stateProvinceCode || null,
+      countryCode: addressForm.countryCode || null,
+      postalCode: addressForm.postalCode || null,
+      active: addressForm.active,
+    };
+    if (addressForm.addressId != null) {
+      await clientsApi.updateAddress(clientId, addressForm.addressId, body);
+    } else {
+      await clientsApi.addAddress(clientId, body);
+    }
+    setAddressModalOpen(false);
+    await reloadDetail();
+  }
 
   const txRows = transactions.filter(
     (t) =>
@@ -824,20 +933,7 @@ function ClientDetail() {
                     variant="success"
                     size="sm"
                     icon={<Plus size={13} />}
-                    onClick={() => {
-                      void (async () => {
-                        const productCode =
-                          defaultSavingsProductCode || (await savingsProductsApi.list())[0]?.code;
-                        if (!productCode) return;
-                        await savingsAccountsApi.create({
-                          clientId,
-                          productCode,
-                          externalId: null,
-                          submittedOnDate: new Date().toISOString().slice(0, 10),
-                        });
-                        await reloadDetail();
-                      })();
-                    }}
+                    onClick={openCreateAccount}
                   >
                     Create Account
                   </Button>
@@ -875,7 +971,11 @@ function ClientDetail() {
                           </Td>
                           <Td muted>{a.activated}</Td>
                           <Td align="right">
-                            <Button variant="outline" size="sm">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => viewAccountTransactions(a.acc)}
+                            >
                               View
                             </Button>
                           </Td>
@@ -1005,66 +1105,50 @@ function ClientDetail() {
           )}
 
           {section === "Address" && (
-            <>
-              <TableCard
-                title="Residential Address"
-                actions={
-                  <Button
-                    variant="success"
-                    size="sm"
-                    icon={<Plus size={13} />}
-                    onClick={() => {
-                      void (async () => {
-                        await clientsApi.addAddress(clientId, {
-                          addressTypeCode: "HOME",
-                          addressLine1: "New Street",
-                          addressLine2: "",
-                          city: "Accra",
-                          stateProvinceCode: "Greater Accra",
-                          countryCode: "GH",
-                          postalCode: "",
-                          active: true,
-                        });
-                        await reloadDetail();
-                      })();
-                    }}
-                  >
-                    Add Residential Address
-                  </Button>
-                }
-              >
-                <AddressTable rows={residential} empty="No residential address found" />
-              </TableCard>
-              <TableCard
-                title="Office Address"
-                actions={
-                  <Button
-                    variant="success"
-                    size="sm"
-                    icon={<Plus size={13} />}
-                    onClick={() => {
-                      void (async () => {
-                        await clientsApi.addAddress(clientId, {
-                          addressTypeCode: "OFFICE",
-                          addressLine1: "HQ Tower",
-                          addressLine2: "Floor 3",
-                          city: "Accra",
-                          stateProvinceCode: "Greater Accra",
-                          countryCode: "GH",
-                          postalCode: "",
-                          active: true,
-                        });
-                        await reloadDetail();
-                      })();
-                    }}
-                  >
-                    Add Office Address
-                  </Button>
-                }
-              >
-                <AddressTable rows={office} empty="No office address found" />
-              </TableCard>
-            </>
+            <TableCard
+              title="Addresses"
+              actions={
+                <Button
+                  variant="success"
+                  size="sm"
+                  icon={<Plus size={13} />}
+                  onClick={openAddAddress}
+                >
+                  Add Address
+                </Button>
+              }
+            >
+              <Table>
+                <TableHead cols={["Type", "Line 1", "Line 2", "City", "Region", "Status", ""]} />
+                <tbody>
+                  {addresses.length === 0 ? (
+                    <EmptyRow cols={7} text="No addresses found" />
+                  ) : (
+                    addresses.map((a, i) => (
+                      <Tr key={a.addressId ?? `${a.type}-${a.line1}-${i}`} hover>
+                        <Td>{a.type}</Td>
+                        <Td>{a.line1}</Td>
+                        <Td muted>{a.line2 || "—"}</Td>
+                        <Td muted>{a.city || "—"}</Td>
+                        <Td muted>{a.region || "—"}</Td>
+                        <Td>
+                          <StatusPill status={a.active ? "Active" : "Inactive"} />
+                        </Td>
+                        <Td align="right">
+                          <button
+                            style={{ color: tokens.textSub }}
+                            aria-label="Edit"
+                            onClick={() => openEditAddress(a)}
+                          >
+                            <Pencil size={14} />
+                          </button>
+                        </Td>
+                      </Tr>
+                    ))
+                  )}
+                </tbody>
+              </Table>
+            </TableCard>
           )}
 
           {section === "Family Members" && (
@@ -1315,6 +1399,107 @@ function ClientDetail() {
           )}
         </div>
       </div>
+
+      <Modal
+        open={createAcctOpen}
+        onClose={() => setCreateAcctOpen(false)}
+        title="Create Savings Account"
+        footer={
+          <>
+            <Button variant="outline" size="sm" onClick={() => setCreateAcctOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="success" size="sm" onClick={() => void submitCreateAccount()}>
+              Create Account
+            </Button>
+          </>
+        }
+      >
+        <MField label="Savings Product">
+          <MSelect
+            value={createAcctForm.productCode}
+            onChange={(e) => setCreateAcctForm((f) => ({ ...f, productCode: e.target.value }))}
+            options={savingsProducts.map((p) => ({ value: p.code, label: p.name }))}
+          />
+        </MField>
+        <MField label="External ID (optional)">
+          <MInput
+            value={createAcctForm.externalId}
+            onChange={(e) => setCreateAcctForm((f) => ({ ...f, externalId: e.target.value }))}
+            placeholder="e.g. core-banking reference"
+          />
+        </MField>
+      </Modal>
+
+      <Modal
+        open={addressModalOpen}
+        onClose={() => setAddressModalOpen(false)}
+        title={addressForm.addressId != null ? "Edit Address" : "Add Address"}
+        footer={
+          <>
+            <Button variant="outline" size="sm" onClick={() => setAddressModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="success" size="sm" onClick={() => void submitAddressForm()}>
+              {addressForm.addressId != null ? "Save Changes" : "Add Address"}
+            </Button>
+          </>
+        }
+      >
+        <MField label="Address Type">
+          <MSelect
+            value={addressForm.addressTypeCode}
+            onChange={(e) => setAddressForm((f) => ({ ...f, addressTypeCode: e.target.value }))}
+            options={addressTypeOptions.map((o) => ({ value: o.code, label: o.name }))}
+          />
+        </MField>
+        <MField label="Address Line 1">
+          <MInput
+            value={addressForm.addressLine1}
+            onChange={(e) => setAddressForm((f) => ({ ...f, addressLine1: e.target.value }))}
+          />
+        </MField>
+        <MField label="Address Line 2">
+          <MInput
+            value={addressForm.addressLine2}
+            onChange={(e) => setAddressForm((f) => ({ ...f, addressLine2: e.target.value }))}
+          />
+        </MField>
+        <MField label="City">
+          <MInput
+            value={addressForm.city}
+            onChange={(e) => setAddressForm((f) => ({ ...f, city: e.target.value }))}
+          />
+        </MField>
+        <MField label="State/Province Code (optional)">
+          <MInput
+            value={addressForm.stateProvinceCode}
+            onChange={(e) => setAddressForm((f) => ({ ...f, stateProvinceCode: e.target.value }))}
+            placeholder="e.g. GAR"
+          />
+        </MField>
+        <MField label="Country Code">
+          <MInput
+            value={addressForm.countryCode}
+            onChange={(e) => setAddressForm((f) => ({ ...f, countryCode: e.target.value }))}
+            placeholder="e.g. GH"
+          />
+        </MField>
+        <MField label="Postal Code">
+          <MInput
+            value={addressForm.postalCode}
+            onChange={(e) => setAddressForm((f) => ({ ...f, postalCode: e.target.value }))}
+          />
+        </MField>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
+          <input
+            type="checkbox"
+            checked={addressForm.active}
+            onChange={(e) => setAddressForm((f) => ({ ...f, active: e.target.checked }))}
+          />
+          Active
+        </label>
+      </Modal>
     </div>
   );
 }
@@ -1373,38 +1558,5 @@ function Mono({ label, value }: { label: string; value: string }) {
         {value}
       </div>
     </div>
-  );
-}
-
-function AddressTable({
-  rows,
-  empty,
-}: {
-  rows: { line1: string; line2: string; city: string; region: string }[];
-  empty: string;
-}) {
-  return (
-    <Table>
-      <TableHead cols={["Line 1", "Line 2", "City", "Region", ""]} />
-      <tbody>
-        {rows.length === 0 ? (
-          <EmptyRow cols={5} text={empty} />
-        ) : (
-          rows.map((r, i) => (
-            <Tr key={i} hover>
-              <Td>{r.line1}</Td>
-              <Td muted>{r.line2 || "—"}</Td>
-              <Td muted>{r.city}</Td>
-              <Td muted>{r.region}</Td>
-              <Td align="right">
-                <button style={{ color: tokens.textSub }} aria-label="Edit">
-                  <Pencil size={14} />
-                </button>
-              </Td>
-            </Tr>
-          ))
-        )}
-      </tbody>
-    </Table>
   );
 }

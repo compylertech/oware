@@ -12,6 +12,7 @@ import type { Client } from "../clients/types";
 import { SEED_CLIENTS } from "../clients/data";
 import type {
   ClientAddressDto,
+  ClientAddressWriteDto,
   ClientCreateDto,
   ClientDto,
   ClientFamilyMemberDto,
@@ -25,6 +26,7 @@ import { mapClient } from "./mappers";
 
 export type {
   ClientAddressDto,
+  ClientAddressWriteDto,
   ClientFamilyMemberDto,
   ClientIdentifierDto,
   ClientNoteDto,
@@ -54,6 +56,20 @@ function listContent<T>(payload: unknown, key: string): T[] {
 
 function mockId(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}`;
+}
+
+function mockAddressFromWrite(addressId: number, body: ClientAddressWriteDto): ClientAddressDto {
+  return {
+    addressId,
+    addressType: body.addressTypeCode,
+    addressLine1: body.addressLine1 ?? "",
+    addressLine2: body.addressLine2 ?? "",
+    city: body.city ?? "",
+    stateName: body.stateProvinceCode ?? "",
+    countryName: body.countryCode ?? "",
+    postalCode: body.postalCode ?? "",
+    active: body.active ?? true,
+  };
 }
 
 export const clientsApi = {
@@ -165,11 +181,26 @@ export const clientsApi = {
     );
   },
 
-  addAddress(clientId: string, body: ClientAddressDto): Promise<ClientAddressDto> {
+  addAddress(clientId: string, body: ClientAddressWriteDto): Promise<ClientAddressDto> {
     return withMock(
       async () =>
         request<ClientAddressDto>(`/clients/${clientId}/addresses`, { method: "POST", body }),
-      () => ({ id: mockId("addr"), ...body }),
+      () => mockAddressFromWrite(Date.now(), body),
+    );
+  },
+
+  updateAddress(
+    clientId: string,
+    addressId: number | string,
+    body: ClientAddressWriteDto,
+  ): Promise<ClientAddressDto> {
+    return withMock(
+      async () =>
+        request<ClientAddressDto>(`/clients/${clientId}/addresses/${addressId}`, {
+          method: "PUT",
+          body,
+        }),
+      () => mockAddressFromWrite(Number(addressId), body),
     );
   },
 
