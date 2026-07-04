@@ -1,0 +1,2244 @@
+{
+  "info": {
+    "name": "Corebanking Starter API",
+    "description": "REST API for the corebanking-starter service (clients, savings, loans, transaction operations, reconciliation, references).\n\n## Setup\n- Set the `baseUrl` variable (default http://localhost:8084).\n- Fill the id variables (`clientId`, `savingsAccountRef`, `loanAccountRef`, `productCode`, `operationId`, `transactionId`) as you create resources. Account/product refs accept either the local UUID or the accountNo/productCode.\n- Idempotent write endpoints send an auto-generated `Idempotency-Key` header (Postman `{{$guid}}`).\n- HTTP Basic auth is applied at the collection level (`authUser`/`authPass`, default `admin`/`admin`; override via ADMIN_USER/ADMIN_PASSWORD env on the server). Live docs: `{{baseUrl}}/swagger-ui.html` and `{{baseUrl}}/v3/api-docs`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8084"
+    },
+    {
+      "key": "clientId",
+      "value": ""
+    },
+    {
+      "key": "savingsAccountRef",
+      "value": ""
+    },
+    {
+      "key": "loanAccountRef",
+      "value": ""
+    },
+    {
+      "key": "productCode",
+      "value": ""
+    },
+    {
+      "key": "operationId",
+      "value": ""
+    },
+    {
+      "key": "transactionId",
+      "value": "1"
+    },
+    {
+      "key": "addressId",
+      "value": "1"
+    },
+    {
+      "key": "familyMemberId",
+      "value": "1"
+    },
+    {
+      "key": "identifierId",
+      "value": "1"
+    },
+    {
+      "key": "noteId",
+      "value": "1"
+    },
+    {
+      "key": "authUser",
+      "value": "admin"
+    },
+    {
+      "key": "authPass",
+      "value": "admin"
+    }
+  ],
+  "item": [
+    {
+      "name": "Clients",
+      "item": [
+        {
+          "name": "Create client",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"officeCode\": \"head_office\",\n  \"legalFormCode\": \"PERSON\",\n  \"firstName\": \"Jane\",\n  \"middleName\": \"M\",\n  \"lastName\": \"Doe\",\n  \"mobileNumber\": \"+233244567890\",\n  \"email\": \"jane.doe@example.com\",\n  \"dateOfBirth\": \"1990-05-20\",\n  \"genderCode\": \"MALE\",\n  \"savingsProductCode\": null,\n  \"externalId\": null,\n  \"submittedOnDate\": \"2026-07-01\",\n  \"activationDate\": \"2026-07-01\",\n  \"activeOnCreation\": true,\n  \"staff\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/clients",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clients"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const b = pm.response.json();",
+                  "const d = (b && b.data !== undefined && b.data !== null) ? b.data : b;",
+                  "if (d && d.id) { pm.collectionVariables.set('clientId', d.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search clients",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/clients?page=0&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clients"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "keyword",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get client",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clients",
+                "{{clientId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update client",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"middleName\": \"M\",\n  \"lastName\": \"Doe\",\n  \"mobileNumber\": \"+233244567890\",\n  \"email\": \"jane.doe@example.com\",\n  \"dateOfBirth\": \"1990-05-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clients",
+                "{{clientId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Activate client",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/activate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clients",
+                "{{clientId}}",
+                "activate"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reactivate client",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/reactivate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clients",
+                "{{clientId}}",
+                "reactivate"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Close client",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"closureReasonCode\": null,\n  \"closureDate\": \"2026-07-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/close",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "clients",
+                "{{clientId}}",
+                "close"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Addresses",
+          "item": [
+            {
+              "name": "Add address",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"addressTypeCode\": \"HOME\",\n  \"addressLine1\": \"1 Main St\",\n  \"city\": \"Accra\",\n  \"stateProvinceCode\": null,\n  \"countryCode\": \"GH\",\n  \"postalCode\": \"00233\",\n  \"active\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/addresses",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "clients",
+                    "{{clientId}}",
+                    "addresses"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List addresses",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/addresses",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "clients",
+                    "{{clientId}}",
+                    "addresses"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update address",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"addressTypeCode\": \"HOME\",\n  \"addressLine1\": \"2 Main St\",\n  \"city\": \"Accra\",\n  \"countryCode\": \"GH\",\n  \"postalCode\": \"00233\",\n  \"active\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/addresses/{{addressId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "clients",
+                    "{{clientId}}",
+                    "addresses",
+                    "{{addressId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete address",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/addresses/{{addressId}}?addressTypeCode=HOME",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "clients",
+                    "{{clientId}}",
+                    "addresses",
+                    "{{addressId}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "addressTypeCode",
+                      "value": "HOME"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Family members",
+          "item": [
+            {
+              "name": "Add family member",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"age\": 30,\n  \"dependent\": false,\n  \"relationshipCode\": null,\n  \"genderCode\": \"MALE\",\n  \"dateOfBirth\": \"1994-01-01\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/family-members",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "clients",
+                    "{{clientId}}",
+                    "family-members"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List family members",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/family-members",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "clients",
+                    "{{clientId}}",
+                    "family-members"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update family member",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"dependent\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/family-members/{{familyMemberId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "clients",
+                    "{{clientId}}",
+                    "family-members",
+                    "{{familyMemberId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete family member",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/family-members/{{familyMemberId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "clients",
+                    "{{clientId}}",
+                    "family-members",
+                    "{{familyMemberId}}"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Identifiers",
+          "item": [
+            {
+              "name": "Add identifier",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"documentTypeCode\": \"NATIONAL_ID\",\n  \"status\": \"ACTIVE\",\n  \"documentKey\": \"GHA-123456789\",\n  \"description\": \"National ID\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/identifiers",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "clients",
+                    "{{clientId}}",
+                    "identifiers"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List identifiers",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/identifiers",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "clients",
+                    "{{clientId}}",
+                    "identifiers"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update identifier",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"documentTypeCode\": \"NATIONAL_ID\",\n  \"status\": \"ACTIVE\",\n  \"documentKey\": \"GHA-123456789\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/identifiers/{{identifierId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "clients",
+                    "{{clientId}}",
+                    "identifiers",
+                    "{{identifierId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete identifier",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/identifiers/{{identifierId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "clients",
+                    "{{clientId}}",
+                    "identifiers",
+                    "{{identifierId}}"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notes",
+          "item": [
+            {
+              "name": "Add note",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"note\": \"Follow up next week\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/notes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "clients",
+                    "{{clientId}}",
+                    "notes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "List notes",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/notes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "clients",
+                    "{{clientId}}",
+                    "notes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update note",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"note\": \"Updated note\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/notes/{{noteId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "clients",
+                    "{{clientId}}",
+                    "notes",
+                    "{{noteId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete note",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}/notes/{{noteId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "clients",
+                    "{{clientId}}",
+                    "notes",
+                    "{{noteId}}"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Savings Products",
+      "item": [
+        {
+          "name": "Sync products",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/savings-products/sync",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "savings-products",
+                "sync"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/savings-products?page=0&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "savings-products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const b = pm.response.json();",
+                  "const d = (b && b.data !== undefined && b.data !== null) ? b.data : b;",
+                  "const items = d && (d.content || d.items || d);",
+                  "if (Array.isArray(items) && items.length && items[0].code) { pm.collectionVariables.set('productCode', items[0].code); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get product (code or UUID)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/savings-products/{{productCode}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "savings-products",
+                "{{productCode}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Savings Accounts",
+      "item": [
+        {
+          "name": "Create account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{clientId}}\",\n  \"productCode\": \"{{productCode}}\",\n  \"externalId\": null,\n  \"submittedOnDate\": \"2026-07-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/savings-accounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "savings-accounts"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const b = pm.response.json();",
+                  "const d = (b && b.data !== undefined && b.data !== null) ? b.data : b;",
+                  "if (d) { pm.collectionVariables.set('savingsAccountRef', d.accountNo || d.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search accounts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/savings-accounts?page=0&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "savings-accounts"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get account (accountNo or UUID)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/savings-accounts/{{savingsAccountRef}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "savings-accounts",
+                "{{savingsAccountRef}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"actionDate\": \"2026-07-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/savings-accounts/{{savingsAccountRef}}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "savings-accounts",
+                "{{savingsAccountRef}}",
+                "approve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Activate account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"actionDate\": \"2026-07-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/savings-accounts/{{savingsAccountRef}}/activate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "savings-accounts",
+                "{{savingsAccountRef}}",
+                "activate"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Close account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"actionDate\": \"2026-07-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/savings-accounts/{{savingsAccountRef}}/close",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "savings-accounts",
+                "{{savingsAccountRef}}",
+                "close"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Savings Transactions",
+      "item": [
+        {
+          "name": "Deposit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100.00,\n  \"transactionDate\": \"2026-07-01\",\n  \"paymentTypeCode\": null,\n  \"note\": \"Deposit\",\n  \"approvalRequired\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/savings-accounts/{{savingsAccountRef}}/transactions/deposit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "savings-accounts",
+                "{{savingsAccountRef}}",
+                "transactions",
+                "deposit"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const b = pm.response.json();",
+                  "const d = (b && b.data !== undefined && b.data !== null) ? b.data : b;",
+                  "if (d) {",
+                  "  if (d.operationId) pm.collectionVariables.set('operationId', d.operationId);",
+                  "  if (d.transaction && d.transaction.id) pm.collectionVariables.set('transactionId', d.transaction.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Withdrawal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 50.00,\n  \"transactionDate\": \"2026-07-01\",\n  \"paymentTypeCode\": null,\n  \"note\": \"Withdrawal\",\n  \"approvalRequired\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/savings-accounts/{{savingsAccountRef}}/transactions/withdrawal",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "savings-accounts",
+                "{{savingsAccountRef}}",
+                "transactions",
+                "withdrawal"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const b = pm.response.json();",
+                  "const d = (b && b.data !== undefined && b.data !== null) ? b.data : b;",
+                  "if (d) {",
+                  "  if (d.operationId) pm.collectionVariables.set('operationId', d.operationId);",
+                  "  if (d.transaction && d.transaction.id) pm.collectionVariables.set('transactionId', d.transaction.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List transactions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/savings-accounts/{{savingsAccountRef}}/transactions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "savings-accounts",
+                "{{savingsAccountRef}}",
+                "transactions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get transaction",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/savings-accounts/{{savingsAccountRef}}/transactions/{{transactionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "savings-accounts",
+                "{{savingsAccountRef}}",
+                "transactions",
+                "{{transactionId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Loan Products",
+      "item": [
+        {
+          "name": "Sync products",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-products/sync",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-products",
+                "sync"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-products?page=0&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const b = pm.response.json();",
+                  "const d = (b && b.data !== undefined && b.data !== null) ? b.data : b;",
+                  "const items = d && (d.content || d.items || d);",
+                  "if (Array.isArray(items) && items.length && items[0].code) { pm.collectionVariables.set('productCode', items[0].code); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get product (code or UUID)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-products/{{productCode}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-products",
+                "{{productCode}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Loan Accounts",
+      "item": [
+        {
+          "name": "Create account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{clientId}}\",\n  \"productCode\": \"{{productCode}}\",\n  \"principal\": 1000.00,\n  \"loanType\": \"individual\",\n  \"loanTermFrequency\": 6,\n  \"loanTermFrequencyType\": \"MONTHS\",\n  \"numberOfRepayments\": 6,\n  \"repaymentEvery\": 1,\n  \"repaymentFrequencyType\": \"MONTHS\",\n  \"interestRatePerPeriod\": 2.0,\n  \"interestRateFrequencyType\": \"MONTHS\",\n  \"amortizationType\": \"EQUAL_INSTALLMENTS\",\n  \"interestType\": \"DECLINING_BALANCE\",\n  \"interestCalculationPeriodType\": \"SAME_AS_REPAYMENT_PERIOD\",\n  \"transactionProcessingStrategyCode\": null,\n  \"allowPartialPeriodInterestCalculation\": false,\n  \"externalId\": null,\n  \"submittedOnDate\": \"2026-07-01\",\n  \"expectedDisbursementDate\": \"2026-07-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const b = pm.response.json();",
+                  "const d = (b && b.data !== undefined && b.data !== null) ? b.data : b;",
+                  "if (d) { pm.collectionVariables.set('loanAccountRef', d.accountNo || d.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search accounts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts?page=0&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Loans by client",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/by-client/{{clientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "by-client",
+                "{{clientId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get account (accountNo or UUID)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/{{loanAccountRef}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "{{loanAccountRef}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get loan details",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/{{loanAccountRef}}/details?include=all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "{{loanAccountRef}}",
+                "details"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "all",
+                  "description": "summary | repaymentSchedule | all"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"actionDate\": \"2026-07-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/{{loanAccountRef}}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "{{loanAccountRef}}",
+                "approve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reject account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"actionDate\": \"2026-07-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/{{loanAccountRef}}/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "{{loanAccountRef}}",
+                "reject"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Disburse account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"actionDate\": \"2026-07-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/{{loanAccountRef}}/disburse",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "{{loanAccountRef}}",
+                "disburse"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Close account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"actionDate\": \"2026-07-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/{{loanAccountRef}}/close",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "{{loanAccountRef}}",
+                "close"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Repayment schedule",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/{{loanAccountRef}}/repayment-schedule",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "{{loanAccountRef}}",
+                "repayment-schedule"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Loan Transactions",
+      "item": [
+        {
+          "name": "Post repayment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100.00,\n  \"transactionDate\": \"2026-07-01\",\n  \"note\": \"Repayment\",\n  \"approvalRequired\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/{{loanAccountRef}}/transactions/repayment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "{{loanAccountRef}}",
+                "transactions",
+                "repayment"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const b = pm.response.json();",
+                  "const d = (b && b.data !== undefined && b.data !== null) ? b.data : b;",
+                  "if (d) {",
+                  "  if (d.operationId) pm.collectionVariables.set('operationId', d.operationId);",
+                  "  if (d.transaction && d.transaction.id) pm.collectionVariables.set('transactionId', d.transaction.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Repayment preview",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/{{loanAccountRef}}/transactions/preview?amount=100.00",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "{{loanAccountRef}}",
+                "transactions",
+                "preview"
+              ],
+              "query": [
+                {
+                  "key": "amount",
+                  "value": "100.00"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Transaction history",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/{{loanAccountRef}}/transactions/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "{{loanAccountRef}}",
+                "transactions",
+                "history"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List transactions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/{{loanAccountRef}}/transactions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "{{loanAccountRef}}",
+                "transactions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get transaction",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/{{loanAccountRef}}/transactions/{{transactionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "{{loanAccountRef}}",
+                "transactions",
+                "{{transactionId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Loan Reporting",
+      "item": [
+        {
+          "name": "Overview",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/reports/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "reports",
+                "overview"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Active loans",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/reports/active",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "reports",
+                "active"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Disbursements",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/reports/disbursements?status=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "reports",
+                "disbursements"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "pending | disbursed | (omit for both)",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Arrears",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/reports/arrears",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "reports",
+                "arrears"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Applications",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/reports/applications?limit=20&offset=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "reports",
+                "applications"
+              ],
+              "query": [
+                {
+                  "key": "stage",
+                  "value": "",
+                  "description": "submitted | approved | active",
+                  "disabled": true
+                },
+                {
+                  "key": "fromDate",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "toDate",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pending approvals",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/loan-accounts/reports/approvals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "loan-accounts",
+                "reports",
+                "approvals"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transaction Operations",
+      "item": [
+        {
+          "name": "Receive operation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationType\": \"SAVINGS_DEPOSIT\",\n  \"accountType\": \"SAVINGS\",\n  \"localAccountId\": \"{{savingsAccountRef}}\",\n  \"fineractAccountId\": 76,\n  \"amount\": 100.00,\n  \"currencyCode\": \"USD\",\n  \"transactionDate\": \"2026-07-01\",\n  \"note\": \"Received deposit\",\n  \"paymentTypeCode\": null,\n  \"approvalRequired\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transaction-operations/receive",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transaction-operations",
+                "receive"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const b = pm.response.json();",
+                  "const d = (b && b.data !== undefined && b.data !== null) ? b.data : b;",
+                  "if (d && d.id) { pm.collectionVariables.set('operationId', d.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search operations",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transaction-operations?page=0&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transaction-operations"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get operation",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transaction-operations/{{operationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transaction-operations",
+                "{{operationId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve operation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comments\": \"Approved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transaction-operations/{{operationId}}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transaction-operations",
+                "{{operationId}}",
+                "approve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reject operation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comments\": \"Rejected\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transaction-operations/{{operationId}}/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transaction-operations",
+                "{{operationId}}",
+                "reject"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Process operation",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transaction-operations/{{operationId}}/process",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transaction-operations",
+                "{{operationId}}",
+                "process"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark posted",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fineractTransactionId\": 123,\n  \"fineractResourceId\": 123\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transaction-operations/{{operationId}}/mark-posted",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transaction-operations",
+                "{{operationId}}",
+                "mark-posted"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark failed",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Marked failed manually\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transaction-operations/{{operationId}}/mark-failed",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transaction-operations",
+                "{{operationId}}",
+                "mark-failed"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark unknown",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Marked unknown manually\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transaction-operations/{{operationId}}/mark-unknown",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transaction-operations",
+                "{{operationId}}",
+                "mark-unknown"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transaction Reconciliation",
+      "item": [
+        {
+          "name": "Reconcile operation",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transaction-reconciliation/{{operationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transaction-reconciliation",
+                "{{operationId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "References",
+      "item": [
+        {
+          "name": "Get reference values",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/references?category=PAYMENT_TYPE&provider=FINERACT",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "references"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "PAYMENT_TYPE"
+                },
+                {
+                  "key": "provider",
+                  "value": "FINERACT"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Sync references",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"PAYMENT_TYPE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/references/sync",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "references",
+                "sync"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('No server error (status < 500)', function () {",
+          "  pm.expect(pm.response.code).to.be.below(500);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "auth": {
+    "type": "basic",
+    "basic": [
+      {
+        "key": "username",
+        "value": "{{authUser}}",
+        "type": "string"
+      },
+      {
+        "key": "password",
+        "value": "{{authPass}}",
+        "type": "string"
+      }
+    ]
+  }
+}
