@@ -8,4 +8,10 @@ export {
   nextClientNumber,
   addClient,
   removeClient,
+  setClients,
+  hydrateClients,
 } from "../store";
+
+// Backend service (falls back to the seed registry when offline).
+export { clientsApi } from "../backend/clients";
+export type { ClientSearch } from "../backend/clients";

@@ -46,6 +46,33 @@ export function removeClient(id: string) {
   emit();
 }
 
+/** Replace the client registry (used when hydrating from the backend). */
+export function setClients(next: Client[]) {
+  clients = next;
+  emit();
+}
+
+// Hydrate the registry from the corebanking backend once, on the client. In
+// mock mode this resolves to the same seed fixtures, so the UI is unchanged;
+// when VITE_API_BASE_URL points at a real backend the store fills with live
+// clients and every `useClients()` consumer re-renders automatically.
+let hydrated = false;
+export async function hydrateClients() {
+  if (hydrated || typeof window === "undefined") return;
+  hydrated = true;
+  try {
+    const { clientsApi } = await import("./backend/clients");
+    const live = await clientsApi.search({ size: 200 });
+    if (live.length) setClients(live);
+  } catch {
+    // Keep the seed registry on any failure — the UI must not break.
+  }
+}
+
+if (typeof window !== "undefined") {
+  void hydrateClients();
+}
+
 export function addCoopMember(m: CoopMember) {
   coopMembers = [m, ...coopMembers];
   emit();
