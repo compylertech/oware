@@ -62,6 +62,63 @@ export type ClientCreateDto = {
   staff?: boolean;
 };
 
+export type ClientUpdateDto = Partial<Pick<
+  ClientCreateDto,
+  | "officeCode"
+  | "legalFormCode"
+  | "firstName"
+  | "middleName"
+  | "lastName"
+  | "mobileNumber"
+  | "email"
+  | "dateOfBirth"
+  | "genderCode"
+  | "savingsProductCode"
+  | "externalId"
+  | "submittedOnDate"
+  | "activationDate"
+  | "activeOnCreation"
+  | "staff"
+>>;
+
+export type ClientAddressDto = {
+  id?: string;
+  addressTypeCode?: string;
+  addressLine1?: string;
+  addressLine2?: string | null;
+  city?: string;
+  stateProvinceCode?: string | null;
+  countryCode?: string | null;
+  postalCode?: string | null;
+  active?: boolean;
+};
+
+export type ClientFamilyMemberDto = {
+  id?: string;
+  firstName?: string;
+  lastName?: string;
+  age?: number;
+  dependent?: boolean;
+  relationshipCode?: string | null;
+  genderCode?: string | null;
+  dateOfBirth?: string | null;
+};
+
+export type ClientIdentifierDto = {
+  id?: string;
+  documentTypeCode?: string;
+  status?: string;
+  documentKey?: string;
+  description?: string;
+};
+
+export type ClientNoteDto = {
+  id?: string;
+  note?: string;
+  createdOn?: string;
+  createdBy?: string;
+};
+
 export type ProductDto = {
   id?: string;
   fineractProductId?: number;
@@ -99,6 +156,9 @@ export type AccountDto = {
   principal?: number;
   balance?: number;
   status?: string;
+  activationDate?: string;
+  approvedDate?: string;
+  activatedOnDate?: string;
   syncedWithFineract?: boolean;
 };
 

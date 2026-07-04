@@ -11,7 +11,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { FONTS } from "@/lib/tokens";
-import { addClient, addCoopMember, nextClientNumber, type Client } from "@/lib/mockStore";
+import { clientsApi, getClients, setClients } from "@/api/clients";
+import { addCoopMember, type Client } from "@/lib/mockStore";
 import { Button } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/clients/add")({
@@ -168,35 +169,28 @@ function AddClientPage() {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      await new Promise((r) => setTimeout(r, 600));
-      const n = nextClientNumber();
-      const id = `clt-${n}`;
-      const fullName = [form.firstName, form.middleName, form.lastName].filter(Boolean).join(" ");
-      const activation = new Date(form.submittedOn).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
-      const client: Client = {
-        id,
-        name: fullName,
-        clientNumber: `CLT-${n}`,
-        externalId: form.externalId || `EXT-${n}`,
-        status: "Pending",
-        officeName: form.office,
-        activationDate: activation,
+      const created = await clientsApi.create({
+        officeCode: form.office,
+        legalFormCode: "PERSON",
         firstName: form.firstName,
-        middleName: form.middleName,
+        middleName: form.middleName || null,
         lastName: form.lastName,
-        mobile: form.mobile,
-        email: form.email,
-        isStaff: form.isStaff,
-      };
-      addClient(client);
+        mobileNumber: form.mobile || null,
+        email: form.email || null,
+        dateOfBirth: form.dob || null,
+        genderCode: form.gender || null,
+        savingsProductCode: null,
+        externalId: form.externalId || null,
+        submittedOnDate: form.submittedOn,
+        activationDate: form.submittedOn,
+        activeOnCreation: false,
+        staff: form.isStaff,
+      });
+      setClients([created, ...getClients().filter((c) => c.id !== created.id)]);
       if (form.coopEnrol) {
         addCoopMember({
-          id: `coop-${n}`,
-          clientId: id,
+          id: `coop-${created.id}`,
+          clientId: created.id,
           commonBondGroup: form.commonBond,
           shareClass: form.shareClass,
           initialShares: Number(form.initialShares) || 0,

@@ -46,11 +46,25 @@ export type MoneyTxn = {
   approvalRequired?: boolean;
 };
 
+export type SavingsAccountSearch = {
+  keyword?: string;
+  clientId?: string;
+  productCode?: string;
+  status?: string;
+  page?: number;
+  size?: number;
+};
+
 export const savingsAccountsApi = {
-  search(page = 0, size = 20): Promise<AccountDto[]> {
+  search(params: SavingsAccountSearch = {}): Promise<AccountDto[]> {
+    const { keyword, clientId, productCode, status, page = 0, size = 20 } = params;
     return withMock(
       async () =>
-        content(await request<Page<AccountDto>>("/savings-accounts", { query: { page, size } })),
+        content(
+          await request<Page<AccountDto>>("/savings-accounts", {
+            query: { keyword, clientId, productCode, status, page, size },
+          }),
+        ),
       () => [],
     );
   },
@@ -84,9 +98,18 @@ export const savingsAccountsApi = {
       () => undefined,
     );
   },
-  transactions(ref: string): Promise<TransactionDto[]> {
+  transactions(
+    ref: string,
+    params: { fromSubmittedDate?: string; toSubmittedDate?: string } = {},
+  ): Promise<TransactionDto[]> {
+    const { fromSubmittedDate, toSubmittedDate } = params;
     return withMock(
-      () => request<TransactionDto[]>(`/savings-accounts/${ref}/transactions`),
+      async () =>
+        content(
+          await request<Page<TransactionDto> | TransactionDto[]>(`/savings-accounts/${ref}/transactions`, {
+            query: { fromSubmittedDate, toSubmittedDate },
+          }),
+        ),
       () => [],
     );
   },

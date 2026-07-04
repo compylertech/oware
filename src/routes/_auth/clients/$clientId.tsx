@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ArrowLeft, MoreVertical, Plus, Download, Pencil, Upload } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
 import {
@@ -15,6 +15,19 @@ import {
 } from "@/components/patterns";
 import { isDisplayDateInRange } from "@/lib/dateFilters";
 import { FONTS, tokens, cardShadow } from "@/lib/tokens";
+import { useClients, type Client as BackendClient } from "@/api/clients";
+import {
+  clientsApi,
+  loanAccountsApi,
+  savingsAccountsApi,
+  savingsProductsApi,
+  type AccountDto,
+  type ClientAddressDto,
+  type ClientFamilyMemberDto,
+  type ClientIdentifierDto,
+  type ClientNoteDto,
+  type TransactionDto,
+} from "@/api/backend";
 
 export const Route = createFileRoute("/_auth/clients/$clientId")({
   component: ClientDetail,
@@ -156,7 +169,6 @@ function EmptyRow({ cols, text }: { cols: number; text: string }) {
   return <PatternEmptyRow colSpan={cols}>{text}</PatternEmptyRow>;
 }
 
-// ---- mock sub-data ----
 type Section =
   | "Details"
   | "Transactions"
@@ -178,16 +190,255 @@ const SECTIONS: Section[] = [
 
 const CLIENT_DETAIL_TX_PAGE_SIZE = 10;
 
+type SavingsAccountRow = {
+  acc: string;
+  product: string;
+  balance: number;
+  status: StatusKind;
+  activated: string;
+};
+
+type TransactionRow = {
+  id: string;
+  date: string;
+  type: "Credit" | "Debit";
+  amount: number;
+  balance: number;
+  ref: string;
+  narration: string;
+  acc: string;
+};
+
+type AddressRow = {
+  id: string;
+  line1: string;
+  line2: string;
+  city: string;
+  region: string;
+};
+
+type FamilyRow = {
+  id: string;
+  name: string;
+  rel: string;
+  age: number;
+  gender: string;
+};
+
+type IdentityRow = {
+  id: string;
+  type: string;
+  no: string;
+  status: StatusKind;
+};
+
+type NoteRow = {
+  id: string;
+  author: string;
+  text: string;
+  at: string;
+};
+
+type LoadedClientDetail = {
+  client: BackendClient | null;
+  savings: SavingsAccountRow[];
+  transactions: TransactionRow[];
+  residential: AddressRow[];
+  office: AddressRow[];
+  family: FamilyRow[];
+  identities: IdentityRow[];
+  notes: NoteRow[];
+  defaultSavingsProductCode: string;
+};
+
+const EMPTY_CLIENT: BackendClient = {
+  id: "",
+  name: "",
+  clientNumber: "",
+  externalId: "",
+  status: "Pending",
+  officeName: "",
+  activationDate: "—",
+};
+
+function statusFrom(value?: string): StatusKind {
+  const normalized = (value ?? "").toUpperCase();
+  if (normalized.includes("ACTIVE")) return "Active";
+  if (normalized.includes("PENDING")) return "Pending";
+  if (normalized.includes("CLOSED")) return "Inactive";
+  if (normalized.includes("REJECT")) return "Rejected";
+  if (normalized.includes("REVERSED")) return "Reversed";
+  if (normalized.includes("DRAFT")) return "Draft";
+  return "Inactive";
+}
+
+function fmtDisplayDate(value?: string | null): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function prettyLabel(value?: string | null): string {
+  if (!value) return "—";
+  return value
+    .replace(/[_-]+/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function mapSavingsAccount(account: AccountDto): SavingsAccountRow {
+  const reference = account.accountNo ?? account.id;
+  return {
+    acc: reference,
+    product: account.productName ?? account.productCode ?? "—",
+    balance: account.balance ?? account.principal ?? 0,
+    status: statusFrom(account.status),
+    activated: fmtDisplayDate(account.activationDate ?? account.approvedDate ?? account.activatedOnDate),
+  };
+}
+
+function mapTransaction(tx: TransactionDto, accountRef: string, index: number): TransactionRow {
+  const typeSource =
+    tx.type ??
+    tx.transactionTypeValue ??
+    tx.transactionTypeCode ??
+    "Credit";
+  const type = /debit|withdrawal/i.test(typeSource) ? "Debit" : "Credit";
+  const reference = typeof tx.id === "string" ? tx.id : String(tx.id);
+  return {
+    id: `${accountRef}-${reference}-${index}`,
+    date: fmtDisplayDate(tx.date ?? tx.transactionDate),
+    type,
+    amount: tx.amount ?? 0,
+    balance: tx.runningBalance ?? 0,
+    ref: reference,
+    narration: tx.note ?? tx.type ?? "—",
+    acc: accountRef,
+  };
+}
+
+function mapAddress(address: ClientAddressDto): AddressRow {
+  return {
+    id: address.id ?? `${address.addressTypeCode ?? "address"}-${address.addressLine1 ?? ""}`,
+    line1: address.addressLine1 ?? "",
+    line2: address.addressLine2 ?? "",
+    city: address.city ?? "",
+    region: address.stateProvinceCode ?? "",
+  };
+}
+
+function mapFamilyMember(member: ClientFamilyMemberDto): FamilyRow {
+  const name = [member.firstName, member.lastName].filter(Boolean).join(" ") || "—";
+  const relation = member.relationshipCode ? prettyLabel(member.relationshipCode) : undefined;
+  return {
+    id: member.id ?? name,
+    name,
+    rel: relation || (member.dependent ? "Dependent" : "Relative"),
+    age: member.age ?? (member.dateOfBirth ? Math.max(0, new Date().getFullYear() - new Date(member.dateOfBirth).getFullYear()) : 0),
+    gender: prettyLabel(member.genderCode),
+  };
+}
+
+function mapIdentifier(identifier: ClientIdentifierDto): IdentityRow {
+  return {
+    id: identifier.id ?? identifier.documentKey ?? `${identifier.documentTypeCode ?? "identifier"}`,
+    type: prettyLabel(identifier.documentTypeCode) || identifier.description || "—",
+    no: identifier.documentKey ?? "—",
+    status: statusFrom(identifier.status),
+  };
+}
+
+function mapNote(note: ClientNoteDto): NoteRow {
+  return {
+    id: note.id ?? note.note ?? String(Date.now()),
+    author: note.createdBy ?? "System",
+    text: note.note ?? "",
+    at: fmtDisplayDate(note.createdOn),
+  };
+}
+
+async function loadClientDetail(
+  clientId: string,
+  txDateFrom: string = "",
+  txDateTo: string = "",
+): Promise<LoadedClientDetail> {
+  const [client, accounts, addresses, familyMembers, identifiers, notes, products] = await Promise.all([
+    clientsApi.get(clientId),
+    savingsAccountsApi.search({ clientId, size: 200 }),
+    clientsApi.addresses(clientId),
+    clientsApi.familyMembers(clientId),
+    clientsApi.identifiers(clientId),
+    clientsApi.notes(clientId),
+    savingsProductsApi.list(),
+  ]);
+
+  const loanAccounts = await loanAccountsApi.byClient(clientId);
+  void loanAccounts;
+
+  const savings = accounts.map(mapSavingsAccount);
+
+  const transactions = (
+    await Promise.all(
+      savings.map(async (account) => {
+        const rows = await savingsAccountsApi.transactions(account.acc, {
+          fromSubmittedDate: txDateFrom || undefined,
+          toSubmittedDate: txDateTo || undefined,
+        });
+        return rows.map((row, index) => mapTransaction(row, account.acc, index));
+      }),
+    )
+  ).flat();
+
+  const residential = addresses.filter((address) => {
+    const type = (address.addressTypeCode ?? "").toUpperCase();
+    return type.includes("HOME") || type.includes("RESIDENTIAL") || !type;
+  });
+  const office = addresses.filter((address) => {
+    const type = (address.addressTypeCode ?? "").toUpperCase();
+    return type.includes("OFFICE");
+  });
+
+  return {
+    client: client ?? null,
+    savings,
+    transactions,
+    residential: residential.map(mapAddress),
+    office: office.map(mapAddress),
+    family: familyMembers.map(mapFamilyMember),
+    identities: identifiers.map(mapIdentifier),
+    notes: notes.map(mapNote),
+    defaultSavingsProductCode: products[0]?.code ?? "",
+  };
+}
+
 function ClientDetail() {
   const { clientId } = Route.useParams();
-  const client = useMemo(
-    () => CLIENT_SEED.find((c) => c.id === clientId) ?? CLIENT_SEED[0],
-    [clientId],
-  );
+  const storeClient = useClients().find((c) => c.id === clientId) ?? null;
+  const [clientState, setClientState] = useState<BackendClient | null>(storeClient ?? null);
+  const client = clientState ?? storeClient ?? EMPTY_CLIENT;
 
   const [section, setSection] = useState<Section>("Details");
   const [menuOpen, setMenuOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+
+  const [savings, setSavings] = useState<SavingsAccountRow[]>([]);
+  const [accountFilter, setAccountFilter] = useState<string>("All");
+  const [txDateFrom, setTxDateFrom] = useState("");
+  const [txDateTo, setTxDateTo] = useState("");
+  const [txPage, setTxPage] = useState(1);
+  const [transactions, setTransactions] = useState<TransactionRow[]>([]);
+  const [residential, setResidential] = useState<AddressRow[]>([]);
+  const [office, setOffice] = useState<AddressRow[]>([]);
+  const [family, setFamily] = useState<FamilyRow[]>([]);
+  const [identities, setIdentities] = useState<IdentityRow[]>([]);
+  const [docs, setDocs] = useState([
+    { name: "KYC_Form.pdf", type: "Onboarding" },
+    { name: "Utility_Bill.pdf", type: "Proof of Address" },
+  ]);
+  const [notes, setNotes] = useState<NoteRow[]>([]);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [defaultSavingsProductCode, setDefaultSavingsProductCode] = useState("");
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
@@ -197,56 +448,48 @@ function ClientDetail() {
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  // mock sub data
-  const [savings, setSavings] = useState([
-    {
-      acc: "1001234567",
-      product: "Easy Saver",
-      balance: 12450.75,
-      status: "Active" as StatusKind,
-      activated: "12 Mar 2024",
-    },
-    {
-      acc: "1001234890",
-      product: "Susu Plus",
-      balance: 3200.0,
-      status: "Active" as StatusKind,
-      activated: "04 Aug 2024",
-    },
-  ]);
-  const [accountFilter, setAccountFilter] = useState<string>("All");
-  const [txDateFrom, setTxDateFrom] = useState("");
-  const [txDateTo, setTxDateTo] = useState("");
-  const [txPage, setTxPage] = useState(1);
-  const transactions = [
-    {
-      date: "18 Jun 2026",
-      type: "Credit",
-      amount: 500,
-      balance: 12950.75,
-      ref: "TRX-0091",
-      narration: "Cash deposit",
-      acc: "1001234567",
-    },
-    {
-      date: "15 Jun 2026",
-      type: "Debit",
-      amount: 120,
-      balance: 12450.75,
-      ref: "TRX-0088",
-      narration: "ATM withdrawal",
-      acc: "1001234567",
-    },
-    {
-      date: "10 Jun 2026",
-      type: "Credit",
-      amount: 2000,
-      balance: 3200,
-      ref: "TRX-0075",
-      narration: "Account funding",
-      acc: "1001234890",
-    },
-  ];
+  useEffect(() => {
+    setClientState(storeClient ?? null);
+  }, [storeClient]);
+
+
+  async function reloadDetail() {
+    const data = await loadClientDetail(clientId, txDateFrom, txDateTo);
+    setClientState(data.client);
+    setSavings(data.savings);
+    setTransactions(data.transactions);
+    setResidential(data.residential);
+    setOffice(data.office);
+    setFamily(data.family);
+    setIdentities(data.identities);
+    setNotes(data.notes);
+    setDefaultSavingsProductCode(data.defaultSavingsProductCode);
+  }
+
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      const data = await loadClientDetail(clientId);
+      if (!alive) return;
+      setClientState(data.client);
+      setSavings(data.savings);
+      setTransactions(data.transactions);
+      setResidential(data.residential);
+      setOffice(data.office);
+      setFamily(data.family);
+      setIdentities(data.identities);
+      setNotes(data.notes);
+      setDefaultSavingsProductCode(data.defaultSavingsProductCode);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [clientId, txDateFrom, txDateTo]);
+
+  useEffect(() => {
+    setTxPage(1);
+  }, [accountFilter, txDateFrom, txDateTo]);
+
   const txRows = transactions.filter(
     (t) =>
       (accountFilter === "All" || t.acc === accountFilter) &&
@@ -258,31 +501,6 @@ function ClientDetail() {
     (txCurrentPage - 1) * CLIENT_DETAIL_TX_PAGE_SIZE,
     txCurrentPage * CLIENT_DETAIL_TX_PAGE_SIZE,
   );
-
-  const [residential, setResidential] = useState([
-    { line1: "12 Independence Ave", line2: "East Legon", city: "Accra", region: "Greater Accra" },
-  ]);
-  const [office, setOffice] = useState<typeof residential>([]);
-
-  const [family, setFamily] = useState([
-    { name: "Akua Mensah", rel: "Spouse", age: 34, gender: "Female" },
-    { name: "Kwesi Mensah", rel: "Son", age: 8, gender: "Male" },
-  ]);
-
-  const [identities, setIdentities] = useState([
-    { type: "Ghana Card", no: "GHA-7239201-3", status: "Active" as StatusKind },
-    { type: "Passport", no: "G2398872", status: "Pending" as StatusKind },
-  ]);
-
-  const [docs, setDocs] = useState([
-    { name: "KYC_Form.pdf", type: "Onboarding" },
-    { name: "Utility_Bill.pdf", type: "Proof of Address" },
-  ]);
-
-  const [notes, setNotes] = useState([
-    { author: "Daniel Q.", text: "Client requested mobile banking upgrade.", at: "20 Jun 2026" },
-  ]);
-  const [noteDraft, setNoteDraft] = useState("");
 
   return (
     <div ref={rootRef} style={{ background: tokens.bg, minHeight: "100%" }} className="p-7">
@@ -604,18 +822,19 @@ function ClientDetail() {
                     variant="success"
                     size="sm"
                     icon={<Plus size={13} />}
-                    onClick={() =>
-                      setSavings((s) => [
-                        ...s,
-                        {
-                          acc: `100${Math.floor(Math.random() * 9000000)}`,
-                          product: "New Saver",
-                          balance: 0,
-                          status: "Pending",
-                          activated: new Date().toLocaleDateString("en-GB"),
-                        },
-                      ])
-                    }
+                    onClick={() => {
+                      void (async () => {
+                        const productCode = defaultSavingsProductCode || (await savingsProductsApi.list())[0]?.code;
+                        if (!productCode) return;
+                        await savingsAccountsApi.create({
+                          clientId,
+                          productCode,
+                          externalId: null,
+                          submittedOnDate: new Date().toISOString().slice(0, 10),
+                        });
+                        await reloadDetail();
+                      })();
+                    }}
                   >
                     Create Account
                   </Button>
@@ -791,12 +1010,21 @@ function ClientDetail() {
                     variant="success"
                     size="sm"
                     icon={<Plus size={13} />}
-                    onClick={() =>
-                      setResidential((r) => [
-                        ...r,
-                        { line1: "New Street", line2: "", city: "Accra", region: "Greater Accra" },
-                      ])
-                    }
+                    onClick={() => {
+                      void (async () => {
+                        await clientsApi.addAddress(clientId, {
+                          addressTypeCode: "HOME",
+                          addressLine1: "New Street",
+                          addressLine2: "",
+                          city: "Accra",
+                          stateProvinceCode: "Greater Accra",
+                          countryCode: "GH",
+                          postalCode: "",
+                          active: true,
+                        });
+                        await reloadDetail();
+                      })();
+                    }}
                   >
                     Add Residential Address
                   </Button>
@@ -811,17 +1039,21 @@ function ClientDetail() {
                     variant="success"
                     size="sm"
                     icon={<Plus size={13} />}
-                    onClick={() =>
-                      setOffice((r) => [
-                        ...r,
-                        {
-                          line1: "HQ Tower",
-                          line2: "Floor 3",
+                    onClick={() => {
+                      void (async () => {
+                        await clientsApi.addAddress(clientId, {
+                          addressTypeCode: "OFFICE",
+                          addressLine1: "HQ Tower",
+                          addressLine2: "Floor 3",
                           city: "Accra",
-                          region: "Greater Accra",
-                        },
-                      ])
-                    }
+                          stateProvinceCode: "Greater Accra",
+                          countryCode: "GH",
+                          postalCode: "",
+                          active: true,
+                        });
+                        await reloadDetail();
+                      })();
+                    }}
                   >
                     Add Office Address
                   </Button>
@@ -840,12 +1072,18 @@ function ClientDetail() {
                   variant="success"
                   size="sm"
                   icon={<Plus size={13} />}
-                  onClick={() =>
-                    setFamily((f) => [
-                      ...f,
-                      { name: "New Member", rel: "Sibling", age: 25, gender: "Female" },
-                    ])
-                  }
+                    onClick={() => {
+                      void (async () => {
+                        await clientsApi.addFamilyMember(clientId, {
+                          firstName: "New",
+                          lastName: "Member",
+                          dependent: true,
+                          relationshipCode: "SIBLING",
+                          genderCode: "FEMALE",
+                        });
+                        await reloadDetail();
+                      })();
+                    }}
                 >
                   Add Family Member
                 </Button>
@@ -879,12 +1117,17 @@ function ClientDetail() {
                   variant="success"
                   size="sm"
                   icon={<Plus size={13} />}
-                  onClick={() =>
-                    setIdentities((i) => [
-                      ...i,
-                      { type: "Driver's License", no: "DL-99812", status: "Pending" },
-                    ])
-                  }
+                    onClick={() => {
+                      void (async () => {
+                        await clientsApi.addIdentifier(clientId, {
+                          documentTypeCode: "NATIONAL_ID",
+                          status: "ACTIVE",
+                          documentKey: `GHA-${Math.floor(Math.random() * 900000000) + 100000000}`,
+                          description: "National ID",
+                        });
+                        await reloadDetail();
+                      })();
+                    }}
                 >
                   Add New Identity
                 </Button>
@@ -998,16 +1241,12 @@ function ClientDetail() {
                   size="sm"
                   icon={<Plus size={13} />}
                   onClick={() => {
-                    if (!noteDraft.trim()) return;
-                    setNotes((n) => [
-                      {
-                        author: "Daniel Q.",
-                        text: noteDraft.trim(),
-                        at: new Date().toLocaleDateString("en-GB"),
-                      },
-                      ...n,
-                    ]);
-                    setNoteDraft("");
+                    void (async () => {
+                      if (!noteDraft.trim()) return;
+                      await clientsApi.addNote(clientId, { note: noteDraft.trim() });
+                      setNoteDraft("");
+                      await reloadDetail();
+                    })();
                   }}
                 >
                   Add Note

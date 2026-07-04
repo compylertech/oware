@@ -15,6 +15,13 @@ export * from "./config";
 export * from "./dto";
 export { ApiError, BackendUnavailable } from "./http";
 export { clientsApi } from "./clients";
+export type {
+  ClientAddressDto,
+  ClientFamilyMemberDto,
+  ClientIdentifierDto,
+  ClientNoteDto,
+  ClientUpdateDto,
+} from "./clients";
 export { loanProductsApi, savingsProductsApi } from "./products";
 export { loanAccountsApi, savingsAccountsApi } from "./accounts";
 export { loanReportsApi } from "./reports";
