@@ -106,9 +106,12 @@ export const savingsAccountsApi = {
     return withMock(
       async () =>
         content(
-          await request<Page<TransactionDto> | TransactionDto[]>(`/savings-accounts/${ref}/transactions`, {
-            query: { fromSubmittedDate, toSubmittedDate },
-          }),
+          await request<Page<TransactionDto> | TransactionDto[]>(
+            `/savings-accounts/${ref}/transactions`,
+            {
+              query: { fromSubmittedDate, toSubmittedDate },
+            },
+          ),
         ),
       () => [],
     );

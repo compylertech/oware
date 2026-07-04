@@ -294,16 +294,14 @@ function mapSavingsAccount(account: AccountDto): SavingsAccountRow {
     product: account.productName ?? account.productCode ?? "—",
     balance: account.balance ?? account.principal ?? 0,
     status: statusFrom(account.status),
-    activated: fmtDisplayDate(account.activationDate ?? account.approvedDate ?? account.activatedOnDate),
+    activated: fmtDisplayDate(
+      account.activationDate ?? account.approvedDate ?? account.activatedOnDate,
+    ),
   };
 }
 
 function mapTransaction(tx: TransactionDto, accountRef: string, index: number): TransactionRow {
-  const typeSource =
-    tx.type ??
-    tx.transactionTypeValue ??
-    tx.transactionTypeCode ??
-    "Credit";
+  const typeSource = tx.type ?? tx.transactionTypeValue ?? tx.transactionTypeCode ?? "Credit";
   const type = /debit|withdrawal/i.test(typeSource) ? "Debit" : "Credit";
   const reference = typeof tx.id === "string" ? tx.id : String(tx.id);
   return {
@@ -335,7 +333,11 @@ function mapFamilyMember(member: ClientFamilyMemberDto): FamilyRow {
     id: member.id ?? name,
     name,
     rel: relation || (member.dependent ? "Dependent" : "Relative"),
-    age: member.age ?? (member.dateOfBirth ? Math.max(0, new Date().getFullYear() - new Date(member.dateOfBirth).getFullYear()) : 0),
+    age:
+      member.age ??
+      (member.dateOfBirth
+        ? Math.max(0, new Date().getFullYear() - new Date(member.dateOfBirth).getFullYear())
+        : 0),
     gender: prettyLabel(member.genderCode),
   };
 }
@@ -363,15 +365,16 @@ async function loadClientDetail(
   txDateFrom: string = "",
   txDateTo: string = "",
 ): Promise<LoadedClientDetail> {
-  const [client, accounts, addresses, familyMembers, identifiers, notes, products] = await Promise.all([
-    clientsApi.get(clientId),
-    savingsAccountsApi.search({ clientId, size: 200 }),
-    clientsApi.addresses(clientId),
-    clientsApi.familyMembers(clientId),
-    clientsApi.identifiers(clientId),
-    clientsApi.notes(clientId),
-    savingsProductsApi.list(),
-  ]);
+  const [client, accounts, addresses, familyMembers, identifiers, notes, products] =
+    await Promise.all([
+      clientsApi.get(clientId),
+      savingsAccountsApi.search({ clientId, size: 200 }),
+      clientsApi.addresses(clientId),
+      clientsApi.familyMembers(clientId),
+      clientsApi.identifiers(clientId),
+      clientsApi.notes(clientId),
+      savingsProductsApi.list(),
+    ]);
 
   const loanAccounts = await loanAccountsApi.byClient(clientId);
   void loanAccounts;
@@ -451,7 +454,6 @@ function ClientDetail() {
   useEffect(() => {
     setClientState(storeClient ?? null);
   }, [storeClient]);
-
 
   async function reloadDetail() {
     const data = await loadClientDetail(clientId, txDateFrom, txDateTo);
@@ -824,7 +826,8 @@ function ClientDetail() {
                     icon={<Plus size={13} />}
                     onClick={() => {
                       void (async () => {
-                        const productCode = defaultSavingsProductCode || (await savingsProductsApi.list())[0]?.code;
+                        const productCode =
+                          defaultSavingsProductCode || (await savingsProductsApi.list())[0]?.code;
                         if (!productCode) return;
                         await savingsAccountsApi.create({
                           clientId,
@@ -1072,18 +1075,18 @@ function ClientDetail() {
                   variant="success"
                   size="sm"
                   icon={<Plus size={13} />}
-                    onClick={() => {
-                      void (async () => {
-                        await clientsApi.addFamilyMember(clientId, {
-                          firstName: "New",
-                          lastName: "Member",
-                          dependent: true,
-                          relationshipCode: "SIBLING",
-                          genderCode: "FEMALE",
-                        });
-                        await reloadDetail();
-                      })();
-                    }}
+                  onClick={() => {
+                    void (async () => {
+                      await clientsApi.addFamilyMember(clientId, {
+                        firstName: "New",
+                        lastName: "Member",
+                        dependent: true,
+                        relationshipCode: "SIBLING",
+                        genderCode: "FEMALE",
+                      });
+                      await reloadDetail();
+                    })();
+                  }}
                 >
                   Add Family Member
                 </Button>
@@ -1117,17 +1120,17 @@ function ClientDetail() {
                   variant="success"
                   size="sm"
                   icon={<Plus size={13} />}
-                    onClick={() => {
-                      void (async () => {
-                        await clientsApi.addIdentifier(clientId, {
-                          documentTypeCode: "NATIONAL_ID",
-                          status: "ACTIVE",
-                          documentKey: `GHA-${Math.floor(Math.random() * 900000000) + 100000000}`,
-                          description: "National ID",
-                        });
-                        await reloadDetail();
-                      })();
-                    }}
+                  onClick={() => {
+                    void (async () => {
+                      await clientsApi.addIdentifier(clientId, {
+                        documentTypeCode: "NATIONAL_ID",
+                        status: "ACTIVE",
+                        documentKey: `GHA-${Math.floor(Math.random() * 900000000) + 100000000}`,
+                        description: "National ID",
+                      });
+                      await reloadDetail();
+                    })();
+                  }}
                 >
                   Add New Identity
                 </Button>

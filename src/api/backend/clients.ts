@@ -157,134 +157,136 @@ export const clientsApi = {
     );
   },
 
-    addresses(clientId: string): Promise<ClientAddressDto[]> {
-      return withMock(
-        async () => listContent<ClientAddressDto>(await request(`/clients/${clientId}/addresses`), "addresses"),
-        () => [],
-      );
-    },
+  addresses(clientId: string): Promise<ClientAddressDto[]> {
+    return withMock(
+      async () =>
+        listContent<ClientAddressDto>(await request(`/clients/${clientId}/addresses`), "addresses"),
+      () => [],
+    );
+  },
 
-    addAddress(clientId: string, body: ClientAddressDto): Promise<ClientAddressDto> {
-      return withMock(
-        async () =>
-          request<ClientAddressDto>(`/clients/${clientId}/addresses`, { method: "POST", body }),
-        () => ({ id: mockId("addr"), ...body }),
-      );
-    },
+  addAddress(clientId: string, body: ClientAddressDto): Promise<ClientAddressDto> {
+    return withMock(
+      async () =>
+        request<ClientAddressDto>(`/clients/${clientId}/addresses`, { method: "POST", body }),
+      () => ({ id: mockId("addr"), ...body }),
+    );
+  },
 
-    familyMembers(clientId: string): Promise<ClientFamilyMemberDto[]> {
-      return withMock(
-        async () =>
-          listContent<ClientFamilyMemberDto>(
-            await request(`/clients/${clientId}/family-members`),
-            "familyMembers",
-          ),
-        () => [],
-      );
-    },
+  familyMembers(clientId: string): Promise<ClientFamilyMemberDto[]> {
+    return withMock(
+      async () =>
+        listContent<ClientFamilyMemberDto>(
+          await request(`/clients/${clientId}/family-members`),
+          "familyMembers",
+        ),
+      () => [],
+    );
+  },
 
-    addFamilyMember(clientId: string, body: ClientFamilyMemberDto): Promise<ClientFamilyMemberDto> {
-      return withMock(
-        async () =>
-          request<ClientFamilyMemberDto>(`/clients/${clientId}/family-members`, {
-            method: "POST",
-            body,
-          }),
-        () => ({ id: mockId("fam"), ...body }),
-      );
-    },
+  addFamilyMember(clientId: string, body: ClientFamilyMemberDto): Promise<ClientFamilyMemberDto> {
+    return withMock(
+      async () =>
+        request<ClientFamilyMemberDto>(`/clients/${clientId}/family-members`, {
+          method: "POST",
+          body,
+        }),
+      () => ({ id: mockId("fam"), ...body }),
+    );
+  },
 
-    updateFamilyMember(
-      clientId: string,
-      memberId: string,
-      body: ClientFamilyMemberDto,
-    ): Promise<ClientFamilyMemberDto> {
-      return withMock(
-        async () =>
-          request<ClientFamilyMemberDto>(`/clients/${clientId}/family-members/${memberId}`, {
-            method: "PUT",
-            body,
-          }),
-        () => ({ id: memberId, ...body }),
-      );
-    },
+  updateFamilyMember(
+    clientId: string,
+    memberId: string,
+    body: ClientFamilyMemberDto,
+  ): Promise<ClientFamilyMemberDto> {
+    return withMock(
+      async () =>
+        request<ClientFamilyMemberDto>(`/clients/${clientId}/family-members/${memberId}`, {
+          method: "PUT",
+          body,
+        }),
+      () => ({ id: memberId, ...body }),
+    );
+  },
 
-    deleteFamilyMember(clientId: string, memberId: string): Promise<void> {
-      return withMock(
-        () => request<void>(`/clients/${clientId}/family-members/${memberId}`, { method: "DELETE" }),
-        () => undefined,
-      );
-    },
+  deleteFamilyMember(clientId: string, memberId: string): Promise<void> {
+    return withMock(
+      () => request<void>(`/clients/${clientId}/family-members/${memberId}`, { method: "DELETE" }),
+      () => undefined,
+    );
+  },
 
-    identifiers(clientId: string): Promise<ClientIdentifierDto[]> {
-      return withMock(
-        async () =>
-          listContent<ClientIdentifierDto>(
-            await request(`/clients/${clientId}/identifiers`),
-            "identifiers",
-          ),
-        () => [],
-      );
-    },
+  identifiers(clientId: string): Promise<ClientIdentifierDto[]> {
+    return withMock(
+      async () =>
+        listContent<ClientIdentifierDto>(
+          await request(`/clients/${clientId}/identifiers`),
+          "identifiers",
+        ),
+      () => [],
+    );
+  },
 
-    addIdentifier(clientId: string, body: ClientIdentifierDto): Promise<ClientIdentifierDto> {
-      return withMock(
-        async () =>
-          request<ClientIdentifierDto>(`/clients/${clientId}/identifiers`, {
-            method: "POST",
-            body,
-          }),
-        () => ({ id: mockId("id"), ...body }),
-      );
-    },
+  addIdentifier(clientId: string, body: ClientIdentifierDto): Promise<ClientIdentifierDto> {
+    return withMock(
+      async () =>
+        request<ClientIdentifierDto>(`/clients/${clientId}/identifiers`, {
+          method: "POST",
+          body,
+        }),
+      () => ({ id: mockId("id"), ...body }),
+    );
+  },
 
-    updateIdentifier(
-      clientId: string,
-      identifierId: string,
-      body: ClientIdentifierDto,
-    ): Promise<ClientIdentifierDto> {
-      return withMock(
-        async () =>
-          request<ClientIdentifierDto>(`/clients/${clientId}/identifiers/${identifierId}`, {
-            method: "PUT",
-            body,
-          }),
-        () => ({ id: identifierId, ...body }),
-      );
-    },
+  updateIdentifier(
+    clientId: string,
+    identifierId: string,
+    body: ClientIdentifierDto,
+  ): Promise<ClientIdentifierDto> {
+    return withMock(
+      async () =>
+        request<ClientIdentifierDto>(`/clients/${clientId}/identifiers/${identifierId}`, {
+          method: "PUT",
+          body,
+        }),
+      () => ({ id: identifierId, ...body }),
+    );
+  },
 
-    deleteIdentifier(clientId: string, identifierId: string): Promise<void> {
-      return withMock(
-        () => request<void>(`/clients/${clientId}/identifiers/${identifierId}`, { method: "DELETE" }),
-        () => undefined,
-      );
-    },
+  deleteIdentifier(clientId: string, identifierId: string): Promise<void> {
+    return withMock(
+      () => request<void>(`/clients/${clientId}/identifiers/${identifierId}`, { method: "DELETE" }),
+      () => undefined,
+    );
+  },
 
-    notes(clientId: string): Promise<ClientNoteDto[]> {
-      return withMock(
-        async () => listContent<ClientNoteDto>(await request(`/clients/${clientId}/notes`), "notes"),
-        () => [],
-      );
-    },
+  notes(clientId: string): Promise<ClientNoteDto[]> {
+    return withMock(
+      async () => listContent<ClientNoteDto>(await request(`/clients/${clientId}/notes`), "notes"),
+      () => [],
+    );
+  },
 
-    addNote(clientId: string, body: ClientNoteDto): Promise<ClientNoteDto> {
-      return withMock(
-        async () => request<ClientNoteDto>(`/clients/${clientId}/notes`, { method: "POST", body }),
-        () => ({ id: mockId("note"), ...body }),
-      );
-    },
+  addNote(clientId: string, body: ClientNoteDto): Promise<ClientNoteDto> {
+    return withMock(
+      async () => request<ClientNoteDto>(`/clients/${clientId}/notes`, { method: "POST", body }),
+      () => ({ id: mockId("note"), ...body }),
+    );
+  },
 
-    updateNote(clientId: string, noteId: string, body: ClientNoteDto): Promise<ClientNoteDto> {
-      return withMock(
-        async () => request<ClientNoteDto>(`/clients/${clientId}/notes/${noteId}`, { method: "PUT", body }),
-        () => ({ id: noteId, ...body }),
-      );
-    },
+  updateNote(clientId: string, noteId: string, body: ClientNoteDto): Promise<ClientNoteDto> {
+    return withMock(
+      async () =>
+        request<ClientNoteDto>(`/clients/${clientId}/notes/${noteId}`, { method: "PUT", body }),
+      () => ({ id: noteId, ...body }),
+    );
+  },
 
-    deleteNote(clientId: string, noteId: string): Promise<void> {
-      return withMock(
-        () => request<void>(`/clients/${clientId}/notes/${noteId}`, { method: "DELETE" }),
-        () => undefined,
-      );
-    },
+  deleteNote(clientId: string, noteId: string): Promise<void> {
+    return withMock(
+      () => request<void>(`/clients/${clientId}/notes/${noteId}`, { method: "DELETE" }),
+      () => undefined,
+    );
+  },
 };

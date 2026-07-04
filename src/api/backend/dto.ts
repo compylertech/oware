@@ -62,24 +62,26 @@ export type ClientCreateDto = {
   staff?: boolean;
 };
 
-export type ClientUpdateDto = Partial<Pick<
-  ClientCreateDto,
-  | "officeCode"
-  | "legalFormCode"
-  | "firstName"
-  | "middleName"
-  | "lastName"
-  | "mobileNumber"
-  | "email"
-  | "dateOfBirth"
-  | "genderCode"
-  | "savingsProductCode"
-  | "externalId"
-  | "submittedOnDate"
-  | "activationDate"
-  | "activeOnCreation"
-  | "staff"
->>;
+export type ClientUpdateDto = Partial<
+  Pick<
+    ClientCreateDto,
+    | "officeCode"
+    | "legalFormCode"
+    | "firstName"
+    | "middleName"
+    | "lastName"
+    | "mobileNumber"
+    | "email"
+    | "dateOfBirth"
+    | "genderCode"
+    | "savingsProductCode"
+    | "externalId"
+    | "submittedOnDate"
+    | "activationDate"
+    | "activeOnCreation"
+    | "staff"
+  >
+>;
 
 export type ClientAddressDto = {
   id?: string;
@@ -164,12 +166,18 @@ export type AccountDto = {
 
 export type TransactionDto = {
   id: string | number;
+  accountId?: number;
+  accountNo?: string;
   type?: string;
+  transactionTypeCode?: string; // e.g. "savingsAccountTransactionType.deposit"
+  transactionTypeValue?: string; // e.g. "Deposit"
   amount?: number;
+  currencyCode?: string;
   date?: string;
   transactionDate?: string;
   runningBalance?: number;
   note?: string;
+  submittedByUsername?: string;
   reversed?: boolean;
 };
 
