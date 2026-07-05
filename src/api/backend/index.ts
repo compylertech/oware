@@ -23,6 +23,7 @@ export type {
   ClientIdentifierDto,
   ClientIdentifierWriteDto,
   ClientNoteDto,
+  ClientNoteWriteDto,
   ClientUpdateDto,
 } from "./clients";
 export { loanProductsApi, savingsProductsApi } from "./products";

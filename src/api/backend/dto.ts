@@ -202,11 +202,25 @@ export type ClientIdentifierWriteDto = {
   description?: string;
 };
 
+// GET /clients/{id}/notes row shape (verified against a live instance).
 export type ClientNoteDto = {
-  id?: string;
+  id?: number;
+  clientId?: number;
+  noteTypeId?: number;
+  noteTypeCode?: string;
+  noteTypeValue?: string;
   note?: string;
-  createdOn?: string;
-  createdBy?: string;
+  createdById?: number;
+  createdByUsername?: string;
+  createdOn?: string; // ISO datetime
+  updatedById?: number;
+  updatedByUsername?: string;
+  updatedOn?: string; // ISO datetime
+};
+
+/** POST/PUT /clients/{id}/notes[/{noteId}] payload shape. */
+export type ClientNoteWriteDto = {
+  note: string;
 };
 
 export type ProductDto = {

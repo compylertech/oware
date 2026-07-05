@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, MoreVertical, Plus, Download, Pencil, Upload } from "lucide-react";
+import { ArrowLeft, MoreVertical, Plus, Download, Pencil, Trash2, Upload } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
 import { Modal, MField, MInput, MSelect } from "@/components/common/Modal";
 import {
@@ -263,7 +263,7 @@ type IdentityRow = {
 };
 
 type NoteRow = {
-  id: string;
+  id?: number;
   author: string;
   text: string;
   at: string;
@@ -410,8 +410,8 @@ function mapIdentifier(identifier: ClientIdentifierDto): IdentityRow {
 
 function mapNote(note: ClientNoteDto): NoteRow {
   return {
-    id: note.id ?? note.note ?? String(Date.now()),
-    author: note.createdBy ?? "System",
+    id: note.id,
+    author: note.createdByUsername ?? note.updatedByUsername ?? "System",
     text: note.note ?? "",
     at: fmtDisplayDate(note.createdOn),
   };
@@ -487,6 +487,8 @@ function ClientDetail() {
   ]);
   const [notes, setNotes] = useState<NoteRow[]>([]);
   const [noteDraft, setNoteDraft] = useState("");
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [editingNoteDraft, setEditingNoteDraft] = useState("");
   const [savingsProducts, setSavingsProducts] = useState<ProductDto[]>([]);
   const [addressTypeOptions, setAddressTypeOptions] = useState<ReferenceValueDto[]>([]);
   const [stateOptions, setStateOptions] = useState<ReferenceValueDto[]>([]);
@@ -823,6 +825,32 @@ function ClientDetail() {
       await clientsApi.addIdentifier(clientId, body);
     }
     setIdentityModalOpen(false);
+    await reloadDetail();
+  }
+
+  function startEditNote(row: NoteRow) {
+    if (row.id == null) return;
+    setEditingNoteId(row.id);
+    setEditingNoteDraft(row.text);
+  }
+
+  function cancelEditNote() {
+    setEditingNoteId(null);
+    setEditingNoteDraft("");
+  }
+
+  async function saveEditNote() {
+    if (editingNoteId == null || !editingNoteDraft.trim()) return;
+    await clientsApi.updateNote(clientId, editingNoteId, { note: editingNoteDraft.trim() });
+    setEditingNoteId(null);
+    setEditingNoteDraft("");
+    await reloadDetail();
+  }
+
+  async function removeNote(row: NoteRow) {
+    if (row.id == null) return;
+    if (!window.confirm("Delete this note? This cannot be undone.")) return;
+    await clientsApi.deleteNote(clientId, row.id);
     await reloadDetail();
   }
 
@@ -1591,7 +1619,7 @@ function ClientDetail() {
                 ) : (
                   notes.map((n, idx) => (
                     <div
-                      key={idx}
+                      key={n.id ?? idx}
                       className="flex items-start gap-3"
                       style={{
                         padding: 14,
@@ -1622,11 +1650,64 @@ function ClientDetail() {
                           <span style={{ fontSize: 12, fontWeight: 300, color: tokens.text }}>
                             {n.author}
                           </span>
-                          <span style={{ fontSize: 11, color: tokens.textMuted }}>{n.at}</span>
+                          <div className="flex items-center gap-2">
+                            <span style={{ fontSize: 11, color: tokens.textMuted }}>{n.at}</span>
+                            {editingNoteId !== n.id && (
+                              <>
+                                <button
+                                  style={{ color: tokens.textSub }}
+                                  aria-label="Edit note"
+                                  onClick={() => startEditNote(n)}
+                                >
+                                  <Pencil size={13} />
+                                </button>
+                                <button
+                                  style={{ color: tokens.textSub }}
+                                  aria-label="Delete note"
+                                  onClick={() => void removeNote(n)}
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
-                        <p style={{ fontSize: 13, color: tokens.textSub, marginTop: 4 }}>
-                          {n.text}
-                        </p>
+                        {editingNoteId === n.id ? (
+                          <div className="mt-2">
+                            <textarea
+                              value={editingNoteDraft}
+                              onChange={(e) => setEditingNoteDraft(e.target.value)}
+                              rows={2}
+                              style={{
+                                width: "100%",
+                                border: `1px solid ${tokens.border}`,
+                                borderRadius: 8,
+                                padding: 10,
+                                fontSize: 13,
+                                color: tokens.text,
+                                outline: "none",
+                                resize: "vertical",
+                                fontFamily: FONTS.body,
+                              }}
+                            />
+                            <div className="flex justify-end gap-2 mt-2">
+                              <Button variant="outline" size="sm" onClick={cancelEditNote}>
+                                Cancel
+                              </Button>
+                              <Button
+                                variant="success"
+                                size="sm"
+                                onClick={() => void saveEditNote()}
+                              >
+                                Save
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p style={{ fontSize: 13, color: tokens.textSub, marginTop: 4 }}>
+                            {n.text}
+                          </p>
+                        )}
                       </div>
                     </div>
                   ))

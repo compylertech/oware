@@ -20,6 +20,7 @@ import type {
   ClientIdentifierDto,
   ClientIdentifierWriteDto,
   ClientNoteDto,
+  ClientNoteWriteDto,
   ClientUpdateDto,
   Page,
 } from "./dto";
@@ -34,6 +35,7 @@ export type {
   ClientIdentifierDto,
   ClientIdentifierWriteDto,
   ClientNoteDto,
+  ClientNoteWriteDto,
   ClientUpdateDto,
 } from "./dto";
 
@@ -56,10 +58,6 @@ function listContent<T>(payload: unknown, key: string): T[] {
     if (Array.isArray(value)) return value as T[];
   }
   return [];
-}
-
-function mockId(prefix: string): string {
-  return `${prefix}-${Date.now().toString(36)}`;
 }
 
 function mockAddressFromWrite(addressId: number, body: ClientAddressWriteDto): ClientAddressDto {
@@ -103,6 +101,18 @@ function mockIdentifierFromWrite(id: number, body: ClientIdentifierWriteDto): Cl
     documentKey: body.documentKey,
     description: body.description,
     status: body.status,
+  };
+}
+
+function mockNoteFromWrite(id: number, body: ClientNoteWriteDto): ClientNoteDto {
+  const now = new Date().toISOString();
+  return {
+    id,
+    note: body.note,
+    createdByUsername: "you",
+    createdOn: now,
+    updatedByUsername: "you",
+    updatedOn: now,
   };
 }
 
@@ -336,22 +346,26 @@ export const clientsApi = {
     );
   },
 
-  addNote(clientId: string, body: ClientNoteDto): Promise<ClientNoteDto> {
+  addNote(clientId: string, body: ClientNoteWriteDto): Promise<ClientNoteDto> {
     return withMock(
       async () => request<ClientNoteDto>(`/clients/${clientId}/notes`, { method: "POST", body }),
-      () => ({ id: mockId("note"), ...body }),
+      () => mockNoteFromWrite(Date.now(), body),
     );
   },
 
-  updateNote(clientId: string, noteId: string, body: ClientNoteDto): Promise<ClientNoteDto> {
+  updateNote(
+    clientId: string,
+    noteId: number | string,
+    body: ClientNoteWriteDto,
+  ): Promise<ClientNoteDto> {
     return withMock(
       async () =>
         request<ClientNoteDto>(`/clients/${clientId}/notes/${noteId}`, { method: "PUT", body }),
-      () => ({ id: noteId, ...body }),
+      () => mockNoteFromWrite(Number(noteId), body),
     );
   },
 
-  deleteNote(clientId: string, noteId: string): Promise<void> {
+  deleteNote(clientId: string, noteId: number | string): Promise<void> {
     return withMock(
       () => request<void>(`/clients/${clientId}/notes/${noteId}`, { method: "DELETE" }),
       () => undefined,
