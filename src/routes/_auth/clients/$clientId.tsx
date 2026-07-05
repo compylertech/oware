@@ -278,10 +278,13 @@ type SharePosition = {
   productName: string;
 };
 
-type LoadedClientDetail = {
+// Everything about a client except transactions, which are date/filter
+// dependent and comparatively cheap to refetch — kept out of the cacheable
+// bundle below so changing the transactions date filter never has to redo
+// the client/addresses/family/identities/notes/share-position fetch.
+type LoadedClientCore = {
   client: BackendClient | null;
   savings: SavingsAccountRow[];
-  transactions: TransactionRow[];
   addresses: AddressRow[];
   family: FamilyRow[];
   identities: IdentityRow[];
@@ -289,6 +292,16 @@ type LoadedClientDetail = {
   savingsProducts: ProductDto[];
   sharePosition: SharePosition | null;
 };
+
+// Module-level cache keyed by clientId, shared across every mount of this
+// route for the lifetime of the page (cleared on full reload). Revisiting a
+// client (e.g. navigating away and back) hydrates instantly from here instead
+// of re-issuing the same handful of GET requests. Every write path
+// (reloadDetail) refreshes this entry, so it never goes stale after our own
+// mutations — it can only go stale if the record changes from elsewhere
+// (another tab/user) without us reloading, which is an acceptable tradeoff
+// for a same-session cache.
+const clientDetailCache = new Map<string, LoadedClientCore>();
 
 const EMPTY_CLIENT: BackendClient = {
   id: "",
@@ -424,11 +437,7 @@ function mapNote(note: ClientNoteDto): NoteRow {
   };
 }
 
-async function loadClientDetail(
-  clientId: string,
-  txDateFrom: string = "",
-  txDateTo: string = "",
-): Promise<LoadedClientDetail> {
+async function loadClientDetailCore(clientId: string): Promise<LoadedClientCore> {
   const [client, summary, addresses, familyMembers, identifiers, notes, products] =
     await Promise.all([
       clientsApi.get(clientId),
@@ -441,21 +450,6 @@ async function loadClientDetail(
     ]);
 
   const savings = (summary.savingsAccounts ?? []).map(mapSavingsAccount);
-
-  // Use allSettled: a single account whose transactions endpoint 404s (seen
-  // live for a just-created account not yet fully synced) must not blank out
-  // the whole page — every other account's data, and the account list itself,
-  // should still render.
-  const transactionResults = await Promise.allSettled(
-    savings.map(async (account) => {
-      const rows = await savingsAccountsApi.transactions(account.acc, {
-        fromSubmittedDate: txDateFrom || undefined,
-        toSubmittedDate: txDateTo || undefined,
-      });
-      return rows.map((row, index) => mapTransaction(row, account.acc, index));
-    }),
-  );
-  const transactions = transactionResults.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
 
   const shareAccount = summary.shareAccounts?.[0];
   let sharePosition: SharePosition | null = null;
@@ -476,7 +470,6 @@ async function loadClientDetail(
   return {
     client: client ?? null,
     savings,
-    transactions,
     addresses: addresses.map(mapAddress),
     family: familyMembers.map(mapFamilyMember),
     identities: identifiers.map(mapIdentifier),
@@ -484,6 +477,32 @@ async function loadClientDetail(
     savingsProducts: products,
     sharePosition,
   };
+}
+
+/**
+ * Fetch transactions for a set of already-loaded savings accounts. Split out
+ * from the core bundle above so changing the date filter (or a plain
+ * re-render) only re-issues these calls, not the whole client fetch.
+ */
+async function loadTransactionsFor(
+  savings: SavingsAccountRow[],
+  txDateFrom: string,
+  txDateTo: string,
+): Promise<TransactionRow[]> {
+  // Use allSettled: a single account whose transactions endpoint 404s (seen
+  // live for a just-created account not yet fully synced) must not blank out
+  // the whole page — every other account's data, and the account list itself,
+  // should still render.
+  const results = await Promise.allSettled(
+    savings.map(async (account) => {
+      const rows = await savingsAccountsApi.transactions(account.acc, {
+        fromSubmittedDate: txDateFrom || undefined,
+        toSubmittedDate: txDateTo || undefined,
+      });
+      return rows.map((row, index) => mapTransaction(row, account.acc, index));
+    }),
+  );
+  return results.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
 }
 
 function ClientDetail() {
@@ -644,17 +663,23 @@ function ClientDetail() {
     };
   }, []);
 
+  function applyCore(core: LoadedClientCore) {
+    setClientState(core.client);
+    setSavings(core.savings);
+    setAddresses(core.addresses);
+    setFamily(core.family);
+    setIdentities(core.identities);
+    setNotes(core.notes);
+    setSavingsProducts(core.savingsProducts);
+    setSharePosition(core.sharePosition);
+  }
+
+  /** Always hits the backend and refreshes the cache — call after any mutation. */
   async function reloadDetail() {
-    const data = await loadClientDetail(clientId, txDateFrom, txDateTo);
-    setClientState(data.client);
-    setSavings(data.savings);
-    setTransactions(data.transactions);
-    setAddresses(data.addresses);
-    setFamily(data.family);
-    setIdentities(data.identities);
-    setNotes(data.notes);
-    setSavingsProducts(data.savingsProducts);
-    setSharePosition(data.sharePosition);
+    const core = await loadClientDetailCore(clientId);
+    clientDetailCache.set(clientId, core);
+    applyCore(core);
+    setTransactions(await loadTransactionsFor(core.savings, txDateFrom, txDateTo));
   }
 
   async function closeAccount() {
@@ -673,20 +698,30 @@ function ClientDetail() {
     }
   }
 
+  // Tracks which client's core bundle is currently reflected in state, so that
+  // a txDateFrom/txDateTo change (same client) only refetches transactions
+  // instead of re-running the cache lookup / core fetch below.
+  const loadedCoreClientIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     let alive = true;
     void (async () => {
-      const data = await loadClientDetail(clientId);
-      if (!alive) return;
-      setClientState(data.client);
-      setSavings(data.savings);
-      setTransactions(data.transactions);
-      setAddresses(data.addresses);
-      setFamily(data.family);
-      setIdentities(data.identities);
-      setNotes(data.notes);
-      setSavingsProducts(data.savingsProducts);
-      setSharePosition(data.sharePosition);
+      let core: LoadedClientCore;
+      if (loadedCoreClientIdRef.current === clientId) {
+        // Same client as last run (only the date filter changed) — the cache
+        // is guaranteed to hold this entry since we set it when the ref was
+        // last updated below.
+        core = clientDetailCache.get(clientId)!;
+      } else {
+        const cached = clientDetailCache.get(clientId);
+        core = cached ?? (await loadClientDetailCore(clientId));
+        if (!alive) return;
+        clientDetailCache.set(clientId, core);
+        applyCore(core);
+        loadedCoreClientIdRef.current = clientId;
+      }
+      const transactions = await loadTransactionsFor(core.savings, txDateFrom, txDateTo);
+      if (alive) setTransactions(transactions);
     })();
     return () => {
       alive = false;

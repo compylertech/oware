@@ -17,18 +17,43 @@
 import type { ReferenceValueDto } from "./dto";
 import { request, withMock } from "./http";
 
+// Reference values (address types, genders, closure reasons, ...) rarely
+// change within a session, but nearly every form on the client detail page
+// and the add/edit wizard asks for the same handful of categories. Cache the
+// in-flight/resolved promise per category+provider so repeated calls across
+// components share one network request instead of firing one each — this is
+// a module-level cache, so it persists for the lifetime of the page (cleared
+// on full reload) and is shared by every caller.
+const cache = new Map<string, Promise<ReferenceValueDto[]>>();
+
+function cacheKey(category: string, provider: string): string {
+  return `${provider}:${category}`;
+}
+
 export const referencesApi = {
   list(category: string, provider = "FINERACT"): Promise<ReferenceValueDto[]> {
-    return withMock(
+    const key = cacheKey(category, provider);
+    const cached = cache.get(key);
+    if (cached) return cached;
+
+    const promise = withMock(
       () => request<ReferenceValueDto[]>("/references", { query: { category, provider } }),
       () => [],
     );
+    // Don't let a failed request poison the cache — the next caller should retry.
+    promise.catch(() => cache.delete(key));
+    cache.set(key, promise);
+    return promise;
   },
 
-  sync(category: string): Promise<void> {
+  sync(category: string, provider = "FINERACT"): Promise<void> {
     return withMock(
       () => request<void>("/references/sync", { method: "POST", body: { category } }),
       () => undefined,
-    );
+    ).then(() => {
+      // The backend just refreshed this category — drop our cache so the next
+      // list() call picks up the new values instead of the stale cached list.
+      cache.delete(cacheKey(category, provider));
+    });
   },
 };
