@@ -78,6 +78,10 @@ export function mapClient(dto: ClientDto): Client {
     mobile: dto.mobileNumber,
     email: dto.email,
     isStaff: dto.staff,
+    officeCode: dto.officeCode,
+    genderCode: dto.genderCode ?? undefined,
+    dateOfBirth: dto.dateOfBirth ?? undefined,
+    submittedOnDate: dto.submittedOnDate,
   };
 }
 

@@ -14,6 +14,11 @@ export type Client = {
   mobile?: string;
   email?: string;
   isStaff?: boolean;
+  // Extra fields carried for edit-mode prefill (not shown on read-only views).
+  officeCode?: string;
+  genderCode?: string;
+  dateOfBirth?: string;
+  submittedOnDate?: string;
 };
 
 export const OFFICES = ["Accra Main", "Kumasi", "Takoradi", "Head Office"];

@@ -36,15 +36,19 @@ export function Modal({
         style={{
           background: "#fff",
           borderRadius: 12,
-          padding: 28,
           width: "100%",
           maxWidth,
+          maxHeight: "calc(100vh - 32px)",
           border: `1px solid ${tokens.border}`,
           fontFamily: FONTS.body,
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         <div
           style={{
+            flexShrink: 0,
+            padding: "28px 28px 0",
             fontFamily: FONTS.display,
             fontSize: 18,
             fontWeight: 100,
@@ -54,9 +58,29 @@ export function Modal({
         >
           {title}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>{children}</div>
+        <div
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            padding: "0 28px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
+          }}
+        >
+          {children}
+        </div>
         {footer && (
-          <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 8 }}>
+          <div
+            style={{
+              flexShrink: 0,
+              padding: "24px 28px 28px",
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 8,
+            }}
+          >
             {footer}
           </div>
         )}

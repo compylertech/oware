@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { ArrowLeft, MoreVertical, Plus, Download, Pencil, Trash2, Upload } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
@@ -464,6 +464,7 @@ async function loadClientDetail(
 
 function ClientDetail() {
   const { clientId } = Route.useParams();
+  const navigate = useNavigate();
   const storeClient = useClients().find((c) => c.id === clientId) ?? null;
   const [clientState, setClientState] = useState<BackendClient | null>(storeClient ?? null);
   const client = clientState ?? storeClient ?? EMPTY_CLIENT;
@@ -828,6 +829,29 @@ function ClientDetail() {
     await reloadDetail();
   }
 
+  async function removeAddress(row: AddressRow) {
+    if (row.addressId == null) return;
+    const matchedType = addressTypeOptions.find((o) => o.providerId === row.addressTypeId);
+    if (!matchedType?.code) return;
+    if (!window.confirm("Delete this address? This cannot be undone.")) return;
+    await clientsApi.deleteAddress(clientId, row.addressId, matchedType.code);
+    await reloadDetail();
+  }
+
+  async function removeFamilyMember(row: FamilyRow) {
+    if (row.id == null) return;
+    if (!window.confirm("Remove this family member? This cannot be undone.")) return;
+    await clientsApi.deleteFamilyMember(clientId, row.id);
+    await reloadDetail();
+  }
+
+  async function removeIdentity(row: IdentityRow) {
+    if (row.id == null) return;
+    if (!window.confirm("Delete this identity? This cannot be undone.")) return;
+    await clientsApi.deleteIdentifier(clientId, row.id);
+    await reloadDetail();
+  }
+
   function startEditNote(row: NoteRow) {
     if (row.id == null) return;
     setEditingNoteId(row.id);
@@ -987,13 +1011,24 @@ function ClientDetail() {
                   }}
                 >
                   {[
-                    { l: "Edit Client", c: tokens.text },
-                    { l: "View Transactions", c: tokens.text },
-                    { l: "Close Account", c: "#D92D20" },
+                    {
+                      l: "Edit Client",
+                      c: tokens.text,
+                      onClick: () => navigate({ to: "/clients/add", search: { clientId } }),
+                    },
+                    {
+                      l: "View Transactions",
+                      c: tokens.text,
+                      onClick: () => setSection("Transactions"),
+                    },
+                    { l: "Close Account", c: "#D92D20", onClick: undefined },
                   ].map((o) => (
                     <button
                       key={o.l}
-                      onClick={() => setMenuOpen(false)}
+                      onClick={() => {
+                        o.onClick?.();
+                        setMenuOpen(false);
+                      }}
                       className="block w-full text-left hover:bg-slate-50"
                       style={{ padding: "8px 10px", borderRadius: 6, fontSize: 13, color: o.c }}
                     >
@@ -1388,13 +1423,22 @@ function ClientDetail() {
                           <StatusPill status={a.active ? "Active" : "Inactive"} />
                         </Td>
                         <Td align="right">
-                          <button
-                            style={{ color: tokens.textSub }}
-                            aria-label="Edit"
-                            onClick={() => openEditAddress(a)}
-                          >
-                            <Pencil size={14} />
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              style={{ color: tokens.textSub }}
+                              aria-label="Edit"
+                              onClick={() => openEditAddress(a)}
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              style={{ color: tokens.textSub }}
+                              aria-label="Delete"
+                              onClick={() => void removeAddress(a)}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </Td>
                       </Tr>
                     ))
@@ -1445,13 +1489,22 @@ function ClientDetail() {
                         <Td muted>{f.maritalStatus}</Td>
                         <Td muted>{f.profession}</Td>
                         <Td align="right">
-                          <button
-                            style={{ color: tokens.textSub }}
-                            aria-label="Edit"
-                            onClick={() => openEditFamily(f)}
-                          >
-                            <Pencil size={14} />
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              style={{ color: tokens.textSub }}
+                              aria-label="Edit"
+                              onClick={() => openEditFamily(f)}
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              style={{ color: tokens.textSub }}
+                              aria-label="Delete"
+                              onClick={() => void removeFamilyMember(f)}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </Td>
                       </Tr>
                     ))
@@ -1496,13 +1549,22 @@ function ClientDetail() {
                           <StatusPill status={i.status} />
                         </Td>
                         <Td align="right">
-                          <button
-                            style={{ color: tokens.textSub }}
-                            aria-label="Edit"
-                            onClick={() => openEditIdentity(i)}
-                          >
-                            <Pencil size={14} />
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              style={{ color: tokens.textSub }}
+                              aria-label="Edit"
+                              onClick={() => openEditIdentity(i)}
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              style={{ color: tokens.textSub }}
+                              aria-label="Delete"
+                              onClick={() => void removeIdentity(i)}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </Td>
                       </Tr>
                     ))

@@ -5,7 +5,14 @@
 // activate/disburse → close, plus deposits/withdrawals and loan repayments.
 // When offline these resolve to empty lists / no-ops so nothing throws in the UI.
 
-import type { AccountDto, ActionDto, Page, TransactionDto } from "./dto";
+import type {
+  AccountDto,
+  ActionDto,
+  Page,
+  ShareAccountCreateDto,
+  ShareAccountSummaryDto,
+  TransactionDto,
+} from "./dto";
 import { request, withMock } from "./http";
 
 function content<T>(res: Page<T> | T[]): T[] {
@@ -219,6 +226,20 @@ export const loanAccountsApi = {
           method: "POST",
           body,
         }),
+      () => undefined,
+    );
+  },
+};
+
+// Share accounts — request additional cooperative shares for a client.
+// No update/list-by-client endpoint was found on the backend (GET /share-accounts
+// list and GET /share-accounts/{ref} both errored on a live instance even for
+// accounts that exist); use clientsApi.accountsSummary() to read a client's
+// current share position instead. Create is the only operation wired here.
+export const shareAccountsApi = {
+  create(body: ShareAccountCreateDto): Promise<ShareAccountSummaryDto | undefined> {
+    return withMock(
+      () => request<ShareAccountSummaryDto>("/share-accounts", { method: "POST", body }),
       () => undefined,
     );
   },

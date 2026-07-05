@@ -3,8 +3,11 @@
 //   GET  /loan-products             GET  /savings-products
 //   GET  /loan-products/{code}      GET  /savings-products/{code}
 //
-// The Products sidebar (Loans / Savings) reads its catalogue from here; Shares
-// has no backend endpoint yet, so it is intentionally omitted.
+// The Products sidebar (Loans / Savings) reads its catalogue from here. Share
+// products (GET /share-products) back the Cooperative shares step — note the
+// SHARE_PRODUCT reference category's `code` field ("MEMBER_SHARES") does NOT
+// match the real product code ("MSHR"); use this list instead of that reference
+// when you need a submittable productCode.
 
 import type { LoanProduct } from "../loans/types";
 import { PRODUCTS as LOAN_PRODUCT_SEED } from "../loans/data";
@@ -70,6 +73,20 @@ export const savingsProductsApi = {
     return withMock(
       () => request<void>("/savings-products/sync", { method: "POST" }),
       () => undefined,
+    );
+  },
+};
+
+export const shareProductsApi = {
+  list(): Promise<ProductDto[]> {
+    return withMock(
+      async () => {
+        const res = await request<Page<ProductDto> | ProductDto[]>("/share-products", {
+          query: { page: 0, size: 50 },
+        });
+        return content(res);
+      },
+      () => [],
     );
   },
 };

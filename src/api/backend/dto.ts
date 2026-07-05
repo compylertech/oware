@@ -37,6 +37,12 @@ export type ClientDto = {
   email?: string;
   officeCode?: string;
   officeName?: string;
+  legalFormCode?: string;
+  genderCode?: string | null;
+  dateOfBirth?: string | null;
+  savingsProductCode?: string | null;
+  submittedOnDate?: string;
+  activeOnCreation?: boolean;
   type?: string; // PERSON | BUSINESS
   status?: string; // ACTIVE | PENDING | …
   activationDate?: string;
@@ -359,6 +365,66 @@ export type OverviewDto = {
     collectionsThisMonth?: number;
   };
   pipeline?: Record<string, { count?: number; amount?: number }>;
+};
+
+// GET /clients/{id}/accounts row shapes (verified against a live instance) —
+// a combined loan/savings/share summary for a client.
+export type LoanAccountSummaryDto = {
+  id: number;
+  accountNo?: string;
+  productId?: number;
+  productName?: string;
+  statusCode?: string;
+  statusValue?: string;
+  currencyCode?: string;
+  inArrears?: boolean;
+  originalLoan?: number;
+  loanBalance?: number;
+  amountPaid?: number;
+  submittedOnDate?: string;
+  expectedDisbursementDate?: string;
+};
+
+export type SavingsAccountSummaryDto = {
+  id: number;
+  accountNo?: string;
+  productId?: number;
+  productName?: string;
+  statusCode?: string;
+  statusValue?: string;
+  currencyCode?: string;
+  accountBalance?: number;
+  submittedOnDate?: string;
+  activatedOnDate?: string;
+};
+
+export type ShareAccountSummaryDto = {
+  id: number;
+  accountNo?: string;
+  productId?: number;
+  productName?: string;
+  statusCode?: string;
+  statusValue?: string;
+  currencyCode?: string;
+  totalApprovedShares?: number;
+  totalPendingForApprovalShares?: number;
+  submittedOnDate?: string;
+  activatedOnDate?: string;
+};
+
+export type ClientAccountsSummaryDto = {
+  loanAccounts?: LoanAccountSummaryDto[];
+  savingsAccounts?: SavingsAccountSummaryDto[];
+  shareAccounts?: ShareAccountSummaryDto[];
+};
+
+/** POST /share-accounts payload shape (per the endpoint's own validation). */
+export type ShareAccountCreateDto = {
+  clientId: string;
+  productCode: string;
+  requestedShares: number;
+  externalId?: string | null;
+  submittedOnDate?: string;
 };
 
 /** Idempotency-keyed action payload (approve/activate/close/disburse). */

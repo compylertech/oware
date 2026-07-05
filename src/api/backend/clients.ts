@@ -11,6 +11,7 @@
 import type { Client } from "../clients/types";
 import { SEED_CLIENTS } from "../clients/data";
 import type {
+  ClientAccountsSummaryDto,
   ClientAddressDto,
   ClientAddressWriteDto,
   ClientCreateDto,
@@ -28,6 +29,7 @@ import { request, withMock } from "./http";
 import { mapClient } from "./mappers";
 
 export type {
+  ClientAccountsSummaryDto,
   ClientAddressDto,
   ClientAddressWriteDto,
   ClientFamilyMemberDto,
@@ -217,6 +219,14 @@ export const clientsApi = {
     );
   },
 
+  /** Combined loan/savings/share account summary for a client. */
+  accountsSummary(clientId: string): Promise<ClientAccountsSummaryDto> {
+    return withMock(
+      () => request<ClientAccountsSummaryDto>(`/clients/${clientId}/accounts`),
+      () => ({ loanAccounts: [], savingsAccounts: [], shareAccounts: [] }),
+    );
+  },
+
   addresses(clientId: string): Promise<ClientAddressDto[]> {
     return withMock(
       async () =>
@@ -245,6 +255,21 @@ export const clientsApi = {
           body,
         }),
       () => mockAddressFromWrite(Number(addressId), body),
+    );
+  },
+
+  deleteAddress(
+    clientId: string,
+    addressId: number | string,
+    addressTypeCode: string,
+  ): Promise<void> {
+    return withMock(
+      () =>
+        request<void>(`/clients/${clientId}/addresses/${addressId}`, {
+          method: "DELETE",
+          query: { addressTypeCode },
+        }),
+      () => undefined,
     );
   },
 

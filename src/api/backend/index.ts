@@ -16,6 +16,7 @@ export * from "./dto";
 export { ApiError, BackendUnavailable } from "./http";
 export { clientsApi } from "./clients";
 export type {
+  ClientAccountsSummaryDto,
   ClientAddressDto,
   ClientAddressWriteDto,
   ClientFamilyMemberDto,
@@ -26,8 +27,8 @@ export type {
   ClientNoteWriteDto,
   ClientUpdateDto,
 } from "./clients";
-export { loanProductsApi, savingsProductsApi } from "./products";
-export { loanAccountsApi, savingsAccountsApi } from "./accounts";
+export { loanProductsApi, savingsProductsApi, shareProductsApi } from "./products";
+export { loanAccountsApi, savingsAccountsApi, shareAccountsApi } from "./accounts";
 export { loanReportsApi } from "./reports";
 export type { LoanOverview } from "./reports";
 export type { SavingsAccountCreate, LoanAccountCreate, MoneyTxn } from "./accounts";
@@ -35,8 +36,8 @@ export type { ClientSearch } from "./clients";
 export { referencesApi } from "./references";
 
 import { clientsApi } from "./clients";
-import { loanProductsApi, savingsProductsApi } from "./products";
-import { loanAccountsApi, savingsAccountsApi } from "./accounts";
+import { loanProductsApi, savingsProductsApi, shareProductsApi } from "./products";
+import { loanAccountsApi, savingsAccountsApi, shareAccountsApi } from "./accounts";
 import { loanReportsApi } from "./reports";
 import { referencesApi } from "./references";
 
@@ -45,8 +46,10 @@ export const api = {
   clients: clientsApi,
   loanProducts: loanProductsApi,
   savingsProducts: savingsProductsApi,
+  shareProducts: shareProductsApi,
   loanAccounts: loanAccountsApi,
   savingsAccounts: savingsAccountsApi,
+  shareAccounts: shareAccountsApi,
   loanReports: loanReportsApi,
   references: referencesApi,
 };
