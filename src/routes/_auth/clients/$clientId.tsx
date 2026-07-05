@@ -217,11 +217,14 @@ type TransactionRow = {
 type AddressRow = {
   addressId?: number;
   addressTypeId?: number;
+  stateProvinceId?: number;
+  countryId?: number;
   type: string;
   line1: string;
   line2: string;
   city: string;
   region: string;
+  country: string;
   postalCode: string;
   active: boolean;
 };
@@ -328,11 +331,14 @@ function mapAddress(address: ClientAddressDto): AddressRow {
   return {
     addressId: address.addressId,
     addressTypeId: address.addressTypeId,
+    stateProvinceId: address.stateProvinceId,
+    countryId: address.countryId,
     type: address.addressType ?? "—",
     line1: address.addressLine1 ?? "",
     line2: address.addressLine2 ?? "",
     city: address.city ?? "",
     region: address.stateName ?? "",
+    country: address.countryName ?? "",
     postalCode: address.postalCode ?? "",
     active: address.active ?? false,
   };
@@ -444,6 +450,8 @@ function ClientDetail() {
   const [noteDraft, setNoteDraft] = useState("");
   const [savingsProducts, setSavingsProducts] = useState<ProductDto[]>([]);
   const [addressTypeOptions, setAddressTypeOptions] = useState<ReferenceValueDto[]>([]);
+  const [stateOptions, setStateOptions] = useState<ReferenceValueDto[]>([]);
+  const [countryOptions, setCountryOptions] = useState<ReferenceValueDto[]>([]);
 
   const [createAcctOpen, setCreateAcctOpen] = useState(false);
   const [createAcctForm, setCreateAcctForm] = useState({ productCode: "", externalId: "" });
@@ -465,7 +473,7 @@ function ClientDetail() {
     addressLine2: "",
     city: "",
     stateProvinceCode: "",
-    countryCode: "GH",
+    countryCode: "",
     postalCode: "",
     active: true,
   });
@@ -486,6 +494,12 @@ function ClientDetail() {
     let alive = true;
     void referencesApi.list("ADDRESS_TYPE").then((opts) => {
       if (alive) setAddressTypeOptions(opts);
+    });
+    void referencesApi.list("STATE").then((opts) => {
+      if (alive) setStateOptions(opts);
+    });
+    void referencesApi.list("COUNTRY").then((opts) => {
+      if (alive) setCountryOptions(opts);
     });
     return () => {
       alive = false;
@@ -557,7 +571,7 @@ function ClientDetail() {
       addressLine2: "",
       city: "",
       stateProvinceCode: "",
-      countryCode: "GH",
+      countryCode: countryOptions[0]?.code ?? "",
       postalCode: "",
       active: true,
     });
@@ -566,14 +580,16 @@ function ClientDetail() {
 
   function openEditAddress(row: AddressRow) {
     const matchedType = addressTypeOptions.find((o) => o.providerId === row.addressTypeId);
+    const matchedState = stateOptions.find((o) => o.providerId === row.stateProvinceId);
+    const matchedCountry = countryOptions.find((o) => o.providerId === row.countryId);
     setAddressForm({
       addressId: row.addressId,
       addressTypeCode: matchedType?.code ?? addressTypeOptions[0]?.code ?? "",
       addressLine1: row.line1,
       addressLine2: row.line2,
       city: row.city,
-      stateProvinceCode: "",
-      countryCode: "GH",
+      stateProvinceCode: matchedState?.code ?? "",
+      countryCode: matchedCountry?.code ?? countryOptions[0]?.code ?? "",
       postalCode: row.postalCode,
       active: row.active,
     });
@@ -1471,18 +1487,21 @@ function ClientDetail() {
             onChange={(e) => setAddressForm((f) => ({ ...f, city: e.target.value }))}
           />
         </MField>
-        <MField label="State/Province Code (optional)">
-          <MInput
+        <MField label="State/Province (optional)">
+          <MSelect
             value={addressForm.stateProvinceCode}
             onChange={(e) => setAddressForm((f) => ({ ...f, stateProvinceCode: e.target.value }))}
-            placeholder="e.g. GAR"
+            options={[
+              { value: "", label: "— None —" },
+              ...stateOptions.map((o) => ({ value: o.code, label: o.name })),
+            ]}
           />
         </MField>
-        <MField label="Country Code">
-          <MInput
+        <MField label="Country">
+          <MSelect
             value={addressForm.countryCode}
             onChange={(e) => setAddressForm((f) => ({ ...f, countryCode: e.target.value }))}
-            placeholder="e.g. GH"
+            options={countryOptions.map((o) => ({ value: o.code, label: o.name }))}
           />
         </MField>
         <MField label="Postal Code">
