@@ -442,23 +442,26 @@ async function loadClientDetail(
 
   const savings = (summary.savingsAccounts ?? []).map(mapSavingsAccount);
 
-  const transactions = (
-    await Promise.all(
-      savings.map(async (account) => {
-        const rows = await savingsAccountsApi.transactions(account.acc, {
-          fromSubmittedDate: txDateFrom || undefined,
-          toSubmittedDate: txDateTo || undefined,
-        });
-        return rows.map((row, index) => mapTransaction(row, account.acc, index));
-      }),
-    )
-  ).flat();
+  // Use allSettled: a single account whose transactions endpoint 404s (seen
+  // live for a just-created account not yet fully synced) must not blank out
+  // the whole page — every other account's data, and the account list itself,
+  // should still render.
+  const transactionResults = await Promise.allSettled(
+    savings.map(async (account) => {
+      const rows = await savingsAccountsApi.transactions(account.acc, {
+        fromSubmittedDate: txDateFrom || undefined,
+        toSubmittedDate: txDateTo || undefined,
+      });
+      return rows.map((row, index) => mapTransaction(row, account.acc, index));
+    }),
+  );
+  const transactions = transactionResults.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
 
   const shareAccount = summary.shareAccounts?.[0];
   let sharePosition: SharePosition | null = null;
   if (shareAccount) {
     const shareProduct = shareAccount.productId
-      ? await shareProductsApi.get(shareAccount.productId)
+      ? await shareProductsApi.get(shareAccount.productId).catch(() => undefined)
       : undefined;
     const parValue = shareProduct?.unitPrice ?? 0;
     const sharesHeld = shareAccount.totalApprovedShares ?? 0;
