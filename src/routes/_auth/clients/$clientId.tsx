@@ -471,6 +471,8 @@ function ClientDetail() {
 
   const [section, setSection] = useState<Section>("Details");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
+  const [closingAccount, setClosingAccount] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const [savings, setSavings] = useState<SavingsAccountRow[]>([]);
@@ -622,6 +624,18 @@ function ClientDetail() {
     setIdentities(data.identities);
     setNotes(data.notes);
     setSavingsProducts(data.savingsProducts);
+  }
+
+  async function closeAccount() {
+    setClosingAccount(true);
+    try {
+      await clientsApi.close(clientId);
+      const refreshed = await clientsApi.get(clientId);
+      if (refreshed) setClientState(refreshed);
+      setConfirmCloseOpen(false);
+    } finally {
+      setClosingAccount(false);
+    }
   }
 
   useEffect(() => {
@@ -1021,7 +1035,11 @@ function ClientDetail() {
                       c: tokens.text,
                       onClick: () => setSection("Transactions"),
                     },
-                    { l: "Close Account", c: "#D92D20", onClick: undefined },
+                    {
+                      l: "Close Account",
+                      c: "#D92D20",
+                      onClick: () => setConfirmCloseOpen(true),
+                    },
                   ].map((o) => (
                     <button
                       key={o.l}
@@ -1779,6 +1797,37 @@ function ClientDetail() {
           )}
         </div>
       </div>
+
+      <Modal
+        open={confirmCloseOpen}
+        onClose={() => setConfirmCloseOpen(false)}
+        title="Close account?"
+        footer={
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfirmCloseOpen(false)}
+              disabled={closingAccount}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => void closeAccount()}
+              disabled={closingAccount}
+            >
+              {closingAccount ? "Closing…" : "Close Account"}
+            </Button>
+          </>
+        }
+      >
+        <p style={{ fontSize: 13, color: tokens.textSub }}>
+          Are you sure you want to close <strong>{client.name}</strong>'s account? This cannot be
+          undone.
+        </p>
+      </Modal>
 
       <Modal
         open={createAcctOpen}

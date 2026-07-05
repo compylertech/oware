@@ -57,9 +57,15 @@ function avatarFor(seed: string): string {
 
 // ── Clients ─────────────────────────────────────────────────────────────────
 
+function clientStatusFrom(raw?: string): ClientStatus {
+  const s = (raw ?? "").toUpperCase();
+  if (s === "ACTIVE") return "Active";
+  if (s.includes("PENDING")) return "Pending";
+  return "Inactive"; // CLOSED, REJECTED, WITHDRAWN, etc.
+}
+
 export function mapClient(dto: ClientDto): Client {
-  const active = (dto.status ?? "").toUpperCase() === "ACTIVE";
-  const status: ClientStatus = active ? "Active" : "Pending";
+  const status = clientStatusFrom(dto.status);
   const name =
     dto.displayName ||
     [dto.firstName, dto.middleName, dto.lastName].filter(Boolean).join(" ").trim() ||

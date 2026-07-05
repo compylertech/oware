@@ -1,10 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, useRef, useEffect } from "react";
-import { Search, ChevronDown, MoreVertical, Eye, Pencil, Trash2, Plus } from "lucide-react";
+import { Search, ChevronDown, MoreVertical, Eye, Pencil, Ban, Plus } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
 import { Button, EmptyRow, Table, TableCard, Td, Th, THead, Tr } from "@/components/patterns";
 import { FONTS } from "@/lib/tokens";
-import { useClients, removeClient, type Client, type ClientStatus } from "@/lib/mockStore";
+import {
+  useClients,
+  getClients,
+  setClients,
+  clientsApi,
+  type Client,
+  type ClientStatus,
+} from "@/api/clients";
 
 export const Route = createFileRoute("/_auth/clients/")({
   component: ClientsPage,
@@ -29,7 +36,8 @@ function ClientsPage() {
   const [statusOpen, setStatusOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<Client | null>(null);
+  const [confirmClose, setConfirmClose] = useState<Client | null>(null);
+  const [closing, setClosing] = useState(false);
   const [loading] = useState(false);
 
   const filtered = useMemo(() => {
@@ -70,6 +78,25 @@ function ClientsPage() {
 
   function goToClient(id: string) {
     navigate({ to: "/clients/$clientId", params: { clientId: id } });
+  }
+
+  function editClient(id: string) {
+    navigate({ to: "/clients/add", search: { clientId: id } });
+  }
+
+  async function closeAccount() {
+    if (!confirmClose) return;
+    setClosing(true);
+    try {
+      await clientsApi.close(confirmClose.id);
+      const refreshed = await clientsApi.get(confirmClose.id);
+      if (refreshed) {
+        setClients(getClients().map((c) => (c.id === refreshed.id ? refreshed : c)));
+      }
+      setConfirmClose(null);
+    } finally {
+      setClosing(false);
+    }
   }
 
   return (
@@ -435,15 +462,18 @@ function ClientsPage() {
                             <MenuItem
                               icon={<Pencil size={14} />}
                               label="Edit"
-                              onClick={() => setMenuOpen(null)}
+                              onClick={() => {
+                                setMenuOpen(null);
+                                editClient(c.id);
+                              }}
                             />
                             <MenuItem
-                              icon={<Trash2 size={14} />}
-                              label="Delete"
+                              icon={<Ban size={14} />}
+                              label="Close Account"
                               danger
                               onClick={() => {
                                 setMenuOpen(null);
-                                setConfirmDelete(c);
+                                setConfirmClose(c);
                               }}
                             />
                           </div>
@@ -458,12 +488,12 @@ function ClientsPage() {
         </TableCard>
       </div>
 
-      {/* Delete confirm */}
-      {confirmDelete && (
+      {/* Close account confirm */}
+      {confirmClose && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
           style={{ background: "rgba(13,27,62,0.45)" }}
-          onClick={() => setConfirmDelete(null)}
+          onClick={() => setConfirmClose(null)}
         >
           <div
             className="bg-white"
@@ -482,24 +512,18 @@ function ClientsPage() {
                 color: "#0D1B3E",
               }}
             >
-              Delete client?
+              Close account?
             </h3>
             <p style={{ fontSize: 13, color: "#6B7A99", marginTop: 8 }}>
-              Are you sure you want to delete <strong>{confirmDelete.name}</strong>? This cannot be
-              undone.
+              Are you sure you want to close <strong>{confirmClose.name}</strong>'s account? This
+              cannot be undone.
             </p>
             <div className="mt-5 flex justify-end gap-2">
-              <Button onClick={() => setConfirmDelete(null)} variant="outline">
+              <Button onClick={() => setConfirmClose(null)} variant="outline" disabled={closing}>
                 Cancel
               </Button>
-              <Button
-                onClick={() => {
-                  removeClient(confirmDelete.id);
-                  setConfirmDelete(null);
-                }}
-                variant="danger"
-              >
-                Delete
+              <Button onClick={() => void closeAccount()} variant="danger" disabled={closing}>
+                {closing ? "Closing…" : "Close Account"}
               </Button>
             </div>
           </div>
