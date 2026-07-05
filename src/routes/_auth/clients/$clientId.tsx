@@ -276,6 +276,8 @@ type SharePosition = {
   parValue: number;
   totalCapital: number;
   productName: string;
+  status: StatusKind;
+  admissionDate: string;
 };
 
 // Everything about a client except transactions, which are date/filter
@@ -464,6 +466,8 @@ async function loadClientDetailCore(clientId: string): Promise<LoadedClientCore>
       parValue,
       totalCapital: sharesHeld * parValue,
       productName: shareAccount.productName ?? shareProduct?.name ?? "Shares",
+      status: statusFrom(shareAccount.statusValue ?? shareAccount.statusCode),
+      admissionDate: fmtDisplayDate(shareAccount.activatedOnDate ?? shareAccount.submittedOnDate),
     };
   }
 
@@ -1261,9 +1265,9 @@ function ClientDetail() {
                     </span>
                   </Field>
                   <Field label="Membership Status">
-                    <StatusPill status="Active" />
+                    <StatusPill status={sharePosition?.status ?? "Pending"} />
                   </Field>
-                  <Field label="Admission Date" value="04 Feb 2024" />
+                  <Field label="Admission Date" value={sharePosition?.admissionDate ?? "—"} />
                 </div>
                 <div
                   style={{
