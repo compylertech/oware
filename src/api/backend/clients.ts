@@ -18,6 +18,7 @@ import type {
   ClientFamilyMemberDto,
   ClientFamilyMemberWriteDto,
   ClientIdentifierDto,
+  ClientIdentifierWriteDto,
   ClientNoteDto,
   ClientUpdateDto,
   Page,
@@ -31,6 +32,7 @@ export type {
   ClientFamilyMemberDto,
   ClientFamilyMemberWriteDto,
   ClientIdentifierDto,
+  ClientIdentifierWriteDto,
   ClientNoteDto,
   ClientUpdateDto,
 } from "./dto";
@@ -91,6 +93,16 @@ function mockFamilyMemberFromWrite(
     dateOfBirth: body.dateOfBirth ?? undefined,
     age: body.age,
     dependent: body.dependent ?? false,
+  };
+}
+
+function mockIdentifierFromWrite(id: number, body: ClientIdentifierWriteDto): ClientIdentifierDto {
+  return {
+    id,
+    documentTypeName: body.documentTypeCode,
+    documentKey: body.documentKey,
+    description: body.description,
+    status: body.status,
   };
 }
 
@@ -284,21 +296,21 @@ export const clientsApi = {
     );
   },
 
-  addIdentifier(clientId: string, body: ClientIdentifierDto): Promise<ClientIdentifierDto> {
+  addIdentifier(clientId: string, body: ClientIdentifierWriteDto): Promise<ClientIdentifierDto> {
     return withMock(
       async () =>
         request<ClientIdentifierDto>(`/clients/${clientId}/identifiers`, {
           method: "POST",
           body,
         }),
-      () => ({ id: mockId("id"), ...body }),
+      () => mockIdentifierFromWrite(Date.now(), body),
     );
   },
 
   updateIdentifier(
     clientId: string,
-    identifierId: string,
-    body: ClientIdentifierDto,
+    identifierId: number | string,
+    body: ClientIdentifierWriteDto,
   ): Promise<ClientIdentifierDto> {
     return withMock(
       async () =>
@@ -306,11 +318,11 @@ export const clientsApi = {
           method: "PUT",
           body,
         }),
-      () => ({ id: identifierId, ...body }),
+      () => mockIdentifierFromWrite(Number(identifierId), body),
     );
   },
 
-  deleteIdentifier(clientId: string, identifierId: string): Promise<void> {
+  deleteIdentifier(clientId: string, identifierId: number | string): Promise<void> {
     return withMock(
       () => request<void>(`/clients/${clientId}/identifiers/${identifierId}`, { method: "DELETE" }),
       () => undefined,

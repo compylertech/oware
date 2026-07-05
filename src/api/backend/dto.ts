@@ -176,10 +176,28 @@ export type ClientFamilyMemberWriteDto = {
   dateOfBirth?: string | null;
 };
 
+// GET /clients/{id}/identifiers row shape (verified against a live instance —
+// like addresses/family members, this differs from the create/update payload:
+// it carries a display name + numeric Fineract id (documentTypeId,
+// documentTypeName), not the documentTypeCode the write endpoint takes, and
+// `status` arrives as a Fineract enum string, e.g.
+// "clientIdentifierStatusType.active").
 export type ClientIdentifierDto = {
-  id?: string;
-  documentTypeCode?: string;
+  id?: number;
+  clientId?: number;
+  documentTypeId?: number;
+  documentTypeName?: string;
+  documentTypeActive?: boolean;
+  documentTypeMandatory?: boolean;
+  documentKey?: string;
+  description?: string;
   status?: string;
+};
+
+/** POST/PUT /clients/{id}/identifiers[/{identifierId}] payload shape. */
+export type ClientIdentifierWriteDto = {
+  documentTypeCode: string; // reference code, e.g. "PASSPORT"
+  status?: string; // e.g. "active" | "inactive"
   documentKey?: string;
   description?: string;
 };

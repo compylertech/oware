@@ -21,6 +21,7 @@ export type {
   ClientFamilyMemberDto,
   ClientFamilyMemberWriteDto,
   ClientIdentifierDto,
+  ClientIdentifierWriteDto,
   ClientNoteDto,
   ClientUpdateDto,
 } from "./clients";

@@ -29,6 +29,7 @@ import {
   type ClientFamilyMemberDto,
   type ClientFamilyMemberWriteDto,
   type ClientIdentifierDto,
+  type ClientIdentifierWriteDto,
   type ClientNoteDto,
   type ProductDto,
   type ReferenceValueDto,
@@ -252,10 +253,13 @@ type FamilyRow = {
 };
 
 type IdentityRow = {
-  id: string;
+  id?: number;
+  documentTypeId?: number;
   type: string;
   no: string;
+  description: string;
   status: StatusKind;
+  statusCode: string;
 };
 
 type NoteRow = {
@@ -297,19 +301,22 @@ function statusFrom(value?: string): StatusKind {
   return "Inactive";
 }
 
+/** Fineract identifier status arrives as "clientIdentifierStatusType.active" /
+ * "…inactive" — statusFrom's substring match would wrongly read "inactive" as
+ * "Active" (it ends with "active"), so take the exact segment after the dot. */
+function identifierStatusFrom(value?: string): StatusKind {
+  const tail = (value ?? "").split(".").pop() ?? "";
+  const normalized = tail.toUpperCase();
+  if (normalized === "INACTIVE") return "Inactive";
+  if (normalized === "ACTIVE") return "Active";
+  return statusFrom(value);
+}
+
 function fmtDisplayDate(value?: string | null): string {
   if (!value) return "—";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-}
-
-function prettyLabel(value?: string | null): string {
-  if (!value) return "—";
-  return value
-    .replace(/[_-]+/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function mapSavingsAccount(account: AccountDto): SavingsAccountRow {
@@ -389,11 +396,15 @@ function mapFamilyMember(member: ClientFamilyMemberDto): FamilyRow {
 }
 
 function mapIdentifier(identifier: ClientIdentifierDto): IdentityRow {
+  const statusTail = (identifier.status ?? "").split(".").pop() ?? "";
   return {
-    id: identifier.id ?? identifier.documentKey ?? `${identifier.documentTypeCode ?? "identifier"}`,
-    type: prettyLabel(identifier.documentTypeCode) || identifier.description || "—",
+    id: identifier.id,
+    documentTypeId: identifier.documentTypeId,
+    type: identifier.documentTypeName ?? "—",
     no: identifier.documentKey ?? "—",
-    status: statusFrom(identifier.status),
+    description: identifier.description ?? "",
+    status: identifierStatusFrom(identifier.status),
+    statusCode: statusTail.toLowerCase() || "active",
   };
 }
 
@@ -539,6 +550,22 @@ function ClientDetail() {
     dateOfBirth: "",
   });
 
+  const [identifierTypeOptions, setIdentifierTypeOptions] = useState<ReferenceValueDto[]>([]);
+
+  const [identityModalOpen, setIdentityModalOpen] = useState(false);
+  const [identityForm, setIdentityForm] = useState<{
+    id?: number;
+    documentTypeCode: string;
+    documentKey: string;
+    description: string;
+    status: string;
+  }>({
+    documentTypeCode: "",
+    documentKey: "",
+    description: "",
+    status: "active",
+  });
+
   useEffect(() => {
     function onDoc(e: MouseEvent) {
       if (!rootRef.current?.contains(e.target as Node)) setMenuOpen(false);
@@ -573,6 +600,9 @@ function ClientDetail() {
     });
     void referencesApi.list("MARITAL_STATUS").then((opts) => {
       if (alive) setMaritalStatusOptions(opts);
+    });
+    void referencesApi.list("CUSTOMER_IDENTIFIER").then((opts) => {
+      if (alive) setIdentifierTypeOptions(opts);
     });
     return () => {
       alive = false;
@@ -754,6 +784,45 @@ function ClientDetail() {
       await clientsApi.addFamilyMember(clientId, body);
     }
     setFamilyModalOpen(false);
+    await reloadDetail();
+  }
+
+  function openAddIdentity() {
+    setIdentityForm({
+      documentTypeCode: identifierTypeOptions[0]?.code ?? "",
+      documentKey: "",
+      description: "",
+      status: "active",
+    });
+    setIdentityModalOpen(true);
+  }
+
+  function openEditIdentity(row: IdentityRow) {
+    const matchedType = identifierTypeOptions.find((o) => o.providerId === row.documentTypeId);
+    setIdentityForm({
+      id: row.id,
+      documentTypeCode: matchedType?.code ?? identifierTypeOptions[0]?.code ?? "",
+      documentKey: row.no === "—" ? "" : row.no,
+      description: row.description,
+      status: row.statusCode,
+    });
+    setIdentityModalOpen(true);
+  }
+
+  async function submitIdentityForm() {
+    if (!identityForm.documentTypeCode) return;
+    const body: ClientIdentifierWriteDto = {
+      documentTypeCode: identityForm.documentTypeCode,
+      status: identityForm.status,
+      documentKey: identityForm.documentKey || undefined,
+      description: identityForm.description || undefined,
+    };
+    if (identityForm.id != null) {
+      await clientsApi.updateIdentifier(clientId, identityForm.id, body);
+    } else {
+      await clientsApi.addIdentifier(clientId, body);
+    }
+    setIdentityModalOpen(false);
     await reloadDetail();
   }
 
@@ -1372,30 +1441,20 @@ function ClientDetail() {
                   variant="success"
                   size="sm"
                   icon={<Plus size={13} />}
-                  onClick={() => {
-                    void (async () => {
-                      await clientsApi.addIdentifier(clientId, {
-                        documentTypeCode: "NATIONAL_ID",
-                        status: "ACTIVE",
-                        documentKey: `GHA-${Math.floor(Math.random() * 900000000) + 100000000}`,
-                        description: "National ID",
-                      });
-                      await reloadDetail();
-                    })();
-                  }}
+                  onClick={openAddIdentity}
                 >
                   Add New Identity
                 </Button>
               }
             >
               <Table>
-                <TableHead cols={["Type", "Document No.", "Status"]} />
+                <TableHead cols={["Type", "Document No.", "Description", "Status", ""]} />
                 <tbody>
                   {identities.length === 0 ? (
-                    <EmptyRow cols={3} text="No identities found" />
+                    <EmptyRow cols={5} text="No identities found" />
                   ) : (
-                    identities.map((i) => (
-                      <Tr key={i.no} hover>
+                    identities.map((i, idx) => (
+                      <Tr key={i.id ?? `${i.type}-${i.no}-${idx}`} hover>
                         <Td>{i.type}</Td>
                         <Td
                           style={{
@@ -1404,8 +1463,18 @@ function ClientDetail() {
                         >
                           {i.no}
                         </Td>
+                        <Td muted>{i.description || "—"}</Td>
                         <Td>
                           <StatusPill status={i.status} />
+                        </Td>
+                        <Td align="right">
+                          <button
+                            style={{ color: tokens.textSub }}
+                            aria-label="Edit"
+                            onClick={() => openEditIdentity(i)}
+                          >
+                            <Pencil size={14} />
+                          </button>
                         </Td>
                       </Tr>
                     ))
@@ -1762,6 +1831,54 @@ function ClientDetail() {
           />
           Dependent
         </label>
+      </Modal>
+
+      <Modal
+        open={identityModalOpen}
+        onClose={() => setIdentityModalOpen(false)}
+        title={identityForm.id != null ? "Edit Identity" : "Add New Identity"}
+        footer={
+          <>
+            <Button variant="outline" size="sm" onClick={() => setIdentityModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="success" size="sm" onClick={() => void submitIdentityForm()}>
+              {identityForm.id != null ? "Save Changes" : "Add New Identity"}
+            </Button>
+          </>
+        }
+      >
+        <MField label="Document Type">
+          <MSelect
+            value={identityForm.documentTypeCode}
+            onChange={(e) => setIdentityForm((f) => ({ ...f, documentTypeCode: e.target.value }))}
+            options={identifierTypeOptions.map((o) => ({ value: o.code, label: o.name }))}
+          />
+        </MField>
+        <MField label="Document Number">
+          <MInput
+            value={identityForm.documentKey}
+            onChange={(e) => setIdentityForm((f) => ({ ...f, documentKey: e.target.value }))}
+            placeholder="e.g. GHA-0987654321"
+          />
+        </MField>
+        <MField label="Description">
+          <MInput
+            value={identityForm.description}
+            onChange={(e) => setIdentityForm((f) => ({ ...f, description: e.target.value }))}
+            placeholder="e.g. Ghana Card"
+          />
+        </MField>
+        <MField label="Status">
+          <MSelect
+            value={identityForm.status}
+            onChange={(e) => setIdentityForm((f) => ({ ...f, status: e.target.value }))}
+            options={[
+              { value: "active", label: "Active" },
+              { value: "inactive", label: "Inactive" },
+            ]}
+          />
+        </MField>
       </Modal>
     </div>
   );
