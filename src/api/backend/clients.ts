@@ -208,12 +208,12 @@ export const clientsApi = {
     );
   },
 
-  close(id: string, closureDate?: string): Promise<void> {
+  close(id: string, closureReasonCode: string, closureDate?: string): Promise<void> {
     return withMock(
       () =>
         request<void>(`/clients/${id}/close`, {
           method: "POST",
-          body: { closureReasonCode: null, closureDate: closureDate ?? null },
+          body: { closureReasonCode, closureDate: closureDate ?? null },
         }),
       () => undefined,
     );

@@ -12,6 +12,7 @@ import {
   type Client,
   type ClientStatus,
 } from "@/api/clients";
+import { referencesApi, type ReferenceValueDto } from "@/api/backend";
 
 export const Route = createFileRoute("/_auth/clients/")({
   component: ClientsPage,
@@ -37,8 +38,14 @@ function ClientsPage() {
   const [page, setPage] = useState(1);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [confirmClose, setConfirmClose] = useState<Client | null>(null);
+  const [closureReasonCode, setClosureReasonCode] = useState("");
+  const [closureReasonOptions, setClosureReasonOptions] = useState<ReferenceValueDto[]>([]);
   const [closing, setClosing] = useState(false);
   const [loading] = useState(false);
+
+  useEffect(() => {
+    void referencesApi.list("CLIENT_CLOSURE_REASON").then(setClosureReasonOptions);
+  }, []);
 
   const filtered = useMemo(() => {
     return clients.filter((c) => {
@@ -85,10 +92,10 @@ function ClientsPage() {
   }
 
   async function closeAccount() {
-    if (!confirmClose) return;
+    if (!confirmClose || !closureReasonCode) return;
     setClosing(true);
     try {
-      await clientsApi.close(confirmClose.id);
+      await clientsApi.close(confirmClose.id, closureReasonCode);
       const refreshed = await clientsApi.get(confirmClose.id);
       if (refreshed) {
         setClients(getClients().map((c) => (c.id === refreshed.id ? refreshed : c)));
@@ -473,6 +480,7 @@ function ClientsPage() {
                               danger
                               onClick={() => {
                                 setMenuOpen(null);
+                                setClosureReasonCode("");
                                 setConfirmClose(c);
                               }}
                             />
@@ -518,11 +526,39 @@ function ClientsPage() {
               Are you sure you want to close <strong>{confirmClose.name}</strong>'s account? This
               cannot be undone.
             </p>
+            <div className="mt-4 flex flex-col gap-1.5">
+              <label style={{ fontSize: 12, fontWeight: 500, color: "#374151" }}>
+                Closure Reason
+              </label>
+              <select
+                value={closureReasonCode}
+                onChange={(e) => setClosureReasonCode(e.target.value)}
+                style={{
+                  border: "1px solid #DDE4EF",
+                  borderRadius: 8,
+                  padding: "8px 10px",
+                  fontSize: 13,
+                  color: "#0D1B3E",
+                  background: "white",
+                }}
+              >
+                <option value="">Select a reason…</option>
+                {closureReasonOptions.map((o) => (
+                  <option key={o.code} value={o.code}>
+                    {o.name}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="mt-5 flex justify-end gap-2">
               <Button onClick={() => setConfirmClose(null)} variant="outline" disabled={closing}>
                 Cancel
               </Button>
-              <Button onClick={() => void closeAccount()} variant="danger" disabled={closing}>
+              <Button
+                onClick={() => void closeAccount()}
+                variant="danger"
+                disabled={closing || !closureReasonCode}
+              >
                 {closing ? "Closing…" : "Close Account"}
               </Button>
             </div>

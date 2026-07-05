@@ -473,6 +473,8 @@ function ClientDetail() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const [closingAccount, setClosingAccount] = useState(false);
+  const [closureReasonCode, setClosureReasonCode] = useState("");
+  const [closureReasonOptions, setClosureReasonOptions] = useState<ReferenceValueDto[]>([]);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const [savings, setSavings] = useState<SavingsAccountRow[]>([]);
@@ -609,6 +611,9 @@ function ClientDetail() {
     void referencesApi.list("CUSTOMER_IDENTIFIER").then((opts) => {
       if (alive) setIdentifierTypeOptions(opts);
     });
+    void referencesApi.list("CLIENT_CLOSURE_REASON").then((opts) => {
+      if (alive) setClosureReasonOptions(opts);
+    });
     return () => {
       alive = false;
     };
@@ -627,9 +632,10 @@ function ClientDetail() {
   }
 
   async function closeAccount() {
+    if (!closureReasonCode) return;
     setClosingAccount(true);
     try {
-      await clientsApi.close(clientId);
+      await clientsApi.close(clientId, closureReasonCode);
       const refreshed = await clientsApi.get(clientId);
       if (refreshed) setClientState(refreshed);
       setConfirmCloseOpen(false);
@@ -1038,7 +1044,10 @@ function ClientDetail() {
                     {
                       l: "Close Account",
                       c: "#D92D20",
-                      onClick: () => setConfirmCloseOpen(true),
+                      onClick: () => {
+                        setClosureReasonCode("");
+                        setConfirmCloseOpen(true);
+                      },
                     },
                   ].map((o) => (
                     <button
@@ -1816,7 +1825,7 @@ function ClientDetail() {
               variant="danger"
               size="sm"
               onClick={() => void closeAccount()}
-              disabled={closingAccount}
+              disabled={closingAccount || !closureReasonCode}
             >
               {closingAccount ? "Closing…" : "Close Account"}
             </Button>
@@ -1827,6 +1836,16 @@ function ClientDetail() {
           Are you sure you want to close <strong>{client.name}</strong>'s account? This cannot be
           undone.
         </p>
+        <MField label="Closure Reason">
+          <MSelect
+            value={closureReasonCode}
+            onChange={(e) => setClosureReasonCode(e.target.value)}
+            options={[
+              { value: "", label: "Select a reason…" },
+              ...closureReasonOptions.map((o) => ({ value: o.code, label: o.name })),
+            ]}
+          />
+        </MField>
       </Modal>
 
       <Modal
