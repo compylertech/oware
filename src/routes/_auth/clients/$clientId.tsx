@@ -27,6 +27,7 @@ import {
   type ClientAddressDto,
   type ClientAddressWriteDto,
   type ClientFamilyMemberDto,
+  type ClientFamilyMemberWriteDto,
   type ClientIdentifierDto,
   type ClientNoteDto,
   type ProductDto,
@@ -230,11 +231,24 @@ type AddressRow = {
 };
 
 type FamilyRow = {
-  id: string;
+  id?: number;
+  firstName: string;
+  middleName: string;
+  lastName: string;
   name: string;
-  rel: string;
-  age: number;
+  qualification: string;
+  relationshipId?: number;
+  relationship: string;
+  genderId?: number;
   gender: string;
+  professionId?: number;
+  profession: string;
+  maritalStatusId?: number;
+  maritalStatus: string;
+  dateOfBirth: string;
+  mobile: string;
+  age: number;
+  dependent: boolean;
 };
 
 type IdentityRow = {
@@ -345,18 +359,32 @@ function mapAddress(address: ClientAddressDto): AddressRow {
 }
 
 function mapFamilyMember(member: ClientFamilyMemberDto): FamilyRow {
-  const name = [member.firstName, member.lastName].filter(Boolean).join(" ") || "—";
-  const relation = member.relationshipCode ? prettyLabel(member.relationshipCode) : undefined;
+  const firstName = member.firstName ?? "";
+  const middleName = member.middleName ?? "";
+  const lastName = member.lastName ?? "";
   return {
-    id: member.id ?? name,
-    name,
-    rel: relation || (member.dependent ? "Dependent" : "Relative"),
+    id: member.id,
+    firstName,
+    middleName,
+    lastName,
+    name: [firstName, lastName].filter(Boolean).join(" ") || "—",
+    qualification: member.qualification ?? "",
+    relationshipId: member.relationshipId,
+    relationship: member.relationship ?? "—",
+    genderId: member.genderId,
+    gender: member.gender ?? "—",
+    professionId: member.professionId,
+    profession: member.profession ?? "—",
+    maritalStatusId: member.maritalStatusId,
+    maritalStatus: member.maritalStatus ?? "—",
+    dateOfBirth: member.dateOfBirth ?? "",
+    mobile: member.mobileNumber ?? "",
     age:
       member.age ??
       (member.dateOfBirth
         ? Math.max(0, new Date().getFullYear() - new Date(member.dateOfBirth).getFullYear())
         : 0),
-    gender: prettyLabel(member.genderCode),
+    dependent: member.dependent ?? false,
   };
 }
 
@@ -478,6 +506,39 @@ function ClientDetail() {
     active: true,
   });
 
+  const [relationshipOptions, setRelationshipOptions] = useState<ReferenceValueDto[]>([]);
+  const [genderOptions, setGenderOptions] = useState<ReferenceValueDto[]>([]);
+  const [professionOptions, setProfessionOptions] = useState<ReferenceValueDto[]>([]);
+  const [maritalStatusOptions, setMaritalStatusOptions] = useState<ReferenceValueDto[]>([]);
+
+  const [familyModalOpen, setFamilyModalOpen] = useState(false);
+  const [familyForm, setFamilyForm] = useState<{
+    id?: number;
+    firstName: string;
+    middleName: string;
+    lastName: string;
+    qualification: string;
+    age: string;
+    dependent: boolean;
+    relationshipCode: string;
+    genderCode: string;
+    professionCode: string;
+    maritalStatusCode: string;
+    dateOfBirth: string;
+  }>({
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    qualification: "",
+    age: "",
+    dependent: false,
+    relationshipCode: "",
+    genderCode: "",
+    professionCode: "",
+    maritalStatusCode: "",
+    dateOfBirth: "",
+  });
+
   useEffect(() => {
     function onDoc(e: MouseEvent) {
       if (!rootRef.current?.contains(e.target as Node)) setMenuOpen(false);
@@ -500,6 +561,18 @@ function ClientDetail() {
     });
     void referencesApi.list("COUNTRY").then((opts) => {
       if (alive) setCountryOptions(opts);
+    });
+    void referencesApi.list("RELATIONSHIP").then((opts) => {
+      if (alive) setRelationshipOptions(opts);
+    });
+    void referencesApi.list("GENDER").then((opts) => {
+      if (alive) setGenderOptions(opts);
+    });
+    void referencesApi.list("PROFESSION").then((opts) => {
+      if (alive) setProfessionOptions(opts);
+    });
+    void referencesApi.list("MARITAL_STATUS").then((opts) => {
+      if (alive) setMaritalStatusOptions(opts);
     });
     return () => {
       alive = false;
@@ -614,6 +687,73 @@ function ClientDetail() {
       await clientsApi.addAddress(clientId, body);
     }
     setAddressModalOpen(false);
+    await reloadDetail();
+  }
+
+  function openAddFamily() {
+    setFamilyForm({
+      firstName: "",
+      middleName: "",
+      lastName: "",
+      qualification: "",
+      age: "",
+      dependent: false,
+      relationshipCode: relationshipOptions[0]?.code ?? "",
+      genderCode: genderOptions[0]?.code ?? "",
+      professionCode: professionOptions[0]?.code ?? "",
+      maritalStatusCode: maritalStatusOptions[0]?.code ?? "",
+      dateOfBirth: "",
+    });
+    setFamilyModalOpen(true);
+  }
+
+  function openEditFamily(row: FamilyRow) {
+    const matchedRelationship = relationshipOptions.find(
+      (o) => o.providerId === row.relationshipId,
+    );
+    const matchedGender = genderOptions.find((o) => o.providerId === row.genderId);
+    const matchedProfession = professionOptions.find((o) => o.providerId === row.professionId);
+    const matchedMaritalStatus = maritalStatusOptions.find(
+      (o) => o.providerId === row.maritalStatusId,
+    );
+    setFamilyForm({
+      id: row.id,
+      firstName: row.firstName,
+      middleName: row.middleName,
+      lastName: row.lastName,
+      qualification: row.qualification,
+      age: row.age ? String(row.age) : "",
+      dependent: row.dependent,
+      relationshipCode: matchedRelationship?.code ?? relationshipOptions[0]?.code ?? "",
+      genderCode: matchedGender?.code ?? genderOptions[0]?.code ?? "",
+      professionCode: matchedProfession?.code ?? professionOptions[0]?.code ?? "",
+      maritalStatusCode: matchedMaritalStatus?.code ?? maritalStatusOptions[0]?.code ?? "",
+      dateOfBirth: row.dateOfBirth,
+    });
+    setFamilyModalOpen(true);
+  }
+
+  async function submitFamilyForm() {
+    if (!familyForm.firstName.trim() || !familyForm.lastName.trim()) return;
+    const body: ClientFamilyMemberWriteDto = {
+      firstName: familyForm.firstName.trim(),
+      middleName: familyForm.middleName.trim() || undefined,
+      lastName: familyForm.lastName.trim(),
+      qualification: familyForm.qualification.trim() || undefined,
+      age: familyForm.age ? Number(familyForm.age) : undefined,
+      dependent: familyForm.dependent,
+      relationshipCode: familyForm.relationshipCode || null,
+      genderCode: familyForm.genderCode || null,
+      professionCode: familyForm.professionCode || null,
+      maritalStatusCode: familyForm.maritalStatusCode || null,
+      dateOfBirth: familyForm.dateOfBirth || null,
+    };
+    if (familyForm.id != null) {
+      await clientsApi.updateFamilyMember(clientId, familyForm.id, body);
+    } else {
+      await clientsApi.addFamilyMember(clientId, body);
+    }
+    setFamilyModalOpen(false);
     await reloadDetail();
   }
 
@@ -1175,35 +1315,47 @@ function ClientDetail() {
                   variant="success"
                   size="sm"
                   icon={<Plus size={13} />}
-                  onClick={() => {
-                    void (async () => {
-                      await clientsApi.addFamilyMember(clientId, {
-                        firstName: "New",
-                        lastName: "Member",
-                        dependent: true,
-                        relationshipCode: "SIBLING",
-                        genderCode: "FEMALE",
-                      });
-                      await reloadDetail();
-                    })();
-                  }}
+                  onClick={openAddFamily}
                 >
                   Add Family Member
                 </Button>
               }
             >
               <Table>
-                <TableHead cols={["Name", "Relationship", "Age", "Gender"]} />
+                <TableHead
+                  cols={[
+                    "Name",
+                    "Relationship",
+                    "Gender",
+                    "Age",
+                    "Dependent",
+                    "Marital Status",
+                    "Profession",
+                    "",
+                  ]}
+                />
                 <tbody>
                   {family.length === 0 ? (
-                    <EmptyRow cols={4} text="No family members found" />
+                    <EmptyRow cols={8} text="No family members found" />
                   ) : (
-                    family.map((f) => (
-                      <Tr key={f.name} hover>
+                    family.map((f, i) => (
+                      <Tr key={f.id ?? `${f.name}-${i}`} hover>
                         <Td>{f.name}</Td>
-                        <Td muted>{f.rel}</Td>
-                        <Td muted>{f.age}</Td>
+                        <Td muted>{f.relationship}</Td>
                         <Td muted>{f.gender}</Td>
+                        <Td muted>{f.age}</Td>
+                        <Td muted>{f.dependent ? "Yes" : "No"}</Td>
+                        <Td muted>{f.maritalStatus}</Td>
+                        <Td muted>{f.profession}</Td>
+                        <Td align="right">
+                          <button
+                            style={{ color: tokens.textSub }}
+                            aria-label="Edit"
+                            onClick={() => openEditFamily(f)}
+                          >
+                            <Pencil size={14} />
+                          </button>
+                        </Td>
                       </Tr>
                     ))
                   )}
@@ -1517,6 +1669,98 @@ function ClientDetail() {
             onChange={(e) => setAddressForm((f) => ({ ...f, active: e.target.checked }))}
           />
           Active
+        </label>
+      </Modal>
+
+      <Modal
+        open={familyModalOpen}
+        onClose={() => setFamilyModalOpen(false)}
+        title={familyForm.id != null ? "Edit Family Member" : "Add Family Member"}
+        footer={
+          <>
+            <Button variant="outline" size="sm" onClick={() => setFamilyModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="success" size="sm" onClick={() => void submitFamilyForm()}>
+              {familyForm.id != null ? "Save Changes" : "Add Family Member"}
+            </Button>
+          </>
+        }
+      >
+        <MField label="First Name">
+          <MInput
+            value={familyForm.firstName}
+            onChange={(e) => setFamilyForm((f) => ({ ...f, firstName: e.target.value }))}
+          />
+        </MField>
+        <MField label="Middle Name">
+          <MInput
+            value={familyForm.middleName}
+            onChange={(e) => setFamilyForm((f) => ({ ...f, middleName: e.target.value }))}
+          />
+        </MField>
+        <MField label="Last Name">
+          <MInput
+            value={familyForm.lastName}
+            onChange={(e) => setFamilyForm((f) => ({ ...f, lastName: e.target.value }))}
+          />
+        </MField>
+        <MField label="Qualification">
+          <MInput
+            value={familyForm.qualification}
+            onChange={(e) => setFamilyForm((f) => ({ ...f, qualification: e.target.value }))}
+            placeholder="e.g. Bachelors"
+          />
+        </MField>
+        <MField label="Relationship">
+          <MSelect
+            value={familyForm.relationshipCode}
+            onChange={(e) => setFamilyForm((f) => ({ ...f, relationshipCode: e.target.value }))}
+            options={relationshipOptions.map((o) => ({ value: o.code, label: o.name }))}
+          />
+        </MField>
+        <MField label="Gender">
+          <MSelect
+            value={familyForm.genderCode}
+            onChange={(e) => setFamilyForm((f) => ({ ...f, genderCode: e.target.value }))}
+            options={genderOptions.map((o) => ({ value: o.code, label: o.name }))}
+          />
+        </MField>
+        <MField label="Profession">
+          <MSelect
+            value={familyForm.professionCode}
+            onChange={(e) => setFamilyForm((f) => ({ ...f, professionCode: e.target.value }))}
+            options={professionOptions.map((o) => ({ value: o.code, label: o.name }))}
+          />
+        </MField>
+        <MField label="Marital Status">
+          <MSelect
+            value={familyForm.maritalStatusCode}
+            onChange={(e) => setFamilyForm((f) => ({ ...f, maritalStatusCode: e.target.value }))}
+            options={maritalStatusOptions.map((o) => ({ value: o.code, label: o.name }))}
+          />
+        </MField>
+        <MField label="Date of Birth">
+          <MInput
+            type="date"
+            value={familyForm.dateOfBirth}
+            onChange={(e) => setFamilyForm((f) => ({ ...f, dateOfBirth: e.target.value }))}
+          />
+        </MField>
+        <MField label="Age">
+          <MInput
+            type="number"
+            value={familyForm.age}
+            onChange={(e) => setFamilyForm((f) => ({ ...f, age: e.target.value }))}
+          />
+        </MField>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
+          <input
+            type="checkbox"
+            checked={familyForm.dependent}
+            onChange={(e) => setFamilyForm((f) => ({ ...f, dependent: e.target.checked }))}
+          />
+          Dependent
         </label>
       </Modal>
     </div>

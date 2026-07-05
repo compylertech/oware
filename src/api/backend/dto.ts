@@ -136,14 +136,43 @@ export type ReferenceValueDto = {
   active?: boolean;
 };
 
+// GET /clients/{id}/family-members row shape (verified against a live
+// instance — like addresses, this differs from the create/update payload: it
+// carries display names (relationship, gender, maritalStatus, profession) and
+// numeric Fineract ids, not the codes the write endpoint takes).
 export type ClientFamilyMemberDto = {
-  id?: string;
+  id?: number;
+  clientId?: number;
   firstName?: string;
+  middleName?: string;
   lastName?: string;
+  qualification?: string;
+  relationshipId?: number;
+  relationship?: string; // display name, e.g. "Father"
+  maritalStatusId?: number;
+  maritalStatus?: string;
+  genderId?: number;
+  gender?: string;
+  dateOfBirth?: string;
+  professionId?: number;
+  profession?: string;
+  mobileNumber?: string;
+  age?: number;
+  dependent?: boolean;
+};
+
+/** POST/PUT /clients/{id}/family-members[/{memberId}] payload shape. */
+export type ClientFamilyMemberWriteDto = {
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  qualification?: string;
   age?: number;
   dependent?: boolean;
   relationshipCode?: string | null;
   genderCode?: string | null;
+  professionCode?: string | null;
+  maritalStatusCode?: string | null;
   dateOfBirth?: string | null;
 };
 

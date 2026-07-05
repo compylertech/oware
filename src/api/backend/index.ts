@@ -19,6 +19,7 @@ export type {
   ClientAddressDto,
   ClientAddressWriteDto,
   ClientFamilyMemberDto,
+  ClientFamilyMemberWriteDto,
   ClientIdentifierDto,
   ClientNoteDto,
   ClientUpdateDto,

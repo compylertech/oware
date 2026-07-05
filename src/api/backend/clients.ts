@@ -16,6 +16,7 @@ import type {
   ClientCreateDto,
   ClientDto,
   ClientFamilyMemberDto,
+  ClientFamilyMemberWriteDto,
   ClientIdentifierDto,
   ClientNoteDto,
   ClientUpdateDto,
@@ -28,6 +29,7 @@ export type {
   ClientAddressDto,
   ClientAddressWriteDto,
   ClientFamilyMemberDto,
+  ClientFamilyMemberWriteDto,
   ClientIdentifierDto,
   ClientNoteDto,
   ClientUpdateDto,
@@ -69,6 +71,26 @@ function mockAddressFromWrite(addressId: number, body: ClientAddressWriteDto): C
     countryName: body.countryCode ?? "",
     postalCode: body.postalCode ?? "",
     active: body.active ?? true,
+  };
+}
+
+function mockFamilyMemberFromWrite(
+  id: number,
+  body: ClientFamilyMemberWriteDto,
+): ClientFamilyMemberDto {
+  return {
+    id,
+    firstName: body.firstName,
+    middleName: body.middleName,
+    lastName: body.lastName,
+    qualification: body.qualification,
+    relationship: body.relationshipCode ?? undefined,
+    gender: body.genderCode ?? undefined,
+    profession: body.professionCode ?? undefined,
+    maritalStatus: body.maritalStatusCode ?? undefined,
+    dateOfBirth: body.dateOfBirth ?? undefined,
+    age: body.age,
+    dependent: body.dependent ?? false,
   };
 }
 
@@ -215,21 +237,24 @@ export const clientsApi = {
     );
   },
 
-  addFamilyMember(clientId: string, body: ClientFamilyMemberDto): Promise<ClientFamilyMemberDto> {
+  addFamilyMember(
+    clientId: string,
+    body: ClientFamilyMemberWriteDto,
+  ): Promise<ClientFamilyMemberDto> {
     return withMock(
       async () =>
         request<ClientFamilyMemberDto>(`/clients/${clientId}/family-members`, {
           method: "POST",
           body,
         }),
-      () => ({ id: mockId("fam"), ...body }),
+      () => mockFamilyMemberFromWrite(Date.now(), body),
     );
   },
 
   updateFamilyMember(
     clientId: string,
-    memberId: string,
-    body: ClientFamilyMemberDto,
+    memberId: number | string,
+    body: ClientFamilyMemberWriteDto,
   ): Promise<ClientFamilyMemberDto> {
     return withMock(
       async () =>
@@ -237,11 +262,11 @@ export const clientsApi = {
           method: "PUT",
           body,
         }),
-      () => ({ id: memberId, ...body }),
+      () => mockFamilyMemberFromWrite(Number(memberId), body),
     );
   },
 
-  deleteFamilyMember(clientId: string, memberId: string): Promise<void> {
+  deleteFamilyMember(clientId: string, memberId: number | string): Promise<void> {
     return withMock(
       () => request<void>(`/clients/${clientId}/family-members/${memberId}`, { method: "DELETE" }),
       () => undefined,
