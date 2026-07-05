@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
+import { toast } from "sonner";
 import { ArrowLeft, MoreVertical, Plus, Download, Pencil, Trash2, Upload } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
 import { Modal, MField, MInput, MSelect } from "@/components/common/Modal";
@@ -18,12 +19,12 @@ import { isDisplayDateInRange } from "@/lib/dateFilters";
 import { FONTS, tokens, cardShadow } from "@/lib/tokens";
 import { useClients, type Client as BackendClient } from "@/api/clients";
 import {
+  apiErrorMessage,
   clientsApi,
-  loanAccountsApi,
   referencesApi,
   savingsAccountsApi,
   savingsProductsApi,
-  type AccountDto,
+  shareProductsApi,
   type ClientAddressDto,
   type ClientAddressWriteDto,
   type ClientFamilyMemberDto,
@@ -33,6 +34,7 @@ import {
   type ClientNoteDto,
   type ProductDto,
   type ReferenceValueDto,
+  type SavingsAccountSummaryDto,
   type TransactionDto,
 } from "@/api/backend";
 
@@ -269,6 +271,13 @@ type NoteRow = {
   at: string;
 };
 
+type SharePosition = {
+  sharesHeld: number;
+  parValue: number;
+  totalCapital: number;
+  productName: string;
+};
+
 type LoadedClientDetail = {
   client: BackendClient | null;
   savings: SavingsAccountRow[];
@@ -278,6 +287,7 @@ type LoadedClientDetail = {
   identities: IdentityRow[];
   notes: NoteRow[];
   savingsProducts: ProductDto[];
+  sharePosition: SharePosition | null;
 };
 
 const EMPTY_CLIENT: BackendClient = {
@@ -319,16 +329,13 @@ function fmtDisplayDate(value?: string | null): string {
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function mapSavingsAccount(account: AccountDto): SavingsAccountRow {
-  const reference = account.accountNo ?? account.id;
+function mapSavingsAccount(account: SavingsAccountSummaryDto): SavingsAccountRow {
   return {
-    acc: reference,
-    product: account.productName ?? account.productCode ?? "—",
-    balance: account.balance ?? account.principal ?? 0,
-    status: statusFrom(account.status),
-    activated: fmtDisplayDate(
-      account.activationDate ?? account.approvedDate ?? account.activatedOnDate,
-    ),
+    acc: account.accountNo ?? String(account.id),
+    product: account.productName ?? "—",
+    balance: account.accountBalance ?? 0,
+    status: statusFrom(account.statusValue ?? account.statusCode),
+    activated: fmtDisplayDate(account.activatedOnDate ?? account.submittedOnDate),
   };
 }
 
@@ -422,10 +429,10 @@ async function loadClientDetail(
   txDateFrom: string = "",
   txDateTo: string = "",
 ): Promise<LoadedClientDetail> {
-  const [client, accounts, addresses, familyMembers, identifiers, notes, products] =
+  const [client, summary, addresses, familyMembers, identifiers, notes, products] =
     await Promise.all([
       clientsApi.get(clientId),
-      savingsAccountsApi.search({ clientId, size: 200 }),
+      clientsApi.accountsSummary(clientId),
       clientsApi.addresses(clientId),
       clientsApi.familyMembers(clientId),
       clientsApi.identifiers(clientId),
@@ -433,10 +440,7 @@ async function loadClientDetail(
       savingsProductsApi.list(),
     ]);
 
-  const loanAccounts = await loanAccountsApi.byClient(clientId);
-  void loanAccounts;
-
-  const savings = accounts.map(mapSavingsAccount);
+  const savings = (summary.savingsAccounts ?? []).map(mapSavingsAccount);
 
   const transactions = (
     await Promise.all(
@@ -450,6 +454,22 @@ async function loadClientDetail(
     )
   ).flat();
 
+  const shareAccount = summary.shareAccounts?.[0];
+  let sharePosition: SharePosition | null = null;
+  if (shareAccount) {
+    const shareProduct = shareAccount.productId
+      ? await shareProductsApi.get(shareAccount.productId)
+      : undefined;
+    const parValue = shareProduct?.unitPrice ?? 0;
+    const sharesHeld = shareAccount.totalApprovedShares ?? 0;
+    sharePosition = {
+      sharesHeld,
+      parValue,
+      totalCapital: sharesHeld * parValue,
+      productName: shareAccount.productName ?? shareProduct?.name ?? "Shares",
+    };
+  }
+
   return {
     client: client ?? null,
     savings,
@@ -459,6 +479,7 @@ async function loadClientDetail(
     identities: identifiers.map(mapIdentifier),
     notes: notes.map(mapNote),
     savingsProducts: products,
+    sharePosition,
   };
 }
 
@@ -495,6 +516,7 @@ function ClientDetail() {
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [editingNoteDraft, setEditingNoteDraft] = useState("");
   const [savingsProducts, setSavingsProducts] = useState<ProductDto[]>([]);
+  const [sharePosition, setSharePosition] = useState<SharePosition | null>(null);
   const [addressTypeOptions, setAddressTypeOptions] = useState<ReferenceValueDto[]>([]);
   const [stateOptions, setStateOptions] = useState<ReferenceValueDto[]>([]);
   const [countryOptions, setCountryOptions] = useState<ReferenceValueDto[]>([]);
@@ -629,6 +651,7 @@ function ClientDetail() {
     setIdentities(data.identities);
     setNotes(data.notes);
     setSavingsProducts(data.savingsProducts);
+    setSharePosition(data.sharePosition);
   }
 
   async function closeAccount() {
@@ -638,7 +661,10 @@ function ClientDetail() {
       await clientsApi.close(clientId, closureReasonCode);
       const refreshed = await clientsApi.get(clientId);
       if (refreshed) setClientState(refreshed);
+      toast.success("Account closed.");
       setConfirmCloseOpen(false);
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
     } finally {
       setClosingAccount(false);
     }
@@ -657,6 +683,7 @@ function ClientDetail() {
       setIdentities(data.identities);
       setNotes(data.notes);
       setSavingsProducts(data.savingsProducts);
+      setSharePosition(data.sharePosition);
     })();
     return () => {
       alive = false;
@@ -1234,9 +1261,26 @@ function ClientDetail() {
                     Share Position
                   </div>
                   <div className="grid grid-cols-3 gap-5">
-                    <Mono label="Shares Held" value="250" />
-                    <Mono label="Share Par Value" value="GH₵ 10.00" />
-                    <Mono label="Total Share Capital" value="GH₵ 2,500.00" />
+                    <Mono
+                      label="Shares Held"
+                      value={sharePosition ? String(sharePosition.sharesHeld) : "—"}
+                    />
+                    <Mono
+                      label="Share Par Value"
+                      value={
+                        sharePosition
+                          ? `GH₵ ${sharePosition.parValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                          : "—"
+                      }
+                    />
+                    <Mono
+                      label="Total Share Capital"
+                      value={
+                        sharePosition
+                          ? `GH₵ ${sharePosition.totalCapital.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                          : "—"
+                      }
+                    />
                   </div>
                 </div>
               </SectionCard>

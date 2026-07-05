@@ -251,6 +251,8 @@ export type ProductDto = {
   // Savings product economics
   nominalAnnualInterestRate?: number;
   minRequiredOpeningBalance?: number;
+  // Share product economics
+  unitPrice?: number;
 };
 
 export type AccountDto = {

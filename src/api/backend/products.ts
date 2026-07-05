@@ -89,4 +89,12 @@ export const shareProductsApi = {
       () => [],
     );
   },
+
+  /** Accepts either the numeric Fineract product id or the product code. */
+  get(ref: string | number): Promise<ProductDto | undefined> {
+    return withMock(
+      () => request<ProductDto>(`/share-products/${ref}`),
+      () => undefined,
+    );
+  },
 };

@@ -33,6 +33,30 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Pull the human-readable message out of a failed request, e.g.
+ * `{ success: false, message: "Client cannot be closed…", error: { providerErrors: [...] } }`.
+ * Falls back to a generic message for anything else (network errors, mock mode).
+ */
+export function apiErrorMessage(err: unknown, fallback = "Something went wrong."): string {
+  if (err instanceof ApiError) {
+    const body = err.body as
+      | {
+          message?: string;
+          error?: { providerErrors?: { message?: string }[] };
+        }
+      | undefined;
+    return (
+      body?.error?.providerErrors?.[0]?.message ||
+      body?.message ||
+      `Request failed (${err.status}).`
+    );
+  }
+  if (err instanceof BackendUnavailable) return "Backend is not reachable right now.";
+  if (err instanceof Error) return err.message || fallback;
+  return fallback;
+}
+
 type RequestOptions = {
   method?: "GET" | "POST" | "PUT" | "DELETE";
   body?: unknown;

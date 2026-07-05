@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, useRef, useEffect } from "react";
+import { toast } from "sonner";
 import { Search, ChevronDown, MoreVertical, Eye, Pencil, Ban, Plus } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
 import { Button, EmptyRow, Table, TableCard, Td, Th, THead, Tr } from "@/components/patterns";
@@ -12,7 +13,7 @@ import {
   type Client,
   type ClientStatus,
 } from "@/api/clients";
-import { referencesApi, type ReferenceValueDto } from "@/api/backend";
+import { apiErrorMessage, referencesApi, type ReferenceValueDto } from "@/api/backend";
 
 export const Route = createFileRoute("/_auth/clients/")({
   component: ClientsPage,
@@ -100,7 +101,10 @@ function ClientsPage() {
       if (refreshed) {
         setClients(getClients().map((c) => (c.id === refreshed.id ? refreshed : c)));
       }
+      toast.success(`${confirmClose.name}'s account has been closed.`);
       setConfirmClose(null);
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
     } finally {
       setClosing(false);
     }
