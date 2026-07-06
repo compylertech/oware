@@ -1,18 +1,28 @@
 // HTTP transport for the corebanking backend.
 //
 // Requests go to the app's own same-origin proxy (`/api/v1/*`, handled in
-// src/server.ts), which forwards to the real backend with server-side auth.
-// This keeps the browser free of CORS problems and credentials.
+// src/server.ts), which forwards to the real backend. This keeps the browser
+// free of CORS problems and hides the real backend host.
 //
 // Responsibilities:
 //   - build the same-origin URL and attach JSON headers
+//   - attach the logged-in user's Bearer token (auth is end-to-end JWT now —
+//     the backend no longer accepts HTTP Basic) and transparently refresh it
+//     once on a 401 before giving up
 //   - attach an Idempotency-Key on writes (matches the Postman collection)
 //   - unwrap the `{ success, message, data, error }` envelope
-//   - surface BackendUnavailable (mock/SSR/proxy-down) so services fall back to
+//   - surface BackendUnavailable (mock/SSR/proxy-down) so callers fall back to
 //     the in-memory fixtures, keeping the UI working with no backend
 
 import { API_PREFIX, FORCE_MOCK } from "./config";
 import type { ApiEnvelope } from "./dto";
+import {
+  clearSession,
+  getAccessToken,
+  getRefreshToken,
+  getSession,
+  setSession,
+} from "../auth/store";
 
 export class BackendUnavailable extends Error {
   constructor(cause?: unknown) {
@@ -64,6 +74,13 @@ type RequestOptions = {
   /** Writes send an Idempotency-Key by default; set false to opt out. */
   idempotent?: boolean;
   signal?: AbortSignal;
+  /**
+   * Overrides the X-Tenant-Id header for this call. Needed for login (the
+   * tenant was just resolved via the tenant lookup and there's no session yet
+   * to read it from). Every other call defaults to the current session's
+   * tenantCode automatically.
+   */
+  tenantId?: string;
 };
 
 function buildUrl(path: string, query?: RequestOptions["query"]): string {
@@ -95,13 +112,13 @@ function unwrap<T>(payload: ApiEnvelope<T> | T): T {
   return payload as T;
 }
 
-/**
- * Perform a JSON request against the same-origin proxy. Throws
- * {@link BackendUnavailable} in mock mode, during SSR, or when the proxy/backend
- * is unreachable so callers can fall back to fixtures; {@link ApiError} on other
- * non-2xx responses.
- */
-export async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
+// Auth endpoints are public (no bearer token to send) and must never trigger
+// the refresh-on-401 dance below — refresh itself hits /auth/refresh, and a
+// failed login is a real "wrong password", not an expired-token situation.
+const NO_REFRESH_PATHS = new Set(["/auth/login", "/auth/refresh", "/auth/register"]);
+
+/** Single request attempt — no refresh/retry logic. */
+async function rawRequest<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   // Only run in the browser: SSR renders fixtures, the browser hydrates live data.
   if (FORCE_MOCK || typeof window === "undefined") throw new BackendUnavailable();
 
@@ -110,6 +127,10 @@ export async function request<T>(path: string, opts: RequestOptions = {}): Promi
   const headers: Record<string, string> = { Accept: "application/json" };
   if (opts.body !== undefined) headers["Content-Type"] = "application/json";
   if (isWrite && opts.idempotent !== false) headers["Idempotency-Key"] = guid();
+  const token = getAccessToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const tenantId = opts.tenantId ?? getSession()?.tenantCode;
+  if (tenantId) headers["X-Tenant-Id"] = tenantId;
 
   let res: Response;
   try {
@@ -141,6 +162,68 @@ export async function request<T>(path: string, opts: RequestOptions = {}): Promi
   if (res.status === 204) return undefined as T;
   const json = (await res.json()) as ApiEnvelope<T> | T;
   return unwrap<T>(json);
+}
+
+type RefreshResponse = {
+  accessToken: string;
+  refreshToken: string;
+  accessTokenExpiresInSeconds: number;
+  user: import("../auth/store").AuthUser;
+};
+
+// Concurrent 401s during the same window should trigger exactly one refresh
+// call, not one per in-flight request.
+let refreshInFlight: Promise<void> | null = null;
+
+async function refreshAccessToken(): Promise<void> {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) throw new Error("No refresh token available");
+  const data = await rawRequest<RefreshResponse>("/auth/refresh", {
+    method: "POST",
+    body: { refreshToken },
+    idempotent: false,
+  });
+  const current = getSession();
+  setSession({
+    accessToken: data.accessToken,
+    refreshToken: data.refreshToken,
+    tenantCode: current?.tenantCode ?? "",
+    expiresAt: Date.now() + data.accessTokenExpiresInSeconds * 1000,
+    user: data.user ?? current?.user,
+  });
+}
+
+/**
+ * Perform a JSON request against the same-origin proxy. Throws
+ * {@link BackendUnavailable} in mock mode, during SSR, or when the proxy/backend
+ * is unreachable so callers can fall back to fixtures; {@link ApiError} on other
+ * non-2xx responses. A 401 (other than from the auth endpoints themselves)
+ * triggers one transparent refresh-and-retry before giving up; if the refresh
+ * also fails the session is cleared so the app's route guard redirects to
+ * sign-in.
+ */
+export async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
+  try {
+    return await rawRequest<T>(path, opts);
+  } catch (err) {
+    const shouldRefresh =
+      err instanceof ApiError &&
+      err.status === 401 &&
+      !NO_REFRESH_PATHS.has(path) &&
+      getRefreshToken();
+    if (!shouldRefresh) throw err;
+
+    try {
+      refreshInFlight ??= refreshAccessToken().finally(() => {
+        refreshInFlight = null;
+      });
+      await refreshInFlight;
+    } catch {
+      clearSession();
+      throw err;
+    }
+    return rawRequest<T>(path, opts);
+  }
 }
 
 /**

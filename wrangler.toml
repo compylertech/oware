@@ -5,15 +5,18 @@ pages_build_output_dir = "dist"
 
 # Non-secret runtime variables. On Cloudflare these are exposed to the server
 # worker at runtime via the `env` binding and read in src/lib/api-proxy.ts as
-# env.BACKEND_URL (same-origin /api/v1/* proxy to the corebanking backend).
-#
-# Do NOT put BACKEND_USER / BACKEND_PASSWORD here — they are credentials.
-# Set them instead via:
-#   Cloudflare dashboard → project → Settings → Variables and Secrets → add Secret
-#   (or:  npx wrangler pages secret put BACKEND_USER
-#         npx wrangler pages secret put BACKEND_PASSWORD)
+# env.BACKEND_URL / env.BACKEND_TENANT_ID (same-origin /api/v1/* proxy to the
+# corebanking backend). Auth is Bearer-token based end to end — the backend
+# no longer accepts HTTP Basic, so there is no backend credential to store
+# here; each user's own token (from POST /auth/login) is what the proxy
+# forwards.
 [vars]
 # Public base URL of the corebanking backend. MUST be reachable from Cloudflare
 # (localhost / ngrok dev URLs won't work for a real deployment) — set the real one.
 BACKEND_URL = "http://localhost:8084"
+# Multi-tenancy fallback only — the proxy normally forwards whatever
+# X-Tenant-Id the signed-in client sent (resolved per-email at sign-in via
+# the tenant lookup endpoint, since there's no single tenant for this app).
+# This is used only if a request somehow arrives with no tenant header at all.
+BACKEND_TENANT_ID = "acme"
 DEFAULT_TENANT_ID = "greenbank"

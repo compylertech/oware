@@ -1,17 +1,25 @@
 // Same-origin API proxy.
 //
 // The browser calls `/api/v1/*` on the app's own origin; this forwards those
-// requests to the corebanking backend with server-side HTTP Basic auth. Keeping
-// it server-side avoids CORS and never exposes credentials to the client.
+// requests to the corebanking backend. Keeping it server-side avoids CORS and
+// means the frontend never needs to know the real backend host.
+//
+// Auth is now Bearer-token based end to end (HTTP Basic was removed on the
+// backend) — the proxy forwards whatever `Authorization: Bearer <token>`
+// header the client sent, it does not inject credentials of its own. Every
+// request also needs `X-Tenant-Id` (multi-tenancy): a login issued for one
+// tenant is rejected on any request that doesn't carry that same tenant
+// header. There's no single tenant for this app — it's resolved per email via
+// the tenant-lookup endpoint at sign-in time — so the proxy forwards whatever
+// `X-Tenant-Id` the client sent (matching that user's session) rather than
+// injecting a fixed one; BACKEND_TENANT_ID is only a fallback for the rare
+// case a request has no tenant context at all (e.g. manual testing).
 //
 // Configuration (server env; on Cloudflare these arrive via the `env` binding
 // per wrangler.toml, locally via process.env):
-//   BACKEND_URL       backend base, e.g. https://host  (no /api/v1) — set as a
-//                     [vars] entry in wrangler.toml (see there)
-//   BACKEND_USER      Basic-auth user (default: admin) — set as a Cloudflare
-//                     secret (`wrangler pages secret put BACKEND_USER`), not
-//                     a [vars] entry
-//   BACKEND_PASSWORD  Basic-auth pass (default: admin) — same, as a secret
+//   BACKEND_URL        backend base, e.g. https://host  (no /api/v1) — set as
+//                      a [vars] entry in wrangler.toml (see there)
+//   BACKEND_TENANT_ID  fallback X-Tenant-Id when the client sends none
 //
 // If no backend URL is configured the proxy returns 503 and the frontend
 // transparently falls back to its in-memory fixtures.
@@ -33,16 +41,10 @@ function readEnv(key: string, env: Env): string | undefined {
   return undefined;
 }
 
-function base64(input: string): string {
-  if (typeof btoa === "function") return btoa(input);
-  return Buffer.from(input, "utf-8").toString("base64");
-}
-
 function backendConfig(env: Env) {
   const base = (readEnv("BACKEND_URL", env) ?? DEFAULT_BACKEND_URL).replace(/\/$/, "");
-  const user = readEnv("BACKEND_USER", env) ?? "admin";
-  const pass = readEnv("BACKEND_PASSWORD", env) ?? "admin";
-  return { base, auth: `Basic ${base64(`${user}:${pass}`)}` };
+  const fallbackTenantId = readEnv("BACKEND_TENANT_ID", env);
+  return { base, fallbackTenantId };
 }
 
 /**
@@ -53,7 +55,7 @@ export async function proxyApiRequest(request: Request, env?: Env): Promise<Resp
   const url = new URL(request.url);
   if (!url.pathname.startsWith(PROXY_PREFIX)) return undefined;
 
-  const { base, auth } = backendConfig(env);
+  const { base, fallbackTenantId } = backendConfig(env);
   if (!base) {
     return json({ error: "backend not configured" }, 503);
   }
@@ -63,7 +65,13 @@ export async function proxyApiRequest(request: Request, env?: Env): Promise<Resp
 
   const headers = new Headers();
   headers.set("Accept", "application/json");
-  headers.set("Authorization", auth);
+  // The tenant the client's own session belongs to, if any (tenant-lookup
+  // itself intentionally sends none — it has no session yet).
+  const tenantId = request.headers.get("x-tenant-id") ?? fallbackTenantId;
+  if (tenantId) headers.set("X-Tenant-Id", tenantId);
+  // Forward the caller's own bearer token — the proxy holds no credentials.
+  const authorization = request.headers.get("authorization");
+  if (authorization) headers.set("Authorization", authorization);
   // Bypass the ngrok free-tier browser interstitial (no-op for other hosts).
   headers.set("ngrok-skip-browser-warning", "true");
   const contentType = request.headers.get("content-type");

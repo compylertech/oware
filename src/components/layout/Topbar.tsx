@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Bell,
   ChevronDown,
@@ -15,6 +16,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { FONTS } from "@/lib/tokens";
+import { authApi, useAuthSession } from "@/api/auth";
 
 const NAVY = "#002663";
 const BORDER = "#DDE4EF";
@@ -67,6 +69,8 @@ export function Topbar({
   collapsed?: boolean;
   onMenuClick?: () => void;
 }) {
+  const navigate = useNavigate();
+  const session = useAuthSession();
   const [notifOpen, setNotifOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -80,6 +84,20 @@ export function Topbar({
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
+
+  async function handleLogout() {
+    setUserOpen(false);
+    await authApi.logout();
+    navigate({ to: "/signin", replace: true });
+  }
+
+  const user = session?.user;
+  const displayName = user ? [user.firstName, user.lastName].filter(Boolean).join(" ") : "Guest";
+  const initials =
+    [user?.firstName?.[0], user?.lastName?.[0]].filter(Boolean).join("").toUpperCase() || "?";
+  const roleLabel = user?.defaultRole
+    ? user.defaultRole.charAt(0) + user.defaultRole.slice(1).toLowerCase()
+    : "";
 
   return (
     <header
@@ -373,7 +391,7 @@ export function Topbar({
                   fontFamily: FONTS.body,
                 }}
               >
-                DQ
+                {initials}
               </div>
               <span
                 style={{
@@ -396,8 +414,8 @@ export function Topbar({
                 lineHeight: 1.2,
               }}
             >
-              <span style={{ fontSize: 13, fontWeight: 100, color: INK }}>Daniel Quaidoo</span>
-              <span style={{ fontSize: 11, color: MUTED }}>Administrator</span>
+              <span style={{ fontSize: 13, fontWeight: 100, color: INK }}>{displayName}</span>
+              <span style={{ fontSize: 11, color: MUTED }}>{roleLabel}</span>
             </div>
             <ChevronDown size={14} color={MUTED} />
           </button>
@@ -426,11 +444,9 @@ export function Topbar({
                     fontFamily: FONTS.body,
                   }}
                 >
-                  Daniel Quaidoo
+                  {displayName}
                 </div>
-                <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>
-                  daniel.quaidoo@gmail.com
-                </div>
+                <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>{user?.email ?? ""}</div>
               </div>
               <div style={{ padding: "4px 0" }}>
                 <UserMenuItem icon={<User size={16} />} label="My Profile" />
@@ -439,7 +455,12 @@ export function Topbar({
                 <div style={{ height: 1, background: BORDER, margin: "4px 0" }} />
                 <UserMenuItem icon={<HelpCircle size={16} />} label="Help & Support" />
                 <div style={{ height: 1, background: BORDER, margin: "4px 0" }} />
-                <UserMenuItem icon={<LogOut size={16} />} label="Logout" danger />
+                <UserMenuItem
+                  icon={<LogOut size={16} />}
+                  label="Logout"
+                  danger
+                  onClick={() => void handleLogout()}
+                />
               </div>
             </div>
           )}
@@ -453,14 +474,17 @@ function UserMenuItem({
   icon,
   label,
   danger,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   danger?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       style={{
         display: "flex",
         alignItems: "center",
