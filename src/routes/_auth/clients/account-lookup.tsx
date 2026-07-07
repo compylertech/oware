@@ -27,9 +27,14 @@ import {
   THead,
   Tr,
 } from "@/components/patterns";
-import { isDisplayDateInRange } from "@/lib/dateFilters";
 import { FONTS, tokens } from "@/lib/tokens";
-import { getClients } from "@/lib/mockStore";
+import {
+  ApiError,
+  apiErrorMessage,
+  savingsAccountsApi,
+  type AccountDto,
+  type TransactionDto,
+} from "@/api/backend";
 
 export const Route = createFileRoute("/_auth/clients/account-lookup")({
   component: AccountLookupPage,
@@ -75,56 +80,9 @@ const fmtGHS = (n: number) =>
 const fmtDate = (d: Date) =>
   d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 
-function buildMockAccount(): { account: AccountDetail; txns: Txn[]; notices: WithdrawalNotice[] } {
-  const client = getClients()[0];
-  const account: AccountDetail = {
-    accountNumber: "0023 4501 7789",
-    productName: "Premium Savings",
-    balance: 12450.75,
-    status: "Active",
-    clientId: client?.clientNumber ?? "CLT-0001",
-    clientName: client?.name ?? "Kwame Mensah",
-    activationDate: client?.activationDate ?? "12 Jan 2024",
-  };
-
-  const raw: Array<[string, TxnEntry, number, TxnStatus]> = [
-    ["Salary Deposit", "Credit", 3200, "Completed"],
-    ["ATM Withdrawal", "Debit", 400, "Completed"],
-    ["Mobile Money In", "Credit", 850, "Completed"],
-    ["POS Purchase", "Debit", 215.5, "Completed"],
-    ["Interest Earned", "Credit", 42.25, "Completed"],
-    ["Standing Order", "Debit", 600, "Completed"],
-    ["Transfer In", "Credit", 1500, "Completed"],
-    ["Bill Payment", "Debit", 320, "Reversed"],
-    ["Cash Deposit", "Credit", 2200, "Completed"],
-    ["Transfer Out", "Debit", 750, "Completed"],
-    ["Mobile Money Out", "Debit", 180, "Reversed"],
-    ["Cheque Deposit", "Credit", 4800, "Completed"],
-  ];
-
-  // build txns in reverse so running balance ends at current balance for most recent
-  let bal = account.balance;
-  const txns: Txn[] = raw.map(([type, entry, amount, status], i) => {
-    const date = fmtDate(new Date(2025, 5, 22 - i));
-    return {
-      id: `tx-${i + 1}`,
-      date,
-      type,
-      entry,
-      amount,
-      runningBalance: 0,
-      status,
-    };
-  });
-  for (let i = 0; i < txns.length; i++) {
-    const t = txns[i];
-    t.runningBalance = bal;
-    if (t.status === "Completed") {
-      bal = t.entry === "Credit" ? bal - t.amount : bal + t.amount;
-    }
-  }
-
-  const notices: WithdrawalNotice[] = [
+// The withdrawal-notices panel isn't backed by a real endpoint yet.
+function buildMockNotices(): WithdrawalNotice[] {
+  return [
     {
       id: "wn-1",
       noticeDate: "01 Jun 2025",
@@ -140,8 +98,46 @@ function buildMockAccount(): { account: AccountDetail; txns: Txn[]; notices: Wit
       status: "Active",
     },
   ];
+}
 
-  return { account, txns, notices };
+function accountStatusFrom(value?: string): AccountStatus {
+  return (value ?? "").toUpperCase().includes("PENDING") ? "Pending" : "Active";
+}
+
+function mapAccountDetail(dto: AccountDto, fallbackAccountNumber: string): AccountDetail {
+  return {
+    accountNumber: dto.accountNo ?? fallbackAccountNumber,
+    productName: dto.productName ?? "—",
+    balance: dto.availableBalance ?? dto.accountBalance ?? 0,
+    status: accountStatusFrom(dto.status),
+    clientId: dto.clientId ?? "—",
+    clientName: dto.clientName ?? "—",
+    activationDate: dto.activatedOnDate ? fmtDate(new Date(dto.activatedOnDate)) : "—",
+  };
+}
+
+// The transactions endpoint reports amount as an unsigned magnitude and
+// encodes direction in transactionTypeCode (e.g.
+// "savingsAccountTransactionType.withdrawal") — classify by keyword since
+// deposits/interest/dividends are the credit side and withdrawals/fees/
+// charges are the debit side.
+const DEBIT_TRANSACTION_KEYWORDS = ["withdrawal", "fee", "charge", "penalty"];
+function entryFromTransactionType(code?: string): TxnEntry {
+  const c = (code ?? "").toLowerCase();
+  return DEBIT_TRANSACTION_KEYWORDS.some((k) => c.includes(k)) ? "Debit" : "Credit";
+}
+
+function mapTransaction(dto: TransactionDto): Txn {
+  const dateValue = dto.transactionDate ?? dto.date;
+  return {
+    id: String(dto.id),
+    date: dateValue ? fmtDate(new Date(dateValue)) : "—",
+    type: dto.transactionTypeValue ?? dto.type ?? "Transaction",
+    entry: entryFromTransactionType(dto.transactionTypeCode),
+    amount: dto.amount ?? 0,
+    runningBalance: dto.runningBalance ?? 0,
+    status: dto.reversed ? "Reversed" : "Completed",
+  };
 }
 
 // ---------- Small UI primitives ----------
@@ -203,7 +199,9 @@ function AccountLookupPage() {
   const [accountActionsOpen, setAccountActionsOpen] = useState(false);
   const [dialog, setDialog] = useState<null | "credit" | "debit" | "transfer">(null);
 
-  function handleLookup(e?: React.FormEvent) {
+  const [txLoading, setTxLoading] = useState(false);
+
+  async function handleLookup(e?: React.FormEvent) {
     e?.preventDefault();
     const q = query.trim();
     if (!q) return;
@@ -211,35 +209,57 @@ function AccountLookupPage() {
     setSearching(true);
     setActionsOpen(false);
     setAccountActionsOpen(false);
-    setTimeout(() => {
-      // Any non-empty string except "000" returns the mock account.
-      if (q.replace(/\s|-/g, "").toLowerCase() === "000") {
-        setAccount(null);
-        setTxns([]);
-        setNotices([]);
-        setError(`No account found for "${q}".`);
-      } else {
-        const built = buildMockAccount();
-        setAccount(built.account);
-        setTxns(built.txns);
-        setNotices(built.notices);
-        setFilter("All");
-        setDateFrom("");
-        setDateTo("");
-        setPage(1);
+    try {
+      const [detail, rows] = await Promise.all([
+        savingsAccountsApi.get(q),
+        savingsAccountsApi.transactions(q),
+      ]);
+      if (!detail) {
+        throw new Error("Backend is not reachable right now.");
       }
+      setAccount(mapAccountDetail(detail, q));
+      setNotices(buildMockNotices());
+      setTxns(rows.map(mapTransaction));
+      setFilter("All");
+      setDateFrom("");
+      setDateTo("");
+      setPage(1);
+    } catch (err) {
+      setAccount(null);
+      setTxns([]);
+      setNotices([]);
+      setError(
+        err instanceof ApiError && err.status === 404
+          ? `No account found for "${q}".`
+          : apiErrorMessage(err, "Something went wrong looking up this account."),
+      );
+    } finally {
       setSearching(false);
-    }, 650);
+    }
+  }
+
+  /** Re-runs the transactions fetch with a date range — the API filters
+   * server-side, so this replaces the current rows rather than re-filtering
+   * client-side. */
+  async function refetchTransactions(fromDate: string, toDate: string) {
+    if (!account) return;
+    setTxLoading(true);
+    try {
+      const rows = await savingsAccountsApi.transactions(account.accountNumber, {
+        fromSubmittedDate: fromDate || undefined,
+        toSubmittedDate: toDate || undefined,
+      });
+      setTxns(rows.map(mapTransaction));
+    } catch (err) {
+      setError(apiErrorMessage(err, "Could not load transactions for this date range."));
+    } finally {
+      setTxLoading(false);
+    }
   }
 
   const filteredTxns = useMemo(
-    () =>
-      txns.filter(
-        (t) =>
-          (filter === "All" || t.entry === filter) &&
-          isDisplayDateInRange(t.date, dateFrom, dateTo),
-      ),
-    [dateFrom, dateTo, txns, filter],
+    () => txns.filter((t) => filter === "All" || t.entry === filter),
+    [txns, filter],
   );
   const totalPages = Math.max(1, Math.ceil(filteredTxns.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -269,11 +289,6 @@ function AccountLookupPage() {
     if (!account) return;
     setAccount({ ...account, status: "Active" });
     setAccountActionsOpen(false);
-  }
-
-  function openAccountDialog(nextDialog: "credit" | "debit" | "transfer") {
-    setAccountActionsOpen(false);
-    setDialog(nextDialog);
   }
 
   function handleTxnSubmit(kind: "credit" | "debit", amount: number) {
@@ -326,10 +341,12 @@ function AccountLookupPage() {
         onFromChange={(value) => {
           setDateFrom(value);
           setPage(1);
+          void refetchTransactions(value, dateTo);
         }}
         onToChange={(value) => {
           setDateTo(value);
           setPage(1);
+          void refetchTransactions(dateFrom, value);
         }}
       />
     </>
@@ -428,7 +445,7 @@ function AccountLookupPage() {
           </p>
 
           <form
-            onSubmit={handleLookup}
+            onSubmit={(e) => void handleLookup(e)}
             className="flex items-stretch gap-2 mt-5"
             style={{ maxWidth: 580 }}
           >
@@ -491,23 +508,34 @@ function AccountLookupPage() {
         {account && (
           <div
             style={{
-              background: "linear-gradient(135deg, #001844 0%, #002663 55%, #1a4080 100%)",
-              borderRadius: 16,
               position: "relative",
-              overflow: "hidden",
+              borderRadius: 16,
               borderTop: "3px solid #4A90FF",
             }}
           >
+            {/* Background + dotted pattern live in their own clipped layer so the
+                rounded corners don't force `overflow: hidden` onto the content
+                below, which would cut off the account-actions dropdown. */}
             <div
               aria-hidden
               style={{
                 position: "absolute",
                 inset: 0,
-                backgroundImage: "radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)",
-                backgroundSize: "16px 16px",
+                borderRadius: 16,
+                overflow: "hidden",
+                background: "linear-gradient(135deg, #001844 0%, #002663 55%, #1a4080 100%)",
                 pointerEvents: "none",
               }}
-            />
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  backgroundImage: "radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)",
+                  backgroundSize: "16px 16px",
+                }}
+              />
+            </div>
             <div style={{ position: "relative", padding: 28 }}>
               <div className="flex flex-wrap items-start justify-between gap-6">
                 <div>
@@ -547,7 +575,7 @@ function AccountLookupPage() {
                       fontWeight: 100,
                     }}
                   >
-                    CURRENT BALANCE
+                    AVAILABLE BALANCE
                   </div>
                   <div
                     style={{
@@ -603,25 +631,11 @@ function AccountLookupPage() {
                               />
                             </>
                           ) : (
-                            <>
-                              <AccountActionItem
-                                label="Credit Account"
-                                onClick={() => openAccountDialog("credit")}
-                              />
-                              <AccountActionItem
-                                label="Debit Account"
-                                onClick={() => openAccountDialog("debit")}
-                              />
-                              <AccountActionItem
-                                label="Transfer Funds"
-                                onClick={() => openAccountDialog("transfer")}
-                              />
-                              <AccountActionItem
-                                label="Close Account"
-                                color="#D92D20"
-                                onClick={() => setAccountActionsOpen(false)}
-                              />
-                            </>
+                            <AccountActionItem
+                              label="Close Account"
+                              color="#D92D20"
+                              onClick={() => setAccountActionsOpen(false)}
+                            />
                           )}
                         </div>
                       )}
@@ -702,7 +716,9 @@ function AccountLookupPage() {
                 ))}
               </THead>
               <tbody>
-                {pageRows.length === 0 ? (
+                {txLoading ? (
+                  <EmptyRow colSpan={6}>Loading transactions…</EmptyRow>
+                ) : pageRows.length === 0 ? (
                   <EmptyRow colSpan={6}>No transactions found</EmptyRow>
                 ) : (
                   pageRows.map((t) => (
@@ -715,7 +731,7 @@ function AccountLookupPage() {
                       <Td numeric style={{ fontWeight: 100 }}>
                         {t.entry === "Credit" ? fmtGHS(t.amount) : ""}
                       </Td>
-                      <Td numeric style={{ fontWeight: 500 }}>
+                      <Td numeric style={{ fontWeight: 100 }}>
                         {fmtGHS(t.runningBalance)}
                       </Td>
                       <Td>
@@ -761,7 +777,7 @@ function AccountLookupPage() {
           >
             <Table>
               <THead>
-                {["Notice date", "Amount", "Maturity / release", "Status"].map((h) => (
+                {["Notice date", "Amount", "Release Date", "Status"].map((h) => (
                   <Th key={h} style={{ paddingInline: 22 }}>
                     {h}
                   </Th>
