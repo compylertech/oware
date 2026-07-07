@@ -126,7 +126,7 @@ function SignInPage() {
               id="email"
               type="email"
               autoComplete="email"
-              placeholder="you@company.com"
+              placeholder="akosua@oware.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={inputCls}
