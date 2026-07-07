@@ -14,6 +14,7 @@ import {
   X,
   CheckCircle2,
   MoreVertical,
+  Check,
 } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
 import {
@@ -199,6 +200,7 @@ function LayerTag({ label, tone = "teal" }: { label: string; tone?: "teal" | "na
 // ---------- Page ----------
 
 const PAGE_SIZE = 10;
+const NOTICES_PAGE_SIZE_OPTIONS = [5, 10, 25, 50, 75, 100];
 
 function AccountLookupPage() {
   const [query, setQuery] = useState("");
@@ -213,6 +215,7 @@ function AccountLookupPage() {
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
   const [noticesPage, setNoticesPage] = useState(1);
+  const [noticesPageSize, setNoticesPageSize] = useState(5);
 
   const [actionsOpen, setActionsOpen] = useState(false);
   const [accountActionsOpen, setAccountActionsOpen] = useState(false);
@@ -300,11 +303,11 @@ function AccountLookupPage() {
   const currentPage = Math.min(page, totalPages);
   const pageRows = filteredTxns.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-  const noticesTotalPages = Math.max(1, Math.ceil(notices.length / PAGE_SIZE));
+  const noticesTotalPages = Math.max(1, Math.ceil(notices.length / noticesPageSize));
   const noticesCurrentPage = Math.min(noticesPage, noticesTotalPages);
   const noticesPageRows = notices.slice(
-    (noticesCurrentPage - 1) * PAGE_SIZE,
-    noticesCurrentPage * PAGE_SIZE,
+    (noticesCurrentPage - 1) * noticesPageSize,
+    noticesCurrentPage * noticesPageSize,
   );
 
   const totalCredits = txns
@@ -874,6 +877,12 @@ function AccountLookupPage() {
               totalItems: notices.length,
               itemLabel: "notices",
               onPageChange: setNoticesPage,
+              pageSize: noticesPageSize,
+              pageSizeOptions: NOTICES_PAGE_SIZE_OPTIONS,
+              onPageSizeChange: (size) => {
+                setNoticesPageSize(size);
+                setNoticesPage(1);
+              },
             }}
           >
             <Table>
@@ -906,19 +915,22 @@ function AccountLookupPage() {
                         {n.status === "Pending" && (
                           <div className="flex items-center justify-end gap-2">
                             <Button
-                              variant="outline"
+                              variant="dangerOutline"
                               size="sm"
+                              icon={<X size={14} />}
                               onClick={() => setReviewDialog({ id: n.id, action: "reject" })}
                             >
                               Reject
                             </Button>
                             <Button
-                              variant="success"
+                              variant="successOutline"
+                              icon={<Check size={14} />}
                               size="sm"
                               onClick={() => setReviewDialog({ id: n.id, action: "approve" })}
                             >
                               Approve
                             </Button>
+                            
                           </div>
                         )}
                       </Td>

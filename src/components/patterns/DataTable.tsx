@@ -16,6 +16,11 @@ export type TablePaginationProps = {
   totalItems: number;
   itemLabel: string;
   onPageChange: (page: number) => void;
+  /** Opt-in "rows per page" dropdown, rendered on the left of the page info.
+   * Provide all three (pageSize/pageSizeOptions/onPageSizeChange) to show it. */
+  pageSize?: number;
+  pageSizeOptions?: number[];
+  onPageSizeChange?: (size: number) => void;
 };
 
 export type TableToolbarProps = {
@@ -257,18 +262,44 @@ export function TablePagination({
   totalItems,
   itemLabel,
   onPageChange,
+  pageSize,
+  pageSizeOptions,
+  onPageSizeChange,
 }: TablePaginationProps) {
   const safeTotalPages = Math.max(1, totalPages);
   const safePage = Math.min(Math.max(1, page), safeTotalPages);
   const pages = Array.from({ length: safeTotalPages }, (_, i) => i + 1);
+  const showPageSize = pageSize != null && pageSizeOptions?.length && onPageSizeChange;
 
   return (
     <div
       className="flex flex-wrap items-center justify-between gap-3"
       style={{ padding: "14px 22px", borderTop: `1px solid ${tokens.border}` }}
     >
-      <div style={{ fontSize: 12, color: tokens.textMuted }}>
-        Page {safePage} of {safeTotalPages} · {totalItems} {itemLabel}
+      <div className="flex items-center gap-3">
+        {showPageSize && (
+          <select
+            value={pageSize}
+            onChange={(e) => onPageSizeChange(Number(e.target.value))}
+            style={{
+              border: `1px solid ${tokens.border}`,
+              borderRadius: 8,
+              padding: "4px 8px",
+              fontSize: 12,
+              color: tokens.textSub,
+              background: "#fff",
+            }}
+          >
+            {pageSizeOptions!.map((n) => (
+              <option key={n} value={n}>
+                {n} / page
+              </option>
+            ))}
+          </select>
+        )}
+        <div style={{ fontSize: 12, color: tokens.textMuted }}>
+          Page {safePage} of {safeTotalPages} · {totalItems} {itemLabel}
+        </div>
       </div>
       <div className="flex items-center gap-1">
         <PageButton onClick={() => onPageChange(1)} disabled={safePage === 1}>
