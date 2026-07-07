@@ -32,8 +32,10 @@ import {
   ApiError,
   apiErrorMessage,
   savingsAccountsApi,
+  transactionOperationsApi,
   type AccountDto,
   type TransactionDto,
+  type TransactionOperationDto,
 } from "@/api/backend";
 
 export const Route = createFileRoute("/_auth/clients/account-lookup")({
@@ -45,6 +47,7 @@ export const Route = createFileRoute("/_auth/clients/account-lookup")({
 type AccountStatus = "Active" | "Pending";
 
 type AccountDetail = {
+  id: string;
   accountNumber: string;
   productName: string;
   balance: number;
@@ -71,7 +74,7 @@ type WithdrawalNotice = {
   noticeDate: string;
   amount: number;
   maturityDate: string;
-  status: "Pending" | "Active" | "Withdrawn";
+  status: StatusKind;
 };
 
 const fmtGHS = (n: number) =>
@@ -80,32 +83,13 @@ const fmtGHS = (n: number) =>
 const fmtDate = (d: Date) =>
   d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 
-// The withdrawal-notices panel isn't backed by a real endpoint yet.
-function buildMockNotices(): WithdrawalNotice[] {
-  return [
-    {
-      id: "wn-1",
-      noticeDate: "01 Jun 2025",
-      amount: 2000,
-      maturityDate: "01 Jul 2025",
-      status: "Pending",
-    },
-    {
-      id: "wn-2",
-      noticeDate: "10 May 2025",
-      amount: 500,
-      maturityDate: "10 Jun 2025",
-      status: "Active",
-    },
-  ];
-}
-
 function accountStatusFrom(value?: string): AccountStatus {
   return (value ?? "").toUpperCase().includes("PENDING") ? "Pending" : "Active";
 }
 
 function mapAccountDetail(dto: AccountDto, fallbackAccountNumber: string): AccountDetail {
   return {
+    id: dto.id,
     accountNumber: dto.accountNo ?? fallbackAccountNumber,
     productName: dto.productName ?? "—",
     balance: dto.availableBalance ?? dto.accountBalance ?? 0,
@@ -113,6 +97,36 @@ function mapAccountDetail(dto: AccountDto, fallbackAccountNumber: string): Accou
     clientId: dto.clientId ?? "—",
     clientName: dto.clientName ?? "—",
     activationDate: dto.activatedOnDate ? fmtDate(new Date(dto.activatedOnDate)) : "—",
+  };
+}
+
+// A "withdrawal notice" on this backend is a SAVINGS_WITHDRAWAL transaction
+// operation sitting in the async review workflow — statuses map onto the
+// same StatusPill tones used elsewhere rather than a bespoke 3-state enum.
+const NOTICE_STATUS: Record<string, StatusKind> = {
+  RECEIVED: "Pending",
+  PENDING_APPROVAL: "Pending",
+  APPROVED: "Scheduled",
+  PROCESSING: "Scheduled",
+  POSTED: "Completed",
+  FAILED: "Failed",
+  REJECTED: "Rejected",
+  REVERSED: "Reversed",
+  UNKNOWN: "Pending",
+};
+
+const NOTICE_RELEASE_DAYS = 3;
+
+function mapWithdrawalNotice(dto: TransactionOperationDto): WithdrawalNotice {
+  const transactionDate = new Date(dto.transactionDate);
+  const releaseDate = new Date(transactionDate);
+  releaseDate.setDate(releaseDate.getDate() + NOTICE_RELEASE_DAYS);
+  return {
+    id: dto.id,
+    noticeDate: fmtDate(transactionDate),
+    amount: dto.amount,
+    maturityDate: fmtDate(releaseDate),
+    status: NOTICE_STATUS[dto.status] ?? "Pending",
   };
 }
 
@@ -217,8 +231,13 @@ function AccountLookupPage() {
       if (!detail) {
         throw new Error("Backend is not reachable right now.");
       }
+      const noticeOps = await transactionOperationsApi.search({
+        operationType: "SAVINGS_WITHDRAWAL",
+        accountType: "SAVINGS",
+        localAccountId: detail.id,
+      });
       setAccount(mapAccountDetail(detail, q));
-      setNotices(buildMockNotices());
+      setNotices(noticeOps.map(mapWithdrawalNotice));
       setTxns(rows.map(mapTransaction));
       setFilter("All");
       setDateFrom("");
@@ -754,26 +773,6 @@ function AccountLookupPage() {
                 <LayerTag label="Cooperative" />
               </span>
             }
-            actions={
-              <Button
-                onClick={() =>
-                  setNotices([
-                    {
-                      id: `wn-${Date.now()}`,
-                      noticeDate: fmtDate(new Date()),
-                      amount: 1000,
-                      maturityDate: fmtDate(new Date(Date.now() + 30 * 86400000)),
-                      status: "Pending",
-                    },
-                    ...notices,
-                  ])
-                }
-                variant="success"
-                icon={<Plus size={14} />}
-              >
-                Add notice
-              </Button>
-            }
           >
             <Table>
               <THead>
@@ -799,7 +798,7 @@ function AccountLookupPage() {
                         {n.maturityDate}
                       </Td>
                       <Td style={{ paddingInline: 22 }}>
-                        <StatusPill status={n.status as StatusKind} />
+                        <StatusPill status={n.status} />
                       </Td>
                     </Tr>
                   ))

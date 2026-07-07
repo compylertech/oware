@@ -469,3 +469,32 @@ export type ShareAccountApplyAdditionalSharesDto = {
 
 /** Idempotency-keyed action payload (approve/activate/close/disburse). */
 export type ActionDto = { actionDate?: string; comments?: string };
+
+// ── Transaction Operations (async withdrawal/deposit review workflow) ──────
+
+export type TransactionOperationStatus =
+  | "RECEIVED"
+  | "PENDING_APPROVAL"
+  | "APPROVED"
+  | "PROCESSING"
+  | "POSTED"
+  | "FAILED"
+  | "REJECTED"
+  | "UNKNOWN"
+  | "REVERSED";
+
+/** GET /transaction-operations row shape — `localAccountId` is this
+ * service's own account UUID (matches AccountDto.id / ShareAccountDto.id). */
+export type TransactionOperationDto = {
+  id: string;
+  operationType: string;
+  accountType: string;
+  localAccountId?: string;
+  fineractAccountId?: number;
+  amount: number;
+  currencyCode?: string;
+  transactionDate: string;
+  note?: string | null;
+  status: TransactionOperationStatus | string;
+  failureReason?: string | null;
+};
