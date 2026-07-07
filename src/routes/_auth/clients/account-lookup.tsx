@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   Wallet,
   Search,
@@ -216,6 +217,11 @@ function AccountLookupPage() {
   const [actionsOpen, setActionsOpen] = useState(false);
   const [accountActionsOpen, setAccountActionsOpen] = useState(false);
   const [dialog, setDialog] = useState<null | "credit" | "debit" | "transfer" | "notice">(null);
+  const [reviewDialog, setReviewDialog] = useState<{
+    id: string;
+    action: "approve" | "reject";
+  } | null>(null);
+  const [reviewSaving, setReviewSaving] = useState(false);
 
   const [txLoading, setTxLoading] = useState(false);
   const [paymentTypeOptions, setPaymentTypeOptions] = useState<ReferenceValueDto[]>([]);
@@ -352,6 +358,40 @@ function AccountLookupPage() {
       ...prev,
     ]);
     setNoticesPage(1);
+  }
+
+  async function submitReview(comments: string) {
+    if (!reviewDialog) return;
+    const { id, action } = reviewDialog;
+    setReviewSaving(true);
+    try {
+      const result =
+        action === "approve"
+          ? await transactionOperationsApi.approve(id, comments || undefined)
+          : await transactionOperationsApi.reject(id, comments || undefined);
+      if (!result) throw new Error("Backend is not reachable right now.");
+      setNotices((prev) =>
+        prev.map((n) =>
+          n.id === id ? { ...n, status: NOTICE_STATUS[result.status] ?? n.status } : n,
+        ),
+      );
+      toast.success(action === "approve" ? "Notice approved." : "Notice rejected.");
+      setReviewDialog(null);
+      // Approving actually posts the withdrawal to Fineract — refresh the
+      // account balance and transactions so they reflect it immediately.
+      if (action === "approve" && account) {
+        const [detail, rows] = await Promise.all([
+          savingsAccountsApi.get(account.accountNumber),
+          savingsAccountsApi.transactions(account.accountNumber),
+        ]);
+        if (detail) setAccount(mapAccountDetail(detail, account.accountNumber));
+        setTxns(rows.map(mapTransaction));
+      }
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Something went wrong reviewing this notice."));
+    } finally {
+      setReviewSaving(false);
+    }
   }
 
   // Transfer Funds has no backend endpoint yet, so it stays a local-only mock.
@@ -838,7 +878,7 @@ function AccountLookupPage() {
           >
             <Table>
               <THead>
-                {["Notice date", "Amount", "Release Date", "Status"].map((h) => (
+                {["Notice date", "Amount", "Release Date", "Status", ""].map((h) => (
                   <Th key={h} style={{ paddingInline: 22 }}>
                     {h}
                   </Th>
@@ -846,7 +886,7 @@ function AccountLookupPage() {
               </THead>
               <tbody>
                 {noticesPageRows.length === 0 ? (
-                  <EmptyRow colSpan={4}>No withdrawal notices.</EmptyRow>
+                  <EmptyRow colSpan={5}>No withdrawal notices.</EmptyRow>
                 ) : (
                   noticesPageRows.map((n) => (
                     <Tr key={n.id} hover>
@@ -861,6 +901,26 @@ function AccountLookupPage() {
                       </Td>
                       <Td style={{ paddingInline: 22 }}>
                         <StatusPill status={n.status} />
+                      </Td>
+                      <Td align="right" style={{ paddingInline: 22 }}>
+                        {n.status === "Pending" && (
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setReviewDialog({ id: n.id, action: "reject" })}
+                            >
+                              Reject
+                            </Button>
+                            <Button
+                              variant="success"
+                              size="sm"
+                              onClick={() => setReviewDialog({ id: n.id, action: "approve" })}
+                            >
+                              Approve
+                            </Button>
+                          </div>
+                        )}
                       </Td>
                     </Tr>
                   ))
@@ -925,6 +985,14 @@ function AccountLookupPage() {
             handleMockTransfer(amount);
             setDialog(null);
           }}
+        />
+      )}
+      {reviewDialog && (
+        <ReviewNoticeDialog
+          action={reviewDialog.action}
+          saving={reviewSaving}
+          onClose={() => setReviewDialog(null)}
+          onSubmit={submitReview}
         />
       )}
     </div>
@@ -1392,6 +1460,64 @@ function TransferDialog({
         )}
         <Button type="submit" disabled={saving} full variant="primary">
           {saving ? "Saving…" : "Transfer"}
+        </Button>
+      </form>
+    </DialogShell>
+  );
+}
+
+function ReviewNoticeDialog({
+  action,
+  saving,
+  onClose,
+  onSubmit,
+}: {
+  action: "approve" | "reject";
+  saving: boolean;
+  onClose: () => void;
+  onSubmit: (comments: string) => void;
+}) {
+  const [comments, setComments] = useState("");
+  const isApprove = action === "approve";
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    onSubmit(comments.trim());
+  }
+
+  return (
+    <DialogShell title={isApprove ? "Approve Notice" : "Reject Notice"} onClose={onClose}>
+      <form onSubmit={submit} style={{ padding: 20 }} className="space-y-4">
+        {isApprove && (
+          <div
+            style={{
+              background: "#ECFDF3",
+              border: "1px solid #ABEFC6",
+              color: "#067647",
+              borderRadius: 8,
+              padding: "8px 12px",
+              fontSize: 12,
+            }}
+          >
+            Approving posts the withdrawal to the account immediately.
+          </div>
+        )}
+        <Field label="Comments">
+          <textarea
+            value={comments}
+            onChange={(e) => setComments(e.target.value)}
+            rows={3}
+            placeholder="Optional"
+            style={{ ...inputStyle, resize: "vertical" }}
+          />
+        </Field>
+        <Button
+          type="submit"
+          disabled={saving}
+          full
+          variant={isApprove ? "success" : "danger"}
+        >
+          {saving ? "Saving…" : isApprove ? "Approve" : "Reject"}
         </Button>
       </form>
     </DialogShell>

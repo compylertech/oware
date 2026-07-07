@@ -507,4 +507,5 @@ export type TransactionOperationDto = {
   note?: string | null;
   status: TransactionOperationStatus | string;
   failureReason?: string | null;
+  reviewComments?: string | null;
 };

@@ -1,10 +1,14 @@
 // Transaction Operations service — maps to the "Transaction Operations" group.
-//   GET /transaction-operations   search (paged, filterable by operationType/
-//                                  accountType/localAccountId/status)
+//   GET  /transaction-operations             search (paged, filterable by
+//                                             operationType/accountType/
+//                                             localAccountId/status)
+//   POST /transaction-operations/{id}/approve | reject
 //
 // Used today to back the account-lookup page's withdrawal-notices panel:
 // a SAVINGS_WITHDRAWAL operation stuck in the approval workflow is what a
-// "notice to withdraw" looks like on this backend.
+// "notice to withdraw" looks like on this backend. Approving posts the
+// underlying withdrawal to Fineract (status -> POSTED); rejecting cancels it
+// (status -> REJECTED) without touching the account balance.
 
 import type { Page, TransactionOperationDto } from "./dto";
 import { request, withMock } from "./http";
@@ -33,6 +37,28 @@ export const transactionOperationsApi = {
           }),
         ),
       () => [],
+    );
+  },
+
+  approve(id: string, comments?: string): Promise<TransactionOperationDto | undefined> {
+    return withMock(
+      () =>
+        request<TransactionOperationDto>(`/transaction-operations/${id}/approve`, {
+          method: "POST",
+          body: { comments },
+        }),
+      () => undefined,
+    );
+  },
+
+  reject(id: string, comments?: string): Promise<TransactionOperationDto | undefined> {
+    return withMock(
+      () =>
+        request<TransactionOperationDto>(`/transaction-operations/${id}/reject`, {
+          method: "POST",
+          body: { comments },
+        }),
+      () => undefined,
     );
   },
 };
