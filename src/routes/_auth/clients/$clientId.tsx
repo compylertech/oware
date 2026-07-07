@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { ArrowLeft, MoreVertical, Plus, Download, Pencil, Trash2, Upload } from "lucide-react";
 import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
 import { Modal, MField, MInput, MSelect } from "@/components/common/Modal";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   EmptyRow as PatternEmptyRow,
   Table,
@@ -40,42 +41,6 @@ import {
 
 export const Route = createFileRoute("/_auth/clients/$clientId")({
   component: ClientDetail,
-});
-
-// ---- Mock client list (matches /clients page seed) ----
-const OFFICES = ["Accra Main", "Kumasi", "Takoradi", "Head Office"];
-const CLIENT_SEED = [
-  ["Kwame Mensah", "Active", 0],
-  ["Akosua Owusu", "Active", 1],
-  ["Yaw Boateng", "Pending", 2],
-  ["Ama Asantewaa", "Active", 3],
-  ["Kojo Annan", "Active", 0],
-  ["Efua Sutherland", "Pending", 1],
-  ["Kwesi Appiah", "Active", 2],
-  ["Adwoa Safo", "Active", 3],
-  ["Nana Akufo", "Pending", 0],
-  ["Abena Pokuaa", "Active", 1],
-  ["Kofi Nyantakyi", "Active", 2],
-  ["Esi Bondzie", "Pending", 3],
-].map(([name, status, off], i) => {
-  const n = String(i + 1).padStart(4, "0");
-  const d = new Date(2024, (i * 2) % 12, ((i * 5) % 27) + 1);
-  return {
-    id: `clt-${n}`,
-    name: name as string,
-    clientNumber: `CLT-${n}`,
-    externalId: `EXT-${n}`,
-    status: status as "Active" | "Pending",
-    officeName: OFFICES[off as number],
-    activationDate: d.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    }),
-    mobile: `+233 24 ${String(100 + i).padStart(3, "0")} ${String(2000 + i * 7).slice(-4)}`,
-    email: `${(name as string).toLowerCase().replace(/\s+/g, ".")}@chelseabank.gh`,
-    isStaff: i % 5 === 0,
-  };
 });
 
 function initials(name: string) {
@@ -543,6 +508,11 @@ function ClientDetail() {
   const [editingNoteDraft, setEditingNoteDraft] = useState("");
   const [savingsProducts, setSavingsProducts] = useState<ProductDto[]>([]);
   const [sharePosition, setSharePosition] = useState<SharePosition | null>(null);
+  // True until the core bundle (share position, savings, addresses, family,
+  // identities, notes) has loaded at least once for this client — gates the
+  // tab content behind a skeleton so we never show a default/empty value
+  // (e.g. "Unregistered") that then flashes into the real one once data lands.
+  const [coreLoading, setCoreLoading] = useState(true);
   const [addressTypeOptions, setAddressTypeOptions] = useState<ReferenceValueDto[]>([]);
   const [stateOptions, setStateOptions] = useState<ReferenceValueDto[]>([]);
   const [countryOptions, setCountryOptions] = useState<ReferenceValueDto[]>([]);
@@ -709,20 +679,33 @@ function ClientDetail() {
 
   useEffect(() => {
     let alive = true;
+    const sameClient = loadedCoreClientIdRef.current === clientId;
+    if (!sameClient) {
+      // Resolve a cache hit synchronously (before the async work below) so a
+      // revisit never renders a default value even for a single frame.
+      const cached = clientDetailCache.get(clientId);
+      if (cached) {
+        applyCore(cached);
+        loadedCoreClientIdRef.current = clientId;
+        setCoreLoading(false);
+      } else {
+        setCoreLoading(true);
+      }
+    }
     void (async () => {
       let core: LoadedClientCore;
       if (loadedCoreClientIdRef.current === clientId) {
-        // Same client as last run (only the date filter changed) — the cache
-        // is guaranteed to hold this entry since we set it when the ref was
-        // last updated below.
+        // Same client as last run (only the date filter changed, or the cache
+        // hit above already applied it) — the cache is guaranteed to hold
+        // this entry.
         core = clientDetailCache.get(clientId)!;
       } else {
-        const cached = clientDetailCache.get(clientId);
-        core = cached ?? (await loadClientDetailCore(clientId));
+        core = await loadClientDetailCore(clientId);
         if (!alive) return;
         clientDetailCache.set(clientId, core);
         applyCore(core);
         loadedCoreClientIdRef.current = clientId;
+        setCoreLoading(false);
       }
       const transactions = await loadTransactionsFor(core.savings, txDateFrom, txDateTo);
       if (alive) setTransactions(transactions);
@@ -1242,6 +1225,10 @@ function ClientDetail() {
 
         {/* Content */}
         <div className="flex-1 min-w-0 space-y-5">
+          {coreLoading ? (
+            <TabSkeleton section={section} />
+          ) : (
+            <>
           {section === "Details" && (
             <>
               <SectionCard
@@ -1250,38 +1237,60 @@ function ClientDetail() {
                 layerTag="Cooperative"
               >
                 <div className="grid grid-cols-3 gap-5">
-                  <Field label="Common Bond">
-                    <span
-                      style={{
-                        fontSize: 12,
-                        color: tokens.teal,
-                        background: tokens.tealBg,
-                        padding: "3px 10px",
-                        borderRadius: 999,
-                        fontWeight: 300,
-                      }}
-                    >
-                      Civil Service
-                    </span>
-                  </Field>
+                  {sharePosition && (
+                    <Field label="Common Bond">
+                      <span
+                        style={{
+                          fontSize: 12,
+                          color: tokens.teal,
+                          background: tokens.tealBg,
+                          padding: "3px 10px",
+                          borderRadius: 999,
+                          fontWeight: 300,
+                        }}
+                      >
+                        Civil Service
+                      </span>
+                    </Field>
+                  )}
                   <Field label="Membership Status">
-                    <StatusPill status={sharePosition?.status ?? "Pending"} />
+                    {sharePosition ? (
+                      <StatusPill status={sharePosition.status} />
+                    ) : (
+                      <StatusPill tone="red" label="Unregistered" />
+                    )}
                   </Field>
                   <Field label="Admission Date" value={sharePosition?.admissionDate ?? "—"} />
                 </div>
-                <div
-                  style={{
-                    marginTop: 18,
-                    padding: 12,
-                    borderRadius: 10,
-                    background: tokens.tealBg,
-                    border: `1px solid rgba(15,110,86,0.15)`,
-                    fontSize: 12,
-                    color: tokens.teal,
-                  }}
-                >
-                  Eligible for cooperative loan products and dividend distributions.
-                </div>
+                {sharePosition ? (
+                  <div
+                    style={{
+                      marginTop: 18,
+                      padding: 12,
+                      borderRadius: 10,
+                      background: tokens.tealBg,
+                      border: `1px solid rgba(15,110,86,0.15)`,
+                      fontSize: 12,
+                      color: tokens.teal,
+                    }}
+                  >
+                    Eligible for cooperative loan products and dividend distributions.
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      marginTop: 18,
+                      padding: 12,
+                      borderRadius: 10,
+                      background: "#FEF3F2",
+                      border: `1px solid #FECDCA`,
+                      fontSize: 12,
+                      color: "#D92D20",
+                    }}
+                  >
+                    Not yet a cooperative member — issue shares to enroll this client.
+                  </div>
+                )}
                 <div
                   style={{
                     marginTop: 18,
@@ -1440,7 +1449,7 @@ function ClientDetail() {
             >
               <Table>
                 <TableHead
-                  cols={["Date", "Narration", "Debit", "Credit", "Balance", "Reference"]}
+                  cols={["Date",  "Reference", "Debit", "Credit", "Balance", "Narration"]}
                 />
                 <tbody>
                   {txRows.length === 0 ? (
@@ -1451,7 +1460,15 @@ function ClientDetail() {
                       return (
                         <Tr key={t.ref} hover>
                           <Td muted>{t.date}</Td>
-                          <Td>{t.narration}</Td>
+                          <Td
+                            muted
+                            style={{
+                              fontFamily: FONTS.mono,
+                              fontSize: 12,
+                            }}
+                          >
+                            {t.ref}
+                          </Td>
                           <Td
                             numeric
                             style={{
@@ -1482,20 +1499,12 @@ function ClientDetail() {
                             numeric
                             style={{
                               fontFamily: FONTS.body,
-                              fontWeight: 500,
+                              // fontWeight: 500,
                             }}
                           >
                             GH₵ {t.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </Td>
-                          <Td
-                            muted
-                            style={{
-                              fontFamily: FONTS.mono,
-                              fontSize: 12,
-                            }}
-                          >
-                            {t.ref}
-                          </Td>
+                          <Td>{t.narration}</Td>
                         </Tr>
                       );
                     })
@@ -1890,6 +1899,8 @@ function ClientDetail() {
               </div>
             </SectionCard>
           )}
+            </>
+          )}
         </div>
       </div>
 
@@ -2233,6 +2244,51 @@ function Mono({ label, value }: { label: string; value: string }) {
         }}
       >
         {value}
+      </div>
+    </div>
+  );
+}
+
+/** Rough placeholder for whichever tab is active while the core bundle loads,
+ * so we never flash a default/empty value (e.g. "Unregistered") before the
+ * real data replaces it. */
+function TabSkeleton({ section }: { section: Section }) {
+  const cardStyle: React.CSSProperties = {
+    borderRadius: 14,
+    border: `1px solid ${tokens.border}`,
+    boxShadow: cardShadow,
+    background: "#fff",
+    padding: 22,
+  };
+  if (section === "Details") {
+    return (
+      <div className="space-y-5">
+        <div style={cardStyle}>
+          <Skeleton className="h-4 w-40" />
+          <div className="grid grid-cols-3 gap-5 mt-5">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <Skeleton className="h-14 w-full mt-5" />
+        </div>
+        <div style={cardStyle}>
+          <Skeleton className="h-4 w-32" />
+          <div className="space-y-2 mt-5">
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div style={cardStyle}>
+      <Skeleton className="h-4 w-32" />
+      <div className="space-y-2 mt-5">
+        <Skeleton className="h-9 w-full" />
+        <Skeleton className="h-9 w-full" />
+        <Skeleton className="h-9 w-full" />
       </div>
     </div>
   );
