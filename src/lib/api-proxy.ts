@@ -29,7 +29,7 @@ const PROXY_PREFIX = "/api/v1/";
 // Temporary default so the app shows live data out of the box before BACKEND_URL
 // is set. Override via wrangler.toml [vars] (deployed) or the BACKEND_URL env var
 // (local) — the demo tunnel below is ephemeral and will stop resolving.
-const DEFAULT_BACKEND_URL = "https://2d62-41-210-20-252.ngrok-free.app";
+const DEFAULT_BACKEND_URL = "http://localhost:8084";
 
 type Env = Record<string, string | undefined> | undefined;
 
