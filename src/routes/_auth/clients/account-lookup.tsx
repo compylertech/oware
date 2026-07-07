@@ -35,6 +35,7 @@ import {
   savingsAccountsApi,
   transactionOperationsApi,
   type AccountDto,
+  type MoneyTransactionResultDto,
   type ReferenceValueDto,
   type TransactionDto,
   type TransactionOperationDto,
@@ -214,7 +215,7 @@ function AccountLookupPage() {
 
   const [actionsOpen, setActionsOpen] = useState(false);
   const [accountActionsOpen, setAccountActionsOpen] = useState(false);
-  const [dialog, setDialog] = useState<null | "credit" | "debit" | "transfer">(null);
+  const [dialog, setDialog] = useState<null | "credit" | "debit" | "transfer" | "notice">(null);
 
   const [txLoading, setTxLoading] = useState(false);
   const [paymentTypeOptions, setPaymentTypeOptions] = useState<ReferenceValueDto[]>([]);
@@ -332,6 +333,25 @@ function AccountLookupPage() {
   function applyTxnResult(tx: TransactionDto) {
     setAccount((prev) => (prev ? { ...prev, balance: tx.runningBalance ?? prev.balance } : prev));
     setTxns((prev) => [mapTransaction(tx), ...prev]);
+  }
+
+  /** A withdrawal notice is a SAVINGS_WITHDRAWAL sent with approvalRequired:
+   * true — the backend parks it awaiting approval instead of posting it, so
+   * runningBalance/transaction.id come back null and there's nothing to add
+   * to the transactions table; it becomes a new notice row instead. */
+  function applyNoticeResult(result: MoneyTransactionResultDto) {
+    setNotices((prev) => [
+      mapWithdrawalNotice({
+        id: result.operationId ?? `notice-${Date.now()}`,
+        operationType: "SAVINGS_WITHDRAWAL",
+        accountType: "SAVINGS",
+        amount: result.transaction.amount ?? 0,
+        transactionDate: result.transaction.transactionDate ?? new Date().toISOString().slice(0, 10),
+        status: result.status ?? "PENDING_APPROVAL",
+      }),
+      ...prev,
+    ]);
+    setNoticesPage(1);
   }
 
   // Transfer Funds has no backend endpoint yet, so it stays a local-only mock.
@@ -798,6 +818,15 @@ function AccountLookupPage() {
                 <LayerTag label="Cooperative" />
               </span>
             }
+            actions={
+              <Button
+                onClick={() => setDialog("notice")}
+                variant="success"
+                icon={<Plus size={14} />}
+              >
+                Add notice
+              </Button>
+            }
             resultLabel={`${notices.length} results`}
             pagination={{
               page: noticesCurrentPage,
@@ -858,8 +887,8 @@ function AccountLookupPage() {
           accountNumber={account.accountNumber}
           paymentTypeOptions={paymentTypeOptions}
           onClose={() => setDialog(null)}
-          onSubmit={(tx) => {
-            applyTxnResult(tx);
+          onSubmit={(result) => {
+            applyTxnResult(result.transaction);
             setDialog(null);
           }}
         />
@@ -870,8 +899,20 @@ function AccountLookupPage() {
           accountNumber={account.accountNumber}
           paymentTypeOptions={paymentTypeOptions}
           onClose={() => setDialog(null)}
-          onSubmit={(tx) => {
-            applyTxnResult(tx);
+          onSubmit={(result) => {
+            applyTxnResult(result.transaction);
+            setDialog(null);
+          }}
+        />
+      )}
+      {dialog === "notice" && account && (
+        <TxnDialog
+          kind="notice"
+          accountNumber={account.accountNumber}
+          paymentTypeOptions={paymentTypeOptions}
+          onClose={() => setDialog(null)}
+          onSubmit={(result) => {
+            applyNoticeResult(result);
             setDialog(null);
           }}
         />
@@ -1109,11 +1150,11 @@ function TxnDialog({
   onClose,
   onSubmit,
 }: {
-  kind: "credit" | "debit";
+  kind: "credit" | "debit" | "notice";
   accountNumber: string;
   paymentTypeOptions: ReferenceValueDto[];
   onClose: () => void;
-  onSubmit: (tx: TransactionDto) => void;
+  onSubmit: (result: MoneyTransactionResultDto) => void;
 }) {
   const [amount, setAmount] = useState("");
   const [payType, setPayType] = useState("");
@@ -1125,6 +1166,7 @@ function TxnDialog({
   const [posted, setPosted] = useState<TransactionDto | null>(null);
 
   const isCredit = kind === "credit";
+  const isNotice = kind === "notice";
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -1141,7 +1183,7 @@ function TxnDialog({
         paymentTypeCode: payType || undefined,
         note: note.trim() || undefined,
         transactionDate: date,
-        approvalRequired: false,
+        approvalRequired: isNotice,
       };
       const result = isCredit
         ? await savingsAccountsApi.deposit(accountNumber, body)
@@ -1149,7 +1191,7 @@ function TxnDialog({
       if (!result) throw new Error("Backend is not reachable right now.");
       setPosted(result.transaction);
       setDone(true);
-      setTimeout(() => onSubmit(result.transaction), 900);
+      setTimeout(() => onSubmit(result), 900);
     } catch (submitErr) {
       setErr(apiErrorMessage(submitErr, "Something went wrong recording this transaction."));
     } finally {
@@ -1159,7 +1201,7 @@ function TxnDialog({
 
   return (
     <DialogShell
-      title={isCredit ? "Credit Account" : "Debit Account"}
+      title={isNotice ? "Withdrawal Notice" : isCredit ? "Credit Account" : "Debit Account"}
       subtitle={
         <>
           to account{" "}
@@ -1190,12 +1232,14 @@ function TxnDialog({
               color: tokens.text,
             }}
           >
-            {isCredit ? "Credit Posted" : "Debit Posted"}
+            {isNotice ? "Notice Submitted" : isCredit ? "Credit Posted" : "Debit Posted"}
           </div>
           <div style={{ fontSize: 12, color: tokens.textMuted, marginTop: 4 }}>
-            {posted?.runningBalance !== undefined
-              ? `New balance: ${fmtGHS(posted.runningBalance)}`
-              : "Transaction has been recorded."}
+            {isNotice
+              ? "Awaiting approval before it's released."
+              : posted?.runningBalance !== undefined
+                ? `New balance: ${fmtGHS(posted.runningBalance)}`
+                : "Transaction has been recorded."}
           </div>
         </div>
       ) : (
@@ -1256,8 +1300,13 @@ function TxnDialog({
               {err}
             </div>
           )}
-          <Button type="submit" disabled={saving} full variant={isCredit ? "success" : "danger"}>
-            {saving ? "Saving…" : isCredit ? "Credit" : "Debit"}
+          <Button
+            type="submit"
+            disabled={saving}
+            full
+            variant={isNotice ? "success" : isCredit ? "success" : "danger"}
+          >
+            {saving ? "Saving…" : isNotice ? "Add Notice" : isCredit ? "Credit" : "Debit"}
           </Button>
         </form>
       )}
