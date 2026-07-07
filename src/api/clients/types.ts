@@ -20,5 +20,3 @@ export type Client = {
   dateOfBirth?: string;
   submittedOnDate?: string;
 };
-
-export const OFFICES = ["Accra Main", "Kumasi", "Takoradi", "Head Office"];

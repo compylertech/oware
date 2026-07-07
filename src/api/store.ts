@@ -3,10 +3,9 @@
 // detaches their cooperative membership.
 import { useSyncExternalStore } from "react";
 import type { Client } from "./clients/types";
-import { SEED_CLIENTS } from "./clients/data";
 import type { CoopMember } from "./cooperative/types";
 
-let clients: Client[] = [...SEED_CLIENTS];
+let clients: Client[] = [];
 let coopMembers: CoopMember[] = [];
 const listeners = new Set<() => void>();
 
@@ -52,10 +51,9 @@ export function setClients(next: Client[]) {
   emit();
 }
 
-// Hydrate the registry from the corebanking backend once, on the client. In
-// mock mode this resolves to the same seed fixtures, so the UI is unchanged;
-// when VITE_API_BASE_URL points at a real backend the store fills with live
-// clients and every `useClients()` consumer re-renders automatically.
+// Hydrate the registry from the corebanking backend once, on the client. The
+// store starts empty and fills with live clients once this resolves; every
+// `useClients()` consumer re-renders automatically.
 let hydrated = false;
 export async function hydrateClients() {
   if (hydrated || typeof window === "undefined") return;
@@ -63,9 +61,9 @@ export async function hydrateClients() {
   try {
     const { clientsApi } = await import("./backend/clients");
     const live = await clientsApi.search({ size: 200 });
-    if (live.length) setClients(live);
+    setClients(live);
   } catch {
-    // Keep the seed registry on any failure — the UI must not break.
+    // Keep the (empty) registry on any failure — the UI must not break.
   }
 }
 

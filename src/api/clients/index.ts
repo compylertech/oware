@@ -1,6 +1,5 @@
 // Clients domain — registry of clients and the in-memory store accessors.
 export * from "./types";
-export { SEED_CLIENTS } from "./data";
 export {
   getClients,
   useClients,
@@ -12,6 +11,6 @@ export {
   hydrateClients,
 } from "../store";
 
-// Backend service (falls back to the seed registry when offline).
+// Backend service (live-only — falls back to an empty result when offline).
 export { clientsApi } from "../backend/clients";
 export type { ClientSearch } from "../backend/clients";

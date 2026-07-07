@@ -5,11 +5,11 @@
 //   PUT    /clients/{id}       update
 //   POST   /clients/{id}/activate | /reactivate | /close
 //
-// Live calls hit the backend; when it is unavailable every method falls back to
-// the seed fixtures so the UI is unaffected.
+// Live calls hit the backend; when it is unavailable, list/detail reads fall
+// back to an empty result (rather than fabricated data) so the UI degrades
+// gracefully instead of breaking.
 
 import type { Client } from "../clients/types";
-import { SEED_CLIENTS } from "../clients/data";
 import type {
   ClientAccountsSummaryDto,
   ClientAddressDto,
@@ -119,7 +119,7 @@ function mockNoteFromWrite(id: number, body: ClientNoteWriteDto): ClientNoteDto 
 }
 
 export const clientsApi = {
-  /** Search/list clients. Falls back to the seed registry when offline. */
+  /** Search/list clients. Falls back to an empty list when offline. */
   search(params: ClientSearch = {}): Promise<Client[]> {
     const { page = 0, size = 20, keyword } = params;
     return withMock(
@@ -129,76 +129,23 @@ export const clientsApi = {
         });
         return pageContent(res).map(mapClient);
       },
-      () => {
-        if (!keyword) return SEED_CLIENTS;
-        const q = keyword.toLowerCase();
-        return SEED_CLIENTS.filter(
-          (c) =>
-            c.name.toLowerCase().includes(q) ||
-            c.clientNumber.toLowerCase().includes(q) ||
-            c.externalId.toLowerCase().includes(q),
-        );
-      },
+      () => [],
     );
   },
 
   get(id: string): Promise<Client | undefined> {
     return withMock(
       async () => mapClient(await request<ClientDto>(`/clients/${id}`)),
-      () => SEED_CLIENTS.find((c) => c.id === id || c.clientNumber === id),
+      () => undefined,
     );
   },
 
   update(id: string, payload: ClientUpdateDto): Promise<Client> {
-    return withMock(
-      async () =>
-        mapClient(await request<ClientDto>(`/clients/${id}`, { method: "PUT", body: payload })),
-      () => {
-        const existing = SEED_CLIENTS.find((c) => c.id === id || c.clientNumber === id);
-        return mapClient({
-          id: existing?.id ?? id,
-          displayName:
-            [payload.firstName, payload.middleName, payload.lastName].filter(Boolean).join(" ") ||
-            existing?.name,
-          accountNo: existing?.clientNumber,
-          externalId: payload.externalId ?? existing?.externalId,
-          firstName: payload.firstName ?? existing?.firstName,
-          middleName: payload.middleName ?? existing?.middleName,
-          lastName: payload.lastName ?? existing?.lastName,
-          mobileNumber: payload.mobileNumber ?? existing?.mobile,
-          email: payload.email ?? existing?.email,
-          officeName: existing?.officeName,
-          activationDate: payload.activationDate ?? existing?.activationDate,
-          staff: payload.staff ?? existing?.isStaff,
-        });
-      },
-    );
+    return request<ClientDto>(`/clients/${id}`, { method: "PUT", body: payload }).then(mapClient);
   },
 
   create(payload: ClientCreateDto): Promise<Client> {
-    return withMock(
-      async () =>
-        mapClient(await request<ClientDto>("/clients", { method: "POST", body: payload })),
-      () => ({
-        id: `clt-${Date.now()}`,
-        name: [payload.firstName, payload.middleName, payload.lastName].filter(Boolean).join(" "),
-        clientNumber: `CLT-${Date.now().toString().slice(-4)}`,
-        externalId: payload.externalId ?? "",
-        status: payload.activeOnCreation ? "Active" : "Pending",
-        officeName: payload.officeCode ?? "",
-        activationDate: new Date().toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        }),
-        firstName: payload.firstName,
-        middleName: payload.middleName ?? undefined,
-        lastName: payload.lastName,
-        mobile: payload.mobileNumber ?? undefined,
-        email: payload.email ?? undefined,
-        isStaff: payload.staff,
-      }),
-    );
+    return request<ClientDto>("/clients", { method: "POST", body: payload }).then(mapClient);
   },
 
   activate(id: string): Promise<void> {
