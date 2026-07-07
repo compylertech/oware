@@ -9,7 +9,9 @@ import type {
   AccountDto,
   ActionDto,
   Page,
+  ShareAccountApplyAdditionalSharesDto,
   ShareAccountCreateDto,
+  ShareAccountDto,
   ShareAccountSummaryDto,
   TransactionDto,
 } from "./dto";
@@ -231,15 +233,50 @@ export const loanAccountsApi = {
   },
 };
 
-// Share accounts — request additional cooperative shares for a client.
-// No update/list-by-client endpoint was found on the backend (GET /share-accounts
-// list and GET /share-accounts/{ref} both errored on a live instance even for
-// accounts that exist); use clientsApi.accountsSummary() to read a client's
-// current share position instead. Create is the only operation wired here.
+// Share accounts — request cooperative shares for a client. clientsApi.accountsSummary()
+// remains the source for the lightweight read-only position shown on the
+// client detail page (its `id` is Fineract's numeric core ID, not usable
+// here); search() below is what resolves the actual UUID that action
+// endpoints (apply-additional-shares, approve, activate) require as the path
+// param.
+//
+// A client can only have one share account per product: the first request for
+// a given product must use create(); once that account exists, further share
+// requests for the same product must go through applyAdditionalShares()
+// instead (create() would reject a second account for the same product).
 export const shareAccountsApi = {
+  search(params: { clientId?: string; page?: number; size?: number } = {}): Promise<
+    ShareAccountDto[]
+  > {
+    const { clientId, page = 0, size = 20 } = params;
+    return withMock(
+      async () =>
+        content(
+          await request<Page<ShareAccountDto>>("/share-accounts", {
+            query: { clientId, page, size },
+          }),
+        ),
+      () => [],
+    );
+  },
   create(body: ShareAccountCreateDto): Promise<ShareAccountSummaryDto | undefined> {
     return withMock(
       () => request<ShareAccountSummaryDto>("/share-accounts", { method: "POST", body }),
+      () => undefined,
+    );
+  },
+  /** `shareAccountId` must be this service's UUID (see {@link ShareAccountDto.id}),
+   * not Fineract's numeric core ID — resolve it via search() first. */
+  applyAdditionalShares(
+    shareAccountId: string,
+    body: ShareAccountApplyAdditionalSharesDto,
+  ): Promise<ShareAccountDto | undefined> {
+    return withMock(
+      () =>
+        request<ShareAccountDto>(`/share-accounts/${shareAccountId}/apply-additional-shares`, {
+          method: "POST",
+          body,
+        }),
       () => undefined,
     );
   },

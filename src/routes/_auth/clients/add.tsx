@@ -764,12 +764,28 @@ function AddClientPage() {
     setShareSubmitting(true);
     setShareError(null);
     try {
-      await shareAccountsApi.create({
-        clientId,
-        productCode: shareForm.productCode,
-        requestedShares: Number(shareForm.requestedShares),
-        submittedOnDate: today,
-      });
+      // A client can only have one share account per product: if they already
+      // have one for the selected product, request more shares on that
+      // account instead of trying (and failing) to create a second one.
+      // apply-additional-shares needs this service's own UUID (not the
+      // Fineract numeric id from accountsSummary), so resolve it via search.
+      const existingAccounts = await shareAccountsApi.search({ clientId });
+      const existingAccount = existingAccounts.find(
+        (s) => s.productCode === shareForm.productCode,
+      );
+      if (existingAccount) {
+        await shareAccountsApi.applyAdditionalShares(existingAccount.id, {
+          requestedShares: Number(shareForm.requestedShares),
+          requestedDate: today,
+        });
+      } else {
+        await shareAccountsApi.create({
+          clientId,
+          productCode: shareForm.productCode,
+          requestedShares: Number(shareForm.requestedShares),
+          submittedOnDate: today,
+        });
+      }
       setAccountsSummary(await clientsApi.accountsSummary(clientId));
       setShareForm({ productCode: "", requestedShares: "" });
     } catch {

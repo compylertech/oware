@@ -258,6 +258,7 @@ export type ProductDto = {
 export type AccountDto = {
   id: string;
   clientId?: string;
+  clientName?: string;
   accountNo?: string;
   externalId?: string | null;
   fineractLoanAccountId?: number;
@@ -267,10 +268,14 @@ export type AccountDto = {
   currencyCode?: string;
   principal?: number;
   balance?: number;
+  accountBalance?: number;
+  availableBalance?: number;
   status?: string;
   activationDate?: string;
   approvedDate?: string;
   activatedOnDate?: string;
+  submittedOnDate?: string;
+  closedOnDate?: string | null;
   syncedWithFineract?: boolean;
 };
 
@@ -420,6 +425,33 @@ export type ClientAccountsSummaryDto = {
   shareAccounts?: ShareAccountSummaryDto[];
 };
 
+/**
+ * GET /share-accounts (search/get) shape — distinct from {@link ShareAccountSummaryDto}
+ * (the lighter accounts-summary rendering, whose `id` is Fineract's numeric
+ * core ID). Here `id` is this service's own UUID, which is what
+ * `/share-accounts/{id}/...` action endpoints (apply-additional-shares,
+ * approve, activate) expect as the path param.
+ */
+export type ShareAccountDto = {
+  id: string;
+  clientId?: string;
+  fineractShareAccountId?: number;
+  accountNo?: string;
+  externalId?: string | null;
+  productCode?: string;
+  productName?: string;
+  currencyCode?: string;
+  unitPrice?: number;
+  requestedShares?: number;
+  totalApprovedShares?: number;
+  totalPendingShares?: number;
+  status?: string;
+  submittedOnDate?: string;
+  approvedOnDate?: string;
+  activatedOnDate?: string;
+  syncedWithFineract?: boolean;
+};
+
 /** POST /share-accounts payload shape (per the endpoint's own validation). */
 export type ShareAccountCreateDto = {
   clientId: string;
@@ -427,6 +459,12 @@ export type ShareAccountCreateDto = {
   requestedShares: number;
   externalId?: string | null;
   submittedOnDate?: string;
+};
+
+/** POST /share-accounts/{shareAccountId}/apply-additional-shares payload. */
+export type ShareAccountApplyAdditionalSharesDto = {
+  requestedShares: number;
+  requestedDate: string;
 };
 
 /** Idempotency-keyed action payload (approve/activate/close/disburse). */
