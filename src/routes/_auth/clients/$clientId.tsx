@@ -33,6 +33,7 @@ import {
   type ClientIdentifierDto,
   type ClientIdentifierWriteDto,
   type ClientNoteDto,
+  type LoanAccountSummaryDto,
   type ProductDto,
   type ReferenceValueDto,
   type SavingsAccountSummaryDto,
@@ -172,6 +173,14 @@ type SavingsAccountRow = {
   activated: string;
 };
 
+type LoanAccountRow = {
+  acc: string;
+  product: string;
+  balance: number;
+  status: StatusKind;
+  disbursed: string;
+};
+
 type TransactionRow = {
   id: string;
   date: string;
@@ -252,6 +261,7 @@ type SharePosition = {
 type LoadedClientCore = {
   client: BackendClient | null;
   savings: SavingsAccountRow[];
+  loans: LoanAccountRow[];
   addresses: AddressRow[];
   family: FamilyRow[];
   identities: IdentityRow[];
@@ -316,6 +326,16 @@ function mapSavingsAccount(account: SavingsAccountSummaryDto): SavingsAccountRow
     balance: account.accountBalance ?? 0,
     status: statusFrom(account.statusValue ?? account.statusCode),
     activated: fmtDisplayDate(account.activatedOnDate ?? account.submittedOnDate),
+  };
+}
+
+function mapLoanAccount(account: LoanAccountSummaryDto): LoanAccountRow {
+  return {
+    acc: account.accountNo ?? String(account.id),
+    product: account.productName ?? "—",
+    balance: account.loanBalance ?? 0,
+    status: statusFrom(account.statusValue ?? account.statusCode),
+    disbursed: fmtDisplayDate(account.expectedDisbursementDate ?? account.submittedOnDate),
   };
 }
 
@@ -417,6 +437,7 @@ async function loadClientDetailCore(clientId: string): Promise<LoadedClientCore>
     ]);
 
   const savings = (summary.savingsAccounts ?? []).map(mapSavingsAccount);
+  const loans = (summary.loanAccounts ?? []).map(mapLoanAccount);
 
   const shareAccount = summary.shareAccounts?.[0];
   let sharePosition: SharePosition | null = null;
@@ -439,6 +460,7 @@ async function loadClientDetailCore(clientId: string): Promise<LoadedClientCore>
   return {
     client: client ?? null,
     savings,
+    loans,
     addresses: addresses.map(mapAddress),
     family: familyMembers.map(mapFamilyMember),
     identities: identifiers.map(mapIdentifier),
@@ -490,6 +512,7 @@ function ClientDetail() {
   const rootRef = useRef<HTMLDivElement>(null);
 
   const [savings, setSavings] = useState<SavingsAccountRow[]>([]);
+  const [loans, setLoans] = useState<LoanAccountRow[]>([]);
   const [accountFilter, setAccountFilter] = useState<string>("All");
   const [txDateFrom, setTxDateFrom] = useState("");
   const [txDateTo, setTxDateTo] = useState("");
@@ -640,6 +663,7 @@ function ClientDetail() {
   function applyCore(core: LoadedClientCore) {
     setClientState(core.client);
     setSavings(core.savings);
+    setLoans(core.loans);
     setAddresses(core.addresses);
     setFamily(core.family);
     setIdentities(core.identities);
@@ -1395,6 +1419,41 @@ function ClientDetail() {
                   </tbody>
                 </Table>
               </TableCard>
+
+              {loans.length > 0 && (
+                <TableCard title="Loan Accounts">
+                  <Table>
+                    <TableHead cols={["Account No.", "Product", "Loan Balance", "Status", "Disbursed"]} />
+                    <tbody>
+                      {loans.map((a) => (
+                        <Tr key={a.acc} hover>
+                          <Td
+                            numeric
+                            style={{
+                              fontFamily: FONTS.mono,
+                            }}
+                          >
+                            {a.acc}
+                          </Td>
+                          <Td>{a.product}</Td>
+                          <Td
+                            numeric
+                            style={{
+                              fontFamily: FONTS.mono,
+                            }}
+                          >
+                            GH₵ {a.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </Td>
+                          <Td>
+                            <StatusPill status={a.status} />
+                          </Td>
+                          <Td muted>{a.disbursed}</Td>
+                        </Tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </TableCard>
+              )}
             </>
           )}
 
