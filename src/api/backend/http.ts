@@ -194,6 +194,19 @@ async function refreshAccessToken(): Promise<void> {
 }
 
 /**
+ * Publicly triggerable refresh — used by the session-expiry watcher to renew
+ * the access token ahead of time (either silently while the user is active,
+ * or after they confirm they want to stay signed in). Shares the same
+ * dedup guard as the reactive 401-triggered refresh above.
+ */
+export async function refreshSession(): Promise<void> {
+  refreshInFlight ??= refreshAccessToken().finally(() => {
+    refreshInFlight = null;
+  });
+  return refreshInFlight;
+}
+
+/**
  * Perform a JSON request against the same-origin proxy. Throws
  * {@link BackendUnavailable} in mock mode, during SSR, or when the proxy/backend
  * is unreachable so callers can fall back to fixtures; {@link ApiError} on other

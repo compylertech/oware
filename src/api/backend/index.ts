@@ -13,7 +13,7 @@
 
 export * from "./config";
 export * from "./dto";
-export { ApiError, BackendUnavailable, apiErrorMessage } from "./http";
+export { ApiError, BackendUnavailable, apiErrorMessage, refreshSession } from "./http";
 export { clientsApi } from "./clients";
 export type {
   ClientAccountsSummaryDto,
