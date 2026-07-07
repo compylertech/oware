@@ -64,7 +64,7 @@ type TxnStatus = "Completed" | "Reversed";
 type Txn = {
   id: string;
   date: string;
-  type: string;
+  narration: string;
   entry: TxnEntry;
   amount: number;
   runningBalance: number;
@@ -148,7 +148,7 @@ function mapTransaction(dto: TransactionDto): Txn {
   return {
     id: String(dto.id),
     date: dateValue ? fmtDate(new Date(dateValue)) : "—",
-    type: dto.transactionTypeValue ?? dto.type ?? "Transaction",
+    narration: dto.note?.trim() || dto.transactionTypeValue || dto.type || "Transaction",
     entry: entryFromTransactionType(dto.transactionTypeCode),
     amount: dto.amount ?? 0,
     runningBalance: dto.runningBalance ?? 0,
@@ -342,7 +342,7 @@ function AccountLookupPage() {
     const newTxn: Txn = {
       id: `tx-new-${Date.now()}`,
       date: fmtDate(new Date()),
-      type: "Manual Debit",
+      narration: "Manual Debit",
       entry: "Debit",
       amount,
       runningBalance: newBal,
@@ -768,7 +768,7 @@ function AccountLookupPage() {
                   pageRows.map((t) => (
                     <Tr key={t.id} hover>
                       <Td muted>{t.date}</Td>
-                      <Td>{t.type}</Td>
+                      <Td>{t.narration}</Td>
                       <Td numeric style={{ fontWeight: 100 }}>
                         {t.entry === "Debit" ? fmtGHS(t.amount) : ""}
                       </Td>
