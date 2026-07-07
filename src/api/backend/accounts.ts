@@ -8,6 +8,7 @@
 import type {
   AccountDto,
   ActionDto,
+  MoneyTransactionResultDto,
   Page,
   ShareAccountApplyAdditionalSharesDto,
   ShareAccountCreateDto,
@@ -125,20 +126,20 @@ export const savingsAccountsApi = {
       () => [],
     );
   },
-  deposit(ref: string, body: MoneyTxn) {
+  deposit(ref: string, body: MoneyTxn): Promise<MoneyTransactionResultDto | undefined> {
     return withMock(
       () =>
-        request<TransactionDto>(`/savings-accounts/${ref}/transactions/deposit`, {
+        request<MoneyTransactionResultDto>(`/savings-accounts/${ref}/transactions/deposit`, {
           method: "POST",
           body,
         }),
       () => undefined,
     );
   },
-  withdrawal(ref: string, body: MoneyTxn) {
+  withdrawal(ref: string, body: MoneyTxn): Promise<MoneyTransactionResultDto | undefined> {
     return withMock(
       () =>
-        request<TransactionDto>(`/savings-accounts/${ref}/transactions/withdrawal`, {
+        request<MoneyTransactionResultDto>(`/savings-accounts/${ref}/transactions/withdrawal`, {
           method: "POST",
           body,
         }),

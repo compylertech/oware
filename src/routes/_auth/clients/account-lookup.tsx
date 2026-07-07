@@ -31,9 +31,11 @@ import { FONTS, tokens } from "@/lib/tokens";
 import {
   ApiError,
   apiErrorMessage,
+  referencesApi,
   savingsAccountsApi,
   transactionOperationsApi,
   type AccountDto,
+  type ReferenceValueDto,
   type TransactionDto,
   type TransactionOperationDto,
 } from "@/api/backend";
@@ -208,12 +210,18 @@ function AccountLookupPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
+  const [noticesPage, setNoticesPage] = useState(1);
 
   const [actionsOpen, setActionsOpen] = useState(false);
   const [accountActionsOpen, setAccountActionsOpen] = useState(false);
   const [dialog, setDialog] = useState<null | "credit" | "debit" | "transfer">(null);
 
   const [txLoading, setTxLoading] = useState(false);
+  const [paymentTypeOptions, setPaymentTypeOptions] = useState<ReferenceValueDto[]>([]);
+
+  useEffect(() => {
+    void referencesApi.list("PAYMENT_TYPE").then(setPaymentTypeOptions);
+  }, []);
 
   async function handleLookup(e?: React.FormEvent) {
     e?.preventDefault();
@@ -243,6 +251,7 @@ function AccountLookupPage() {
       setDateFrom("");
       setDateTo("");
       setPage(1);
+      setNoticesPage(1);
     } catch (err) {
       setAccount(null);
       setTxns([]);
@@ -284,6 +293,13 @@ function AccountLookupPage() {
   const currentPage = Math.min(page, totalPages);
   const pageRows = filteredTxns.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
+  const noticesTotalPages = Math.max(1, Math.ceil(notices.length / PAGE_SIZE));
+  const noticesCurrentPage = Math.min(noticesPage, noticesTotalPages);
+  const noticesPageRows = notices.slice(
+    (noticesCurrentPage - 1) * PAGE_SIZE,
+    noticesCurrentPage * PAGE_SIZE,
+  );
+
   const totalCredits = txns
     .filter((t) => t.entry === "Credit" && t.status === "Completed")
     .reduce((a, b) => a + b.amount, 0);
@@ -310,15 +326,24 @@ function AccountLookupPage() {
     setAccountActionsOpen(false);
   }
 
-  function handleTxnSubmit(kind: "credit" | "debit", amount: number) {
+  /** Credit/Debit dialogs post to the real deposit/withdrawal endpoints and
+   * hand back the resulting transaction — apply it directly rather than
+   * guessing at a new balance. */
+  function applyTxnResult(tx: TransactionDto) {
+    setAccount((prev) => (prev ? { ...prev, balance: tx.runningBalance ?? prev.balance } : prev));
+    setTxns((prev) => [mapTransaction(tx), ...prev]);
+  }
+
+  // Transfer Funds has no backend endpoint yet, so it stays a local-only mock.
+  function handleMockTransfer(amount: number) {
     if (!account) return;
-    const newBal = kind === "credit" ? account.balance + amount : account.balance - amount;
+    const newBal = account.balance - amount;
     setAccount({ ...account, balance: newBal });
     const newTxn: Txn = {
       id: `tx-new-${Date.now()}`,
       date: fmtDate(new Date()),
-      type: kind === "credit" ? "Manual Credit" : "Manual Debit",
-      entry: kind === "credit" ? "Credit" : "Debit",
+      type: "Manual Debit",
+      entry: "Debit",
       amount,
       runningBalance: newBal,
       status: "Completed",
@@ -773,6 +798,14 @@ function AccountLookupPage() {
                 <LayerTag label="Cooperative" />
               </span>
             }
+            resultLabel={`${notices.length} results`}
+            pagination={{
+              page: noticesCurrentPage,
+              totalPages: noticesTotalPages,
+              totalItems: notices.length,
+              itemLabel: "notices",
+              onPageChange: setNoticesPage,
+            }}
           >
             <Table>
               <THead>
@@ -783,10 +816,10 @@ function AccountLookupPage() {
                 ))}
               </THead>
               <tbody>
-                {notices.length === 0 ? (
+                {noticesPageRows.length === 0 ? (
                   <EmptyRow colSpan={4}>No withdrawal notices.</EmptyRow>
                 ) : (
-                  notices.map((n) => (
+                  noticesPageRows.map((n) => (
                     <Tr key={n.id} hover>
                       <Td muted style={{ paddingInline: 22 }}>
                         {n.noticeDate}
@@ -823,9 +856,10 @@ function AccountLookupPage() {
         <TxnDialog
           kind="credit"
           accountNumber={account.accountNumber}
+          paymentTypeOptions={paymentTypeOptions}
           onClose={() => setDialog(null)}
-          onSubmit={(amount) => {
-            handleTxnSubmit("credit", amount);
+          onSubmit={(tx) => {
+            applyTxnResult(tx);
             setDialog(null);
           }}
         />
@@ -834,9 +868,10 @@ function AccountLookupPage() {
         <TxnDialog
           kind="debit"
           accountNumber={account.accountNumber}
+          paymentTypeOptions={paymentTypeOptions}
           onClose={() => setDialog(null)}
-          onSubmit={(amount) => {
-            handleTxnSubmit("debit", amount);
+          onSubmit={(tx) => {
+            applyTxnResult(tx);
             setDialog(null);
           }}
         />
@@ -846,7 +881,7 @@ function AccountLookupPage() {
           fromAccount={account.accountNumber}
           onClose={() => setDialog(null)}
           onSubmit={(amount) => {
-            handleTxnSubmit("debit", amount);
+            handleMockTransfer(amount);
             setDialog(null);
           }}
         />
@@ -1070,25 +1105,28 @@ const inputStyle: React.CSSProperties = {
 function TxnDialog({
   kind,
   accountNumber,
+  paymentTypeOptions,
   onClose,
   onSubmit,
 }: {
   kind: "credit" | "debit";
   accountNumber: string;
+  paymentTypeOptions: ReferenceValueDto[];
   onClose: () => void;
-  onSubmit: (amount: number) => void;
+  onSubmit: (tx: TransactionDto) => void;
 }) {
   const [amount, setAmount] = useState("");
-  const [payType, setPayType] = useState("Cash");
+  const [payType, setPayType] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [note, setNote] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const [posted, setPosted] = useState<TransactionDto | null>(null);
 
   const isCredit = kind === "credit";
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     const n = parseFloat(amount);
     if (!n || n <= 0) {
@@ -1097,11 +1135,26 @@ function TxnDialog({
     }
     setErr(null);
     setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      const body = {
+        amount: n,
+        paymentTypeCode: payType || undefined,
+        note: note.trim() || undefined,
+        transactionDate: date,
+        approvalRequired: false,
+      };
+      const result = isCredit
+        ? await savingsAccountsApi.deposit(accountNumber, body)
+        : await savingsAccountsApi.withdrawal(accountNumber, body);
+      if (!result) throw new Error("Backend is not reachable right now.");
+      setPosted(result.transaction);
       setDone(true);
-      setTimeout(() => onSubmit(n), 900);
-    }, 700);
+      setTimeout(() => onSubmit(result.transaction), 900);
+    } catch (submitErr) {
+      setErr(apiErrorMessage(submitErr, "Something went wrong recording this transaction."));
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -1140,11 +1193,13 @@ function TxnDialog({
             {isCredit ? "Credit Posted" : "Debit Posted"}
           </div>
           <div style={{ fontSize: 12, color: tokens.textMuted, marginTop: 4 }}>
-            Transaction has been recorded.
+            {posted?.runningBalance !== undefined
+              ? `New balance: ${fmtGHS(posted.runningBalance)}`
+              : "Transaction has been recorded."}
           </div>
         </div>
       ) : (
-        <form onSubmit={submit} style={{ padding: 20 }} className="space-y-4">
+        <form onSubmit={(e) => void submit(e)} style={{ padding: 20 }} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <Field label="Amount" required>
               <input
@@ -1161,10 +1216,12 @@ function TxnDialog({
                 onChange={(e) => setPayType(e.target.value)}
                 style={inputStyle}
               >
-                <option>Cash</option>
-                <option>Mobile Money</option>
-                <option>Cheque</option>
-                <option>Transfer</option>
+                <option value="">Select…</option>
+                {paymentTypeOptions.map((o) => (
+                  <option key={o.code} value={o.code}>
+                    {o.name}
+                  </option>
+                ))}
               </select>
             </Field>
           </div>

@@ -296,6 +296,16 @@ export type TransactionDto = {
   reversed?: boolean;
 };
 
+/** POST /savings-accounts/{ref}/transactions/deposit|withdrawal response —
+ * wraps the resulting transaction with the async-review operation's id/status
+ * (mirrors the transaction-operations workflow; POSTED means it went straight
+ * through, anything else means it's pending review). */
+export type MoneyTransactionResultDto = {
+  operationId?: string;
+  status?: string;
+  transaction: TransactionDto;
+};
+
 // ── Loan reporting rows (one shape per endpoint) ────────────────────────────
 
 export type ApplicationRowDto = {
