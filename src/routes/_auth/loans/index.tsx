@@ -108,7 +108,7 @@ function LoansOverview() {
       <div className="mt-4">
         <SectionCard
           title="Application Pipeline"
-          action={<Link to="/loans/applications">View board →</Link>}
+          action={<Link className="text-xs" to="/loans/applications">View board →</Link>}
         >
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(5,1fr)" }}>
             {PIPELINE_STAGES.map((s) => {
@@ -150,7 +150,7 @@ function LoansOverview() {
       <div className="grid gap-4 mt-4" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
         <TableCard
           title="Recent Applications"
-          actions={<Link to="/loans/applications">View all →</Link>}
+          actions={<Link className="text-xs" to="/loans/applications">View all →</Link>}
         >
           <Table>
             <THead>

@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
 import { Ava, Table, THead, Tr, Th, Td, fontDisplay, fontMono } from "@/components/loans/ui";
 import { StagePill } from "@/components/loans/StagePill";
-import { fmtGHS, loanReportsApi, type AppStage } from "@/api/loans";
+import { fmtGHS, loanProductsApi, loanReportsApi, type AppStage } from "@/api/loans";
 import { useBackendData } from "@/api/useBackendData";
 import { Button, TableCard } from "@/components/patterns";
 
@@ -25,7 +25,25 @@ function ApplicationsPage() {
   const { data } = useBackendData("loans:applications-all", () =>
     loanReportsApi.applications({ limit: 200 }),
   );
-  const APPLICATIONS = data ?? [];
+  const { data: productsData } = useBackendData("loans:products", () => loanProductsApi.list());
+  const products = productsData ?? [];
+  const allApplications = data ?? [];
+
+  const [productFilter, setProductFilter] = useState<string | null>(null);
+  const [productMenuOpen, setProductMenuOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    function onDoc(e: MouseEvent) {
+      if (!filterRef.current?.contains(e.target as Node)) setProductMenuOpen(false);
+    }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  const APPLICATIONS = productFilter
+    ? allApplications.filter((a) => a.product === productFilter)
+    : allApplications;
+
   const [view, setView] = useState<"board" | "table">("board");
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(APPLICATIONS.length / PAGE_SIZE));
@@ -36,7 +54,69 @@ function ApplicationsPage() {
     <LoansShell>
       <div className="flex items-center justify-between mb-4">
         <div className="flex gap-2">
-          {["All Products", "All Branches", "Officer"].map((l) => (
+          <div ref={filterRef} className="relative">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              iconRight={<ChevronDown size={12} />}
+              onClick={() => setProductMenuOpen((v) => !v)}
+            >
+              {productFilter ?? "All Products"}
+            </Button>
+            {productMenuOpen && (
+              <div
+                className="absolute z-10 mt-1 bg-white"
+                style={{
+                  border: `1px solid ${LOAN.border}`,
+                  borderRadius: 8,
+                  minWidth: 180,
+                  padding: 4,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProductFilter(null);
+                    setProductMenuOpen(false);
+                    setPage(1);
+                  }}
+                  className="block w-full text-left"
+                  style={{
+                    padding: "8px 10px",
+                    borderRadius: 6,
+                    fontSize: 13,
+                    color: LOAN.ink,
+                    background: !productFilter ? LOAN.pageBg : "transparent",
+                  }}
+                >
+                  All Products
+                </button>
+                {products.map((p) => (
+                  <button
+                    key={p.name}
+                    type="button"
+                    onClick={() => {
+                      setProductFilter(p.name);
+                      setProductMenuOpen(false);
+                      setPage(1);
+                    }}
+                    className="block w-full text-left"
+                    style={{
+                      padding: "8px 10px",
+                      borderRadius: 6,
+                      fontSize: 13,
+                      color: LOAN.ink,
+                      background: productFilter === p.name ? LOAN.pageBg : "transparent",
+                    }}
+                  >
+                    {p.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {["All Branches", "Officer"].map((l) => (
             <Button
               key={l}
               type="button"
