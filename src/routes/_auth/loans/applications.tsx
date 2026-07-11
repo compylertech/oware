@@ -6,6 +6,8 @@ import { LoansShell } from "@/components/loans/LoansShell";
 import { Ava, Table, THead, Tr, Th, Td, fontDisplay, fontMono } from "@/components/loans/ui";
 import { StagePill } from "@/components/loans/StagePill";
 import { fmtGHS, loanProductsApi, loanReportsApi, type AppStage } from "@/api/loans";
+import { useClients } from "@/api/clients";
+import { referencesApi } from "@/api/backend";
 import { useBackendData } from "@/api/useBackendData";
 import { Button, TableCard } from "@/components/patterns";
 
@@ -21,24 +23,138 @@ const COLUMNS: { stage: AppStage; dot: string }[] = [
   { stage: "Rejected", dot: LOAN.red },
 ];
 
-function ApplicationsPage() {
-  const { data } = useBackendData("loans:applications-all", () =>
-    loanReportsApi.applications({ limit: 200 }),
-  );
-  const { data: productsData } = useBackendData("loans:products", () => loanProductsApi.list());
-  const products = productsData ?? [];
-  const allApplications = data ?? [];
+type FilterOption = { key: string; label: string };
 
-  const [productFilter, setProductFilter] = useState<string | null>(null);
-  const [productMenuOpen, setProductMenuOpen] = useState(false);
-  const filterRef = useRef<HTMLDivElement>(null);
+/** Pill-button dropdown shared by the Products/Branches/Officer filters —
+ * shows `placeholder` when nothing is selected, closes on outside click. */
+function FilterDropdown({
+  placeholder,
+  options,
+  selectedKey,
+  onSelect,
+}: {
+  placeholder: string;
+  options: FilterOption[];
+  selectedKey: string | null;
+  onSelect: (key: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     function onDoc(e: MouseEvent) {
-      if (!filterRef.current?.contains(e.target as Node)) setProductMenuOpen(false);
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
     }
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
+
+  const selectedLabel = options.find((o) => o.key === selectedKey)?.label ?? null;
+
+  return (
+    <div ref={ref} className="relative">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        iconRight={<ChevronDown size={12} />}
+        onClick={() => setOpen((v) => !v)}
+      >
+        {selectedLabel ?? placeholder}
+      </Button>
+      {open && (
+        <div
+          className="absolute z-10 mt-1 bg-white"
+          style={{
+            border: `1px solid ${LOAN.border}`,
+            borderRadius: 8,
+            minWidth: 200,
+            maxHeight: 280,
+            overflowY: "auto",
+            padding: 4,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              onSelect(null);
+              setOpen(false);
+            }}
+            className="block w-full text-left"
+            style={{
+              padding: "8px 10px",
+              borderRadius: 6,
+              fontSize: 13,
+              color: LOAN.ink,
+              background: !selectedKey ? LOAN.pageBg : "transparent",
+            }}
+          >
+            {placeholder}
+          </button>
+          {options.length === 0 && (
+            <div style={{ padding: "8px 10px", fontSize: 12, color: LOAN.muted }}>
+              None found
+            </div>
+          )}
+          {options.map((o) => (
+            <button
+              key={o.key}
+              type="button"
+              onClick={() => {
+                onSelect(o.key);
+                setOpen(false);
+              }}
+              className="block w-full text-left"
+              style={{
+                padding: "8px 10px",
+                borderRadius: 6,
+                fontSize: 13,
+                color: LOAN.ink,
+                background: selectedKey === o.key ? LOAN.pageBg : "transparent",
+              }}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ApplicationsPage() {
+  const [officeFilter, setOfficeFilter] = useState<string | null>(null);
+  const [officerFilter, setOfficerFilter] = useState<string | null>(null);
+  const [productFilter, setProductFilter] = useState<string | null>(null);
+
+  // officeCode/loanOfficerId are real server-side filters (confirmed live);
+  // product has no such param, so it's applied client-side below instead.
+  const { data } = useBackendData(`loans:applications:${officeFilter ?? ""}:${officerFilter ?? ""}`, () =>
+    loanReportsApi.applications({
+      limit: 200,
+      officeCode: officeFilter ?? undefined,
+      loanOfficerId: officerFilter ?? undefined,
+    }),
+  );
+  const allApplications = data ?? [];
+
+  const { data: productsData } = useBackendData("loans:products", () => loanProductsApi.list());
+  const products = productsData ?? [];
+  const productOptions: FilterOption[] = products.map((p) => ({ key: p.name, label: p.name }));
+
+  const [officeOptions, setOfficeOptions] = useState<FilterOption[]>([]);
+  useEffect(() => {
+    void referencesApi
+      .list("OFFICE")
+      .then((opts) => setOfficeOptions(opts.map((o) => ({ key: o.code, label: o.name }))));
+  }, []);
+
+  // Loan officers are modeled as staff clients — filter the app-wide client
+  // registry (already hydrated) instead of a dedicated (currently 500ing)
+  // staff/officer endpoint, per direction.
+  const clients = useClients();
+  const officerOptions: FilterOption[] = clients
+    .filter((c) => c.isStaff && c.fineractClientId != null)
+    .map((c) => ({ key: String(c.fineractClientId), label: c.name }));
 
   const APPLICATIONS = productFilter
     ? allApplications.filter((a) => a.product === productFilter)
@@ -54,79 +170,33 @@ function ApplicationsPage() {
     <LoansShell>
       <div className="flex items-center justify-between mb-4">
         <div className="flex gap-2">
-          <div ref={filterRef} className="relative">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              iconRight={<ChevronDown size={12} />}
-              onClick={() => setProductMenuOpen((v) => !v)}
-            >
-              {productFilter ?? "All Products"}
-            </Button>
-            {productMenuOpen && (
-              <div
-                className="absolute z-10 mt-1 bg-white"
-                style={{
-                  border: `1px solid ${LOAN.border}`,
-                  borderRadius: 8,
-                  minWidth: 180,
-                  padding: 4,
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setProductFilter(null);
-                    setProductMenuOpen(false);
-                    setPage(1);
-                  }}
-                  className="block w-full text-left"
-                  style={{
-                    padding: "8px 10px",
-                    borderRadius: 6,
-                    fontSize: 13,
-                    color: LOAN.ink,
-                    background: !productFilter ? LOAN.pageBg : "transparent",
-                  }}
-                >
-                  All Products
-                </button>
-                {products.map((p) => (
-                  <button
-                    key={p.name}
-                    type="button"
-                    onClick={() => {
-                      setProductFilter(p.name);
-                      setProductMenuOpen(false);
-                      setPage(1);
-                    }}
-                    className="block w-full text-left"
-                    style={{
-                      padding: "8px 10px",
-                      borderRadius: 6,
-                      fontSize: 13,
-                      color: LOAN.ink,
-                      background: productFilter === p.name ? LOAN.pageBg : "transparent",
-                    }}
-                  >
-                    {p.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          {["All Branches", "Officer"].map((l) => (
-            <Button
-              key={l}
-              type="button"
-              variant="outline"
-              size="sm"
-              iconRight={<ChevronDown size={12} />}
-            >
-              {l}
-            </Button>
-          ))}
+          <FilterDropdown
+            placeholder="All Products"
+            options={productOptions}
+            selectedKey={productFilter}
+            onSelect={(key) => {
+              setProductFilter(key);
+              setPage(1);
+            }}
+          />
+          <FilterDropdown
+            placeholder="All Branches"
+            options={officeOptions}
+            selectedKey={officeFilter}
+            onSelect={(key) => {
+              setOfficeFilter(key);
+              setPage(1);
+            }}
+          />
+          <FilterDropdown
+            placeholder="Officer"
+            options={officerOptions}
+            selectedKey={officerFilter}
+            onSelect={(key) => {
+              setOfficerFilter(key);
+              setPage(1);
+            }}
+          />
         </div>
         <div
           style={{

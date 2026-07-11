@@ -84,6 +84,7 @@ export function mapClient(dto: ClientDto): Client {
     mobile: dto.mobileNumber,
     email: dto.email,
     isStaff: dto.staff,
+    fineractClientId: dto.fineractClientId,
     officeCode: dto.officeCode,
     genderCode: dto.genderCode ?? undefined,
     dateOfBirth: dto.dateOfBirth ?? undefined,

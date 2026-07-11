@@ -104,14 +104,20 @@ export const loanReportsApi = {
       toDate?: string;
       limit?: number;
       offset?: number;
+      /** Filters to a single office (validated server-side against the OFFICE
+       * reference category — an unknown code 400s). */
+      officeCode?: string;
+      /** Loan officers are modeled as staff clients; this is that client's
+       * Fineract numeric id. Accepts string or number. */
+      loanOfficerId?: string | number;
     } = {},
   ): Promise<LoanApplication[]> {
-    const { stage, fromDate, toDate, limit = 20, offset = 0 } = params;
+    const { stage, fromDate, toDate, limit = 20, offset = 0, officeCode, loanOfficerId } = params;
     return withMock(
       async () => {
         const dto = await request<{ applications?: ApplicationRowDto[] }>(
           "/loan-accounts/reports/applications",
-          { query: { stage, fromDate, toDate, limit, offset } },
+          { query: { stage, fromDate, toDate, limit, offset, officeCode, loanOfficerId } },
         );
         return (dto.applications ?? []).map(mapApplication);
       },
