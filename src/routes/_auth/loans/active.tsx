@@ -4,7 +4,7 @@ import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
 import { Ava, Table, THead, Tr, Th, Td, Chip, MiniBar, fontMono } from "@/components/loans/ui";
 import { StagePill } from "@/components/loans/StagePill";
-import { ACTIVE_LOANS as SEED_ACTIVE_LOANS, fmtGHS, loanReportsApi } from "@/api/loans";
+import { fmtGHS, loanReportsApi } from "@/api/loans";
 import { useBackendData } from "@/api/useBackendData";
 import { ChevronDown } from "lucide-react";
 import { Button, TableCard } from "@/components/patterns";
@@ -14,7 +14,8 @@ export const Route = createFileRoute("/_auth/loans/active")({
 });
 
 function ActiveLoansPage() {
-  const ACTIVE_LOANS = useBackendData(() => loanReportsApi.active(), SEED_ACTIVE_LOANS);
+  const { data } = useBackendData("loans:active", () => loanReportsApi.active());
+  const ACTIVE_LOANS = data ?? [];
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(ACTIVE_LOANS.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);

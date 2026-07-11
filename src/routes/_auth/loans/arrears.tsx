@@ -19,10 +19,11 @@ const OVERDUE: ArrearsRow[] = [
 ];
 
 function ArrearsPage() {
-  const OVERDUE_ROWS = useBackendData(async () => {
+  const { data } = useBackendData("loans:arrears-rows", async () => {
     const rows = await loanReportsApi.arrearsRows();
     return rows.length ? rows : OVERDUE;
-  }, OVERDUE);
+  });
+  const OVERDUE_ROWS = data ?? [];
   const [overduePage, setOverduePage] = useState(1);
   const overdueTotalPages = Math.max(1, Math.ceil(OVERDUE_ROWS.length / PAGE_SIZE));
   const overdueCurrentPage = Math.min(overduePage, overdueTotalPages);

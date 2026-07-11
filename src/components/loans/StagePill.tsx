@@ -19,10 +19,10 @@ type Status =
 // Loan-domain statuses mapped to the shared status tones so every stage badge
 // renders through the one bordered StatusPill instead of a bespoke pill.
 const STAGE_TONE: Record<Status, Tone> = {
-  Submitted: "gray",
+  Submitted: "green",
   "Under Review": "blue",
   Approved: "amber",
-  "To Disburse": "green",
+  "To Disburse": "amber",
   Rejected: "red",
   Current: "green",
   "Due Soon": "amber",

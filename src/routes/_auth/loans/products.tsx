@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LoansShell } from "@/components/loans/LoansShell";
-import { PRODUCTS as SEED_LOAN_PRODUCTS, loanProductsApi, type LoanProduct } from "@/api/loans";
+import { loanProductsApi, type LoanProduct } from "@/api/loans";
 import { useBackendData } from "@/api/useBackendData";
 import { ProductCardGrid, type ProductCardData } from "@/components/products/ProductCard";
 
@@ -25,7 +25,8 @@ function toCards(products: LoanProduct[]): ProductCardData[] {
 }
 
 function ProductsPage() {
-  const PRODUCTS = toCards(useBackendData(() => loanProductsApi.list(), SEED_LOAN_PRODUCTS));
+  const { data } = useBackendData("loans:products", () => loanProductsApi.list());
+  const PRODUCTS = toCards(data ?? []);
   return (
     <LoansShell>
       <ProductCardGrid products={PRODUCTS} />

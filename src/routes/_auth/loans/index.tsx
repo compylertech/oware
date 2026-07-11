@@ -3,15 +3,11 @@ import { DollarSign, Clock, AlertTriangle, TrendingUp, BarChart2 } from "lucide-
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
 import { Ava, Table, THead, Tr, Th, Td, fontDisplay, fontMono } from "@/components/loans/ui";
-import {
-  APPLICATIONS as SEED_APPLICATIONS,
-  fmtGHS,
-  loanReportsApi,
-  type LoanOverview,
-} from "@/api/loans";
+import { fmtGHS, loanReportsApi } from "@/api/loans";
 import { useBackendData } from "@/api/useBackendData";
 import { StagePill } from "@/components/loans/StagePill";
 import { StatCard, StatGrid, SectionCard, TableCard } from "@/components/patterns";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_auth/loans/")({
   component: LoansOverview,
@@ -23,20 +19,6 @@ function fmtCompact(n: number): string {
   if (n >= 1_000) return `GH₵ ${Math.round(n / 1_000)}K`;
   return `GH₵ ${n.toLocaleString("en-GH", { maximumFractionDigits: 0 })}`;
 }
-
-const SEED_OVERVIEW: LoanOverview = {
-  activeCount: 1284,
-  activeAmount: 18_400_000,
-  pendingApprovals: 37,
-  arrears: 92,
-  pendingDisbCount: 37,
-  pendingDisbAmount: 2_100_000,
-  par30Rate: 4.8,
-  arrearsAmount: 612_000,
-  collections: 3_200_000,
-  pipeline: {},
-  arrearsAging: {},
-};
 
 // Stage order/labels/colors for the real pipeline keys the backend returns
 // (submitted → approved → toDisburse → active, plus rejected).
@@ -56,8 +38,21 @@ const ARREARS_BUCKETS: { key: string; label: string; color: string }[] = [
 ];
 
 function LoansOverview() {
-  const ov = useBackendData(() => loanReportsApi.overview(), SEED_OVERVIEW);
-  const recent = useBackendData(() => loanReportsApi.applications({ limit: 5 }), SEED_APPLICATIONS);
+  const { data: ov } = useBackendData("loans:overview", () => loanReportsApi.overview());
+  const { data: recent } = useBackendData("loans:recent-applications", () =>
+    loanReportsApi.applications({ limit: 5 }),
+  );
+
+  // Cached data (even stale) is shown instantly with no skeleton — only a
+  // genuinely first-ever load has nothing to show yet.
+  if (!ov || !recent) {
+    return (
+      <LoansShell>
+        <LoansOverviewSkeleton />
+      </LoansShell>
+    );
+  }
+
   return (
     <LoansShell>
       <StatGrid columns={5}>
@@ -212,6 +207,58 @@ function LoansOverview() {
         </SectionCard>
       </div>
     </LoansShell>
+  );
+}
+
+/** Rough placeholder for the overview while the first-ever load is in
+ * flight — never a fixture standing in for real numbers. */
+function LoansOverviewSkeleton() {
+  const cardStyle = { border: `1px solid ${LOAN.border}`, borderRadius: 12, padding: 16 };
+  return (
+    <>
+      <StatGrid columns={5}>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} style={cardStyle}>
+            <Skeleton className="h-9 w-9 rounded-lg" />
+            <Skeleton className="h-3 w-20 mt-4" />
+            <Skeleton className="h-6 w-14 mt-2" />
+            <Skeleton className="h-3 w-16 mt-2" />
+          </div>
+        ))}
+      </StatGrid>
+
+      <div className="mt-4">
+        <SectionCard title="Application Pipeline">
+          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(5,1fr)" }}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} style={{ ...cardStyle, padding: 14 }}>
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-6 w-10 mt-3" />
+                <Skeleton className="h-3 w-12 mt-2" />
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      </div>
+
+      <div className="grid gap-4 mt-4" style={{ gridTemplateColumns: "1.5fr 1fr" }}>
+        <TableCard title="Recent Applications">
+          <div className="p-4 space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-10 w-full" />
+            ))}
+          </div>
+        </TableCard>
+
+        <SectionCard title="Arrears Aging">
+          <div className="space-y-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-8 w-full" />
+            ))}
+          </div>
+        </SectionCard>
+      </div>
+    </>
   );
 }
 
