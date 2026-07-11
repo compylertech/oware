@@ -3,7 +3,12 @@ import { DollarSign, Clock, AlertTriangle, TrendingUp, BarChart2 } from "lucide-
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
 import { Ava, Table, THead, Tr, Th, Td, fontDisplay, fontMono } from "@/components/loans/ui";
-import { APPLICATIONS as SEED_APPLICATIONS, fmtGHS, loanReportsApi } from "@/api/loans";
+import {
+  APPLICATIONS as SEED_APPLICATIONS,
+  fmtGHS,
+  loanReportsApi,
+  type LoanOverview,
+} from "@/api/loans";
 import { useBackendData } from "@/api/useBackendData";
 import { StagePill } from "@/components/loans/StagePill";
 import { StatCard, StatGrid, SectionCard, TableCard } from "@/components/patterns";
@@ -19,7 +24,7 @@ function fmtCompact(n: number): string {
   return `GH₵ ${n.toLocaleString("en-GH", { maximumFractionDigits: 0 })}`;
 }
 
-const SEED_OVERVIEW = {
+const SEED_OVERVIEW: LoanOverview = {
   activeCount: 1284,
   activeAmount: 18_400_000,
   pendingApprovals: 37,
@@ -30,7 +35,25 @@ const SEED_OVERVIEW = {
   arrearsAmount: 612_000,
   collections: 3_200_000,
   pipeline: {},
+  arrearsAging: {},
 };
+
+// Stage order/labels/colors for the real pipeline keys the backend returns
+// (submitted → approved → toDisburse → active, plus rejected).
+const PIPELINE_STAGES: { key: string; label: string; dot: string }[] = [
+  { key: "submitted", label: "Submitted", dot: LOAN.muted },
+  { key: "approved", label: "Approved", dot: LOAN.amber },
+  { key: "toDisburse", label: "To Disburse", dot: LOAN.green },
+  { key: "active", label: "Active", dot: LOAN.blue },
+  { key: "rejected", label: "Rejected", dot: LOAN.red },
+];
+
+const ARREARS_BUCKETS: { key: string; label: string; color: string }[] = [
+  { key: "days1to30", label: "1–30 days", color: LOAN.amber },
+  { key: "days31to60", label: "31–60 days", color: "#E07B39" },
+  { key: "days61to90", label: "61–90 days", color: LOAN.red },
+  { key: "days90plus", label: "90+ days", color: "#9B1C1C" },
+];
 
 function LoansOverview() {
   const ov = useBackendData(() => loanReportsApi.overview(), SEED_OVERVIEW);
@@ -93,37 +116,38 @@ function LoansOverview() {
           action={<Link to="/loans/applications">View board →</Link>}
         >
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(5,1fr)" }}>
-            {[
-              { dot: LOAN.muted, label: "Submitted", count: 24, amt: "GH₵1.9M" },
-              { dot: LOAN.blue, label: "Under Review", count: 12, amt: "GH₵980K" },
-              { dot: LOAN.amber, label: "Approved", count: 9, amt: "GH₵720K" },
-              { dot: LOAN.green, label: "To Disburse", count: 5, amt: "GH₵410K" },
-              { dot: LOAN.red, label: "Rejected", count: 3, amt: "GH₵240K" },
-            ].map((c) => (
-              <div
-                key={c.label}
-                style={{ border: `1px solid ${LOAN.border}`, borderRadius: 12, padding: 14 }}
-              >
-                <div className="flex items-center gap-2">
-                  <span style={{ width: 8, height: 8, borderRadius: 999, background: c.dot }} />
-                  <span style={{ fontSize: 12, color: LOAN.muted, fontWeight: 300 }}>
-                    {c.label}
-                  </span>
-                </div>
+            {PIPELINE_STAGES.map((s) => {
+              const stage = ov.pipeline[s.key];
+              return (
                 <div
-                  style={{
-                    ...fontDisplay,
-                    fontSize: 22,
-                    fontWeight: 200,
-                    color: LOAN.ink,
-                    marginTop: 6,
-                  }}
+                  key={s.key}
+                  style={{ border: `1px solid ${LOAN.border}`, borderRadius: 12, padding: 14 }}
                 >
-                  {c.count}
+                  <div className="flex items-center gap-2">
+                    <span
+                      style={{ width: 8, height: 8, borderRadius: 999, background: s.dot }}
+                    />
+                    <span style={{ fontSize: 12, color: LOAN.muted, fontWeight: 300 }}>
+                      {s.label}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      ...fontDisplay,
+                      fontSize: 22,
+                      fontWeight: 200,
+                      color: LOAN.ink,
+                      marginTop: 6,
+                    }}
+                  >
+                    {stage?.count ?? 0}
+                  </div>
+                  <div style={{ fontSize: 11, color: LOAN.muted, marginTop: 2 }}>
+                    {fmtCompact(stage?.amount ?? 0)}
+                  </div>
                 </div>
-                <div style={{ fontSize: 11, color: LOAN.muted, marginTop: 2 }}>{c.amt}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </SectionCard>
       </div>
@@ -165,10 +189,25 @@ function LoansOverview() {
 
         <SectionCard title="Arrears Aging">
           <div className="space-y-3">
-            <AgingBar label="1–30 days" amt="GH₵248K" pct={62} color={LOAN.amber} />
-            <AgingBar label="31–60 days" amt="GH₵190K" pct={46} color="#E07B39" />
-            <AgingBar label="61–90 days" amt="GH₵102K" pct={28} color={LOAN.red} />
-            <AgingBar label="90+ days" amt="GH₵72K" pct={18} color="#9B1C1C" />
+            {(() => {
+              const maxAmount = Math.max(
+                1,
+                ...ARREARS_BUCKETS.map((b) => ov.arrearsAging[b.key]?.amount ?? 0),
+              );
+              return ARREARS_BUCKETS.map((b) => {
+                const bucket = ov.arrearsAging[b.key];
+                const amount = bucket?.amount ?? 0;
+                return (
+                  <AgingBar
+                    key={b.key}
+                    label={b.label}
+                    amt={fmtCompact(amount)}
+                    pct={Math.round((amount / maxAmount) * 100)}
+                    color={b.color}
+                  />
+                );
+              });
+            })()}
           </div>
         </SectionCard>
       </div>

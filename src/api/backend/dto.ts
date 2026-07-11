@@ -380,8 +380,10 @@ export type OverviewDto = {
     arrearsAmount?: number;
     par30Rate?: number;
     collectionsThisMonth?: number;
+    collectionTransactionCount?: number;
   };
   pipeline?: Record<string, { count?: number; amount?: number }>;
+  arrearsAging?: Record<string, { count?: number; amount?: number }>;
 };
 
 // GET /clients/{id}/accounts row shapes (verified against a live instance) —

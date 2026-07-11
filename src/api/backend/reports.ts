@@ -34,11 +34,12 @@ export type LoanOverview = {
   arrearsAmount: number;
   collections: number;
   pipeline: Record<string, PipelineStage>;
+  arrearsAging: Record<string, PipelineStage>;
 };
 
-function pipeline(dto: OverviewDto): Record<string, PipelineStage> {
+function stageMap(dto?: Record<string, { count?: number; amount?: number }>): Record<string, PipelineStage> {
   const out: Record<string, PipelineStage> = {};
-  for (const [k, v] of Object.entries(dto.pipeline ?? {})) {
+  for (const [k, v] of Object.entries(dto ?? {})) {
     out[k] = { count: v.count ?? 0, amount: v.amount ?? 0 };
   }
   return out;
@@ -60,7 +61,8 @@ export const loanReportsApi = {
           par30Rate: stats.par30Rate ?? 0,
           arrearsAmount: stats.arrearsAmount ?? 0,
           collections: stats.collectionsThisMonth ?? 0,
-          pipeline: pipeline(dto),
+          pipeline: stageMap(dto.pipeline),
+          arrearsAging: stageMap(dto.arrearsAging),
         };
       },
       () => ({
@@ -80,6 +82,7 @@ export const loanReportsApi = {
         ),
         collections: 0,
         pipeline: {},
+        arrearsAging: {},
       }),
     );
   },
