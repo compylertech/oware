@@ -1,3 +1,4 @@
+import { Send } from "lucide-react";
 import { StatusPill, type Tone } from "@/components/common/StatusPill";
 import type { AppStage } from "@/api/loans";
 
@@ -37,6 +38,12 @@ const STAGE_TONE: Record<Status, Tone> = {
   "90+": "red",
 };
 
+// "Submitted" is gray (neutral, nothing decided yet) but a plain dash reads
+// as "no status" rather than "sent in" — a send icon fits the actual meaning.
+const STAGE_ICON: Partial<Record<Status, React.ReactNode>> = {
+  Submitted: <Send size={11} strokeWidth={2.5} style={{ flexShrink: 0 }} />,
+};
+
 export function StagePill({ stage }: { stage: Status }) {
-  return <StatusPill label={stage} tone={STAGE_TONE[stage] ?? "gray"} />;
+  return <StatusPill label={stage} tone={STAGE_TONE[stage] ?? "gray"} icon={STAGE_ICON[stage]} />;
 }

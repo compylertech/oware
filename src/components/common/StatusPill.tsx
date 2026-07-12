@@ -88,18 +88,21 @@ const TONE_ICON: Record<Tone, LucideIcon> = {
  * Semantic status badge — a special {@link Pill} that always has a border and a
  * tone-specific icon (so colour is never the only signal). Pass a known `status`
  * (mapped to a tone) or an explicit `tone` + `label` for domain-specific
- * statuses (e.g. loan stages).
+ * statuses (e.g. loan stages). Pass `icon` to override the tone's default icon
+ * when the generic one (e.g. a dash for gray) doesn't fit a specific status.
  */
 export function StatusPill({
   status,
   tone,
   label,
+  icon,
   variant = "default",
   className,
 }: {
   status?: StatusKind;
   tone?: Tone;
   label?: React.ReactNode;
+  icon?: React.ReactNode;
   variant?: "default" | "onDark";
   className?: string;
 }) {
@@ -111,7 +114,7 @@ export function StatusPill({
       color={s.text}
       bg={s.bg}
       border={s.border}
-      icon={<Icon size={12} strokeWidth={2.5} style={{ flexShrink: 0 }} />}
+      icon={icon ?? <Icon size={12} strokeWidth={2.5} style={{ flexShrink: 0 }} />}
       className={className}
     >
       {label ?? status}
