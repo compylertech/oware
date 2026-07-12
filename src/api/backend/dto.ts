@@ -335,6 +335,17 @@ export type ActiveLoanRowDto = {
   repaidPercent?: number;
 };
 
+/** GET /loan-accounts/reports/active response — summary stats alongside the
+ * loan rows (verified against a live instance). */
+export type ActiveLoansReportDto = {
+  totalOutstanding?: number;
+  onTimeCount?: number;
+  inArrearsCount?: number;
+  avgLoanSize?: number;
+  totalLoans?: number;
+  loans?: ActiveLoanRowDto[];
+};
+
 export type ApprovalRowDto = {
   loanId: number;
   accountNo?: string;

@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_auth/loans/active")({
 
 function ActiveLoansPage() {
   const { data } = useBackendData("loans:active", () => loanReportsApi.active());
-  const ACTIVE_LOANS = data ?? [];
+  const ACTIVE_LOANS = data?.loans ?? [];
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(ACTIVE_LOANS.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -24,10 +24,20 @@ function ActiveLoansPage() {
   return (
     <LoansShell>
       <div className="grid gap-3 mb-4" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
-        <Chip label="Total Outstanding" value="GH₵18.4M" />
-        <Chip label="On-time" value="1,192" meta="loans" metaColor={LOAN.green} />
-        <Chip label="In Arrears" value="92" meta="loans" metaColor={LOAN.red} />
-        <Chip label="Avg. Loan Size" value="GH₵14,300" />
+        <Chip label="Total Outstanding" value={fmtGHS(data?.totalOutstanding ?? 0)} />
+        <Chip
+          label="On-time"
+          value={(data?.onTimeCount ?? 0).toLocaleString("en-GH")}
+          meta="loans"
+          metaColor={LOAN.green}
+        />
+        <Chip
+          label="In Arrears"
+          value={(data?.inArrearsCount ?? 0).toLocaleString("en-GH")}
+          meta="loans"
+          metaColor={LOAN.red}
+        />
+        <Chip label="Avg. Loan Size" value={fmtGHS(Math.round(data?.avgLoanSize ?? 0))} />
       </div>
 
       <TableCard

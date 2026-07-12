@@ -11,6 +11,7 @@ import type { ActiveLoan, LoanApplication } from "../loans/types";
 import { ACTIVE_LOANS, APPLICATIONS } from "../loans/data";
 import type {
   ActiveLoanRowDto,
+  ActiveLoansReportDto,
   ApplicationRowDto,
   ApprovalRowDto,
   ArrearsRowDto,
@@ -21,6 +22,15 @@ import { request, withMock } from "./http";
 import { mapActiveLoan, mapApplication, mapApproval, mapArrears, mapDisbursement } from "./mappers";
 
 export type PipelineStage = { count: number; amount: number };
+
+export type ActiveLoansReport = {
+  totalOutstanding: number;
+  onTimeCount: number;
+  inArrearsCount: number;
+  avgLoanSize: number;
+  totalLoans: number;
+  loans: ActiveLoan[];
+};
 
 export type LoanOverview = {
   activeCount: number;
@@ -87,13 +97,29 @@ export const loanReportsApi = {
     );
   },
 
-  active(): Promise<ActiveLoan[]> {
+  active(): Promise<ActiveLoansReport> {
     return withMock(
       async () => {
-        const dto = await request<{ loans?: ActiveLoanRowDto[] }>("/loan-accounts/reports/active");
-        return (dto.loans ?? []).map(mapActiveLoan);
+        const dto = await request<ActiveLoansReportDto>("/loan-accounts/reports/active");
+        return {
+          totalOutstanding: dto.totalOutstanding ?? 0,
+          onTimeCount: dto.onTimeCount ?? 0,
+          inArrearsCount: dto.inArrearsCount ?? 0,
+          avgLoanSize: dto.avgLoanSize ?? 0,
+          totalLoans: dto.totalLoans ?? 0,
+          loans: (dto.loans ?? []).map(mapActiveLoan),
+        };
       },
-      () => ACTIVE_LOANS,
+      () => ({
+        totalOutstanding: ACTIVE_LOANS.reduce((s, l) => s + l.outstanding, 0),
+        onTimeCount: ACTIVE_LOANS.filter((l) => l.status !== "In Arrears").length,
+        inArrearsCount: ACTIVE_LOANS.filter((l) => l.status === "In Arrears").length,
+        avgLoanSize: ACTIVE_LOANS.length
+          ? ACTIVE_LOANS.reduce((s, l) => s + l.outstanding, 0) / ACTIVE_LOANS.length
+          : 0,
+        totalLoans: ACTIVE_LOANS.length,
+        loans: ACTIVE_LOANS,
+      }),
     );
   },
 
