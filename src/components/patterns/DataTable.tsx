@@ -61,7 +61,6 @@ export function TableCard({
         background: tokens.surface,
         border: `1px solid ${tokens.border}`,
         borderRadius: 14,
-        overflow: "hidden",
         ...style,
       }}
     >
@@ -74,7 +73,10 @@ export function TableCard({
           actions={actions}
         />
       )}
-      {children}
+      {/* Clip only the table content to the card's rounded corners — the
+          toolbar's own overflow must stay visible so filter dropdowns aren't
+          cut off by whatever's rendered below them. */}
+      <div style={{ overflow: "hidden", borderRadius: 14 }}>{children}</div>
       {pagination && pagination.totalItems > 0 && <TablePagination {...pagination} />}
     </div>
   );

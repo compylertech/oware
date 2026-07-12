@@ -179,13 +179,26 @@ export const loanReportsApi = {
       /** Loan officers are modeled as staff clients; this is that client's
        * Fineract numeric id. Accepts string or number. */
       loanOfficerId?: string | number;
+      /** Validated against the LOAN_PRODUCT reference category's own code
+       * (e.g. "AUTO_LOAN") — NOT the product catalogue's short code
+       * ("ALN"); confirmed live, same as Active Loans' loanProductCode. */
+      loanProductCode?: string;
     } = {},
   ): Promise<LoanApplication[]> {
-    const { stage, fromDate, toDate, limit = 20, offset = 0, officeCode, loanOfficerId } = params;
+    const {
+      stage,
+      fromDate,
+      toDate,
+      limit = 20,
+      offset = 0,
+      officeCode,
+      loanOfficerId,
+      loanProductCode,
+    } = params;
     return withMock(
       async () => {
         const dto = await request<ApplicationsReportDto>("/loan-accounts/reports/applications", {
-          query: { stage, fromDate, toDate, limit, offset, officeCode, loanOfficerId },
+          query: { stage, fromDate, toDate, limit, offset, officeCode, loanOfficerId, loanProductCode },
         });
         return (dto.applications ?? []).map(mapApplication);
       },

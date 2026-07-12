@@ -5,7 +5,7 @@ import { LoansShell } from "@/components/loans/LoansShell";
 import { Ava, Table, THead, Tr, Th, Td, fontDisplay, fontMono } from "@/components/loans/ui";
 import { StagePill } from "@/components/loans/StagePill";
 import { FilterDropdown, type FilterOption } from "@/components/loans/FilterDropdown";
-import { fmtGHS, loanProductsApi, loanReportsApi, type AppStage } from "@/api/loans";
+import { fmtGHS, loanReportsApi, type AppStage } from "@/api/loans";
 import { useClients } from "@/api/clients";
 import { referencesApi } from "@/api/backend";
 import { useBackendData } from "@/api/useBackendData";
@@ -28,21 +28,31 @@ function ApplicationsPage() {
   const [officerFilter, setOfficerFilter] = useState<string | null>(null);
   const [productFilter, setProductFilter] = useState<string | null>(null);
 
-  // officeCode/loanOfficerId are real server-side filters (confirmed live);
-  // product has no such param, so it's applied client-side below instead —
-  // fetch a batch generous enough to cover any page-size selection.
-  const { data } = useBackendData(`loans:applications:${officeFilter ?? ""}:${officerFilter ?? ""}`, () =>
-    loanReportsApi.applications({
-      limit: 500,
-      officeCode: officeFilter ?? undefined,
-      loanOfficerId: officerFilter ?? undefined,
-    }),
+  // officeCode/loanOfficerId/loanProductCode are all real server-side
+  // filters (confirmed live, including all three combined at once) — the
+  // fetch itself changes per filter combination, not a client-side re-slice
+  // of one big batch.
+  const { data } = useBackendData(
+    `loans:applications:${officeFilter ?? ""}:${officerFilter ?? ""}:${productFilter ?? ""}`,
+    () =>
+      loanReportsApi.applications({
+        limit: 500,
+        officeCode: officeFilter ?? undefined,
+        loanOfficerId: officerFilter ?? undefined,
+        loanProductCode: productFilter ?? undefined,
+      }),
   );
-  const allApplications = data ?? [];
+  const APPLICATIONS = data ?? [];
 
-  const { data: productsData } = useBackendData("loans:products", () => loanProductsApi.list());
-  const products = productsData ?? [];
-  const productOptions: FilterOption[] = products.map((p) => ({ key: p.name, label: p.name }));
+  // Validated against the LOAN_PRODUCT reference category's own code (e.g.
+  // "AUTO_LOAN"), not the product catalogue's short code ("ALN") — same
+  // mismatch already noted for Active Loans' product filter.
+  const [productOptions, setProductOptions] = useState<FilterOption[]>([]);
+  useEffect(() => {
+    void referencesApi
+      .list("LOAN_PRODUCT")
+      .then((opts) => setProductOptions(opts.map((o) => ({ key: o.code, label: o.name }))));
+  }, []);
 
   const [officeOptions, setOfficeOptions] = useState<FilterOption[]>([]);
   useEffect(() => {
@@ -58,10 +68,6 @@ function ApplicationsPage() {
   const officerOptions: FilterOption[] = clients
     .filter((c) => c.isStaff && c.fineractClientId != null)
     .map((c) => ({ key: String(c.fineractClientId), label: c.name }));
-
-  const APPLICATIONS = productFilter
-    ? allApplications.filter((a) => a.product === productFilter)
-    : allApplications;
 
   const [view, setView] = useState<"board" | "table">("table");
   const [page, setPage] = useState(1);
