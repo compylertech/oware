@@ -7,7 +7,7 @@ import { Table, Td, Th, THead, Tr, fontMono } from "@/components/loans/ui";
 import { StagePill } from "@/components/loans/StagePill";
 import { fmtGHS, loanAccountsApi, loanReportsApi, type ApprovalRow } from "@/api/loans";
 import { apiErrorMessage } from "@/api/backend";
-import { useBackendData } from "@/api/useBackendData";
+import { useBackendData, refreshBackendData } from "@/api/useBackendData";
 import { Tabs, Button, TableCard, EmptyRow } from "@/components/patterns";
 import { Check, X } from "lucide-react";
 
@@ -24,11 +24,10 @@ function ApprovalsPage() {
     null,
   );
   const [busy, setBusy] = useState(false);
-  const [actionedIds, setActionedIds] = useState<Set<number>>(new Set());
 
   const [page, setPage] = useState(1);
   const { data } = useBackendData("loans:approvals", () => loanReportsApi.approvals({ limit: 500 }));
-  const rows = (data?.rows ?? []).filter((r) => !actionedIds.has(r.loanId));
+  const rows = data?.rows ?? [];
   const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pageRows = rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
@@ -57,7 +56,21 @@ function ApprovalsPage() {
         await loanAccountsApi.reject(row.accountNo, { actionDate: today() });
         toast.success(`Rejected ${row.client}'s ${row.product} loan.`);
       }
-      setActionedIds((s) => new Set(s).add(row.loanId));
+      // Re-fetch rather than just filtering the row out locally, so every
+      // reader of these keys (this page's queue/history tabs, and the
+      // sidebar's "My queue" badge) reflects the real post-action state —
+      // not just this one component's optimism.
+      const refreshes: Promise<unknown>[] = [
+        refreshBackendData("loans:approvals", () => loanReportsApi.approvals({ limit: 500 })),
+      ];
+      if (action === "approve") {
+        refreshes.push(
+          refreshBackendData("loans:approvals-history", () =>
+            loanReportsApi.applications({ stage: "approved", limit: 200 }),
+          ),
+        );
+      }
+      await Promise.all(refreshes);
       setConfirm(null);
     } catch (err) {
       toast.error(apiErrorMessage(err));
