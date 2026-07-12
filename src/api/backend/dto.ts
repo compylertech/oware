@@ -368,6 +368,15 @@ export type ApprovalRowDto = {
   daysWaiting?: number;
 };
 
+/** GET /loan-accounts/reports/approvals response. */
+export type ApprovalsReportDto = {
+  count?: number;
+  totalAmount?: number;
+  limit?: number;
+  offset?: number;
+  approvals?: ApprovalRowDto[];
+};
+
 export type DisbursementRowDto = {
   loanId: number;
   accountNo?: string;

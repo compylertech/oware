@@ -16,7 +16,7 @@ const TABS: Tab[] = [
   // below) rather than a fixture here, so no fake count flashes before it.
   { label: "Applications", to: "/loans/applications" },
   { label: "Active Loans", to: "/loans/active" },
-  { label: "Approvals", to: "/loans/approvals", badge: 9 },
+  { label: "Approvals", to: "/loans/approvals" },
   { label: "Disbursements", to: "/loans/disbursements", badge: 5 },
   { label: "Repayments", to: "/loans/repayments" },
   { label: "Arrears & PAR", to: "/loans/arrears", badge: 92 },
@@ -41,9 +41,14 @@ export function LoansShell({ children }: { children: ReactNode }) {
   const { data: activeReport } = useBackendData("loans:active:", () =>
     loanReportsApi.active({ limit: 500 }),
   );
+  // Same cache key as the Approvals page's queue fetch.
+  const { data: approvalsReport } = useBackendData("loans:approvals", () =>
+    loanReportsApi.approvals({ limit: 500 }),
+  );
   const liveBadges: Record<string, number | undefined> = {
     "/loans/applications": applicationsTotal ?? undefined,
     "/loans/active": activeReport?.loans.length,
+    "/loans/approvals": approvalsReport?.rows.length,
   };
 
   // Exact match for tab activation

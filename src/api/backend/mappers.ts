@@ -16,7 +16,6 @@ import type {
 import type {
   ActiveLoanRowDto,
   ApplicationRowDto,
-  ApprovalRowDto,
   ArrearsRowDto,
   ClientDto,
   DisbursementRowDto,
@@ -153,20 +152,6 @@ export function mapApplication(dto: ApplicationRowDto): LoanApplication {
     product: dto.productName ?? "",
     amount: dto.amount ?? 0,
     stage: appStageFrom(dto.statusId, dto.statusName),
-    officer: dto.officerName || "—",
-    submitted: fmtDay(dto.submittedDate),
-    avatar: avatarFor(client || String(dto.loanId)),
-  };
-}
-
-export function mapApproval(dto: ApprovalRowDto): LoanApplication {
-  const client = dto.clientName ?? "";
-  return {
-    id: dto.accountNo ?? String(dto.loanId ?? ""),
-    client,
-    product: dto.loanProductName ?? "",
-    amount: dto.amount ?? 0,
-    stage: "Under Review",
     officer: dto.officerName || "—",
     submitted: fmtDay(dto.submittedDate),
     avatar: avatarFor(client || String(dto.loanId)),

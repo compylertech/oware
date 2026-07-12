@@ -14,14 +14,45 @@ import type {
   ActiveLoansReportDto,
   ApplicationsReportDto,
   ApprovalRowDto,
+  ApprovalsReportDto,
   ArrearsRowDto,
   DisbursementRowDto,
   OverviewDto,
 } from "./dto";
 import { request, withMock } from "./http";
-import { mapActiveLoan, mapApplication, mapApproval, mapArrears, mapDisbursement } from "./mappers";
+import { mapActiveLoan, mapApplication, mapArrears, mapDisbursement } from "./mappers";
 
 export type PipelineStage = { count: number; amount: number };
+
+export type ApprovalRow = {
+  loanId: number;
+  accountNo: string;
+  client: string;
+  product: string;
+  amount: number;
+  submittedDate: string;
+  officer: string;
+  daysWaiting: number;
+};
+
+function mapApprovalRow(dto: ApprovalRowDto): ApprovalRow {
+  return {
+    loanId: dto.loanId,
+    accountNo: dto.accountNo ?? String(dto.loanId),
+    client: dto.clientName ?? "—",
+    product: dto.loanProductName ?? "—",
+    amount: dto.amount ?? 0,
+    submittedDate: dto.submittedDate ?? "",
+    officer: dto.officerName || "—",
+    daysWaiting: dto.daysWaiting ?? 0,
+  };
+}
+
+export type ApprovalsReport = {
+  count: number;
+  totalAmount: number;
+  rows: ApprovalRow[];
+};
 
 export type ActiveLoansReport = {
   totalOutstanding: number;
@@ -176,15 +207,40 @@ export const loanReportsApi = {
     );
   },
 
-  approvals(): Promise<LoanApplication[]> {
+  /** Loans awaiting approval. Fetches one larger batch (default limit=500)
+   * rather than trusting a "total" field for true offset paging — other
+   * report endpoints here (active) turned out to mirror the page size
+   * instead of a grand total, so pagination is done client-side to be safe. */
+  approvals(params: { limit?: number; offset?: number } = {}): Promise<ApprovalsReport> {
+    const { limit = 500, offset = 0 } = params;
     return withMock(
       async () => {
-        const dto = await request<{ approvals?: ApprovalRowDto[] }>(
-          "/loan-accounts/reports/approvals",
-        );
-        return (dto.approvals ?? []).map(mapApproval);
+        const dto = await request<ApprovalsReportDto>("/loan-accounts/reports/approvals", {
+          query: { limit, offset },
+        });
+        return {
+          count: dto.count ?? 0,
+          totalAmount: dto.totalAmount ?? 0,
+          rows: (dto.approvals ?? []).map(mapApprovalRow),
+        };
       },
-      () => APPLICATIONS.filter((a) => a.stage === "Under Review" || a.stage === "Submitted"),
+      () => {
+        const rows = APPLICATIONS.filter(
+          (a) => a.stage === "Under Review" || a.stage === "Submitted",
+        ).map(
+          (a): ApprovalRow => ({
+            loanId: 0,
+            accountNo: a.id,
+            client: a.client,
+            product: a.product,
+            amount: a.amount,
+            submittedDate: a.submitted,
+            officer: a.officer,
+            daysWaiting: 0,
+          }),
+        );
+        return { count: rows.length, totalAmount: rows.reduce((s, r) => s + r.amount, 0), rows };
+      },
     );
   },
 
