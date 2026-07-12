@@ -16,11 +16,11 @@ const TABS: Tab[] = [
   // below) rather than a fixture here, so no fake count flashes before it.
   { label: "Applications", to: "/loans/applications" },
   { label: "Active Loans", to: "/loans/active" },
+  { label: "Approvals", to: "/loans/approvals", badge: 9 },
   { label: "Disbursements", to: "/loans/disbursements", badge: 5 },
   { label: "Repayments", to: "/loans/repayments" },
   { label: "Arrears & PAR", to: "/loans/arrears", badge: 92 },
   { label: "Loan Products", to: "/loans/products" },
-  { label: "Approvals", to: "/loans/approvals", badge: 9 },
   { label: "Collateral & Guarantors", to: "/loans/collateral" },
 ];
 
