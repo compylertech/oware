@@ -21,6 +21,7 @@ import {
   Button,
   DateRangeFilter,
   EmptyRow,
+  PAGE_SIZE_OPTIONS,
   Pill,
   Table,
   TableCard,
@@ -200,7 +201,6 @@ function LayerTag({ label, tone = "teal" }: { label: string; tone?: "teal" | "na
 // ---------- Page ----------
 
 const PAGE_SIZE = 10;
-const NOTICES_PAGE_SIZE_OPTIONS = [5, 10, 25, 50, 75, 100];
 
 function AccountLookupPage() {
   const [query, setQuery] = useState("");
@@ -878,7 +878,7 @@ function AccountLookupPage() {
               itemLabel: "notices",
               onPageChange: setNoticesPage,
               pageSize: noticesPageSize,
-              pageSizeOptions: NOTICES_PAGE_SIZE_OPTIONS,
+              pageSizeOptions: PAGE_SIZE_OPTIONS,
               onPageSizeChange: (size) => {
                 setNoticesPageSize(size);
                 setNoticesPage(1);

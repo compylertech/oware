@@ -21,5 +21,6 @@ export {
   Td,
   EmptyRow,
   DataTable,
+  PAGE_SIZE_OPTIONS,
 } from "./DataTable";
 export type { Column, TablePaginationProps, TableToolbarProps } from "./DataTable";

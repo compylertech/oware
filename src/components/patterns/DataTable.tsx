@@ -10,6 +10,9 @@ import { FONTS, tokens } from "@/lib/tokens";
 
 type Align = "left" | "center" | "right";
 
+/** Standard "rows per page" choices for TablePagination's pageSizeOptions. */
+export const PAGE_SIZE_OPTIONS = [5, 10, 25, 50, 75, 100];
+
 export type TablePaginationProps = {
   page: number;
   totalPages: number;

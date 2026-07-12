@@ -9,7 +9,7 @@ import { fmtGHS, loanProductsApi, loanReportsApi, type AppStage } from "@/api/lo
 import { useClients } from "@/api/clients";
 import { referencesApi } from "@/api/backend";
 import { useBackendData } from "@/api/useBackendData";
-import { Button, TableCard } from "@/components/patterns";
+import { Button, TableCard, PAGE_SIZE_OPTIONS } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/loans/applications")({
   component: ApplicationsPage,
@@ -29,10 +29,11 @@ function ApplicationsPage() {
   const [productFilter, setProductFilter] = useState<string | null>(null);
 
   // officeCode/loanOfficerId are real server-side filters (confirmed live);
-  // product has no such param, so it's applied client-side below instead.
+  // product has no such param, so it's applied client-side below instead —
+  // fetch a batch generous enough to cover any page-size selection.
   const { data } = useBackendData(`loans:applications:${officeFilter ?? ""}:${officerFilter ?? ""}`, () =>
     loanReportsApi.applications({
-      limit: 200,
+      limit: 500,
       officeCode: officeFilter ?? undefined,
       loanOfficerId: officerFilter ?? undefined,
     }),
@@ -64,9 +65,10 @@ function ApplicationsPage() {
 
   const [view, setView] = useState<"board" | "table">("table");
   const [page, setPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil(APPLICATIONS.length / PAGE_SIZE));
+  const [pageSize, setPageSize] = useState(10);
+  const totalPages = Math.max(1, Math.ceil(APPLICATIONS.length / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const pageRows = APPLICATIONS.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageRows = APPLICATIONS.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <LoansShell>
@@ -222,6 +224,12 @@ function ApplicationsPage() {
             totalItems: APPLICATIONS.length,
             itemLabel: "applications",
             onPageChange: setPage,
+            pageSize,
+            pageSizeOptions: PAGE_SIZE_OPTIONS,
+            onPageSizeChange: (size) => {
+              setPageSize(size);
+              setPage(1);
+            },
           }}
         >
           <Table>
@@ -261,5 +269,3 @@ function ApplicationsPage() {
     </LoansShell>
   );
 }
-
-const PAGE_SIZE = 10;

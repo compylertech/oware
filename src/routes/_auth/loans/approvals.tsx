@@ -8,14 +8,13 @@ import { StagePill } from "@/components/loans/StagePill";
 import { fmtGHS, loanAccountsApi, loanReportsApi, type ApprovalRow } from "@/api/loans";
 import { apiErrorMessage } from "@/api/backend";
 import { useBackendData, refreshBackendData } from "@/api/useBackendData";
-import { Tabs, Button, TableCard, EmptyRow } from "@/components/patterns";
+import { Tabs, Button, TableCard, EmptyRow, PAGE_SIZE_OPTIONS } from "@/components/patterns";
 import { Check, X } from "lucide-react";
 
 export const Route = createFileRoute("/_auth/loans/approvals")({
   component: ApprovalsPage,
 });
 
-const PAGE_SIZE = 10;
 const today = () => new Date().toISOString().slice(0, 10);
 
 function ApprovalsPage() {
@@ -26,22 +25,24 @@ function ApprovalsPage() {
   const [busy, setBusy] = useState(false);
 
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { data } = useBackendData("loans:approvals", () => loanReportsApi.approvals({ limit: 500 }));
   const rows = data?.rows ?? [];
-  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const pageRows = rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageRows = rows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const [historyPage, setHistoryPage] = useState(1);
+  const [historyPageSize, setHistoryPageSize] = useState(10);
   const { data: historyData } = useBackendData("loans:approvals-history", () =>
-    loanReportsApi.applications({ stage: "approved", limit: 200 }),
+    loanReportsApi.applications({ stage: "approved", limit: 500 }),
   );
   const history = historyData ?? [];
-  const historyTotalPages = Math.max(1, Math.ceil(history.length / PAGE_SIZE));
+  const historyTotalPages = Math.max(1, Math.ceil(history.length / historyPageSize));
   const historyCurrentPage = Math.min(historyPage, historyTotalPages);
   const historyPageRows = history.slice(
-    (historyCurrentPage - 1) * PAGE_SIZE,
-    historyCurrentPage * PAGE_SIZE,
+    (historyCurrentPage - 1) * historyPageSize,
+    historyCurrentPage * historyPageSize,
   );
 
   async function onConfirmAction() {
@@ -66,7 +67,7 @@ function ApprovalsPage() {
       if (action === "approve") {
         refreshes.push(
           refreshBackendData("loans:approvals-history", () =>
-            loanReportsApi.applications({ stage: "approved", limit: 200 }),
+            loanReportsApi.applications({ stage: "approved", limit: 500 }),
           ),
         );
       }
@@ -101,6 +102,12 @@ function ApprovalsPage() {
             totalItems: rows.length,
             itemLabel: "approvals",
             onPageChange: setPage,
+            pageSize,
+            pageSizeOptions: PAGE_SIZE_OPTIONS,
+            onPageSizeChange: (size) => {
+              setPageSize(size);
+              setPage(1);
+            },
           }}
         >
           <Table>
@@ -165,6 +172,12 @@ function ApprovalsPage() {
             totalItems: history.length,
             itemLabel: "approved",
             onPageChange: setHistoryPage,
+            pageSize: historyPageSize,
+            pageSizeOptions: PAGE_SIZE_OPTIONS,
+            onPageSizeChange: (size) => {
+              setHistoryPageSize(size);
+              setHistoryPage(1);
+            },
           }}
         >
           <Table>

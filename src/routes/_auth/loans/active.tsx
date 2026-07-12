@@ -8,7 +8,7 @@ import { FilterDropdown, type FilterOption } from "@/components/loans/FilterDrop
 import { fmtGHS, loanReportsApi } from "@/api/loans";
 import { referencesApi } from "@/api/backend";
 import { useBackendData } from "@/api/useBackendData";
-import { TableCard } from "@/components/patterns";
+import { TableCard, PAGE_SIZE_OPTIONS } from "@/components/patterns";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_auth/loans/active")({
@@ -17,6 +17,7 @@ export const Route = createFileRoute("/_auth/loans/active")({
 
 function ActiveLoansPage() {
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [productFilter, setProductFilter] = useState<string | null>(null);
 
   // The loan product filter is validated against the LOAN_PRODUCT reference
@@ -50,9 +51,9 @@ function ActiveLoansPage() {
     );
   }
 
-  const totalPages = Math.max(1, Math.ceil(data.loans.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(data.loans.length / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const pageRows = data.loans.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageRows = data.loans.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <LoansShell>
@@ -93,6 +94,12 @@ function ActiveLoansPage() {
           totalItems: data.loans.length,
           itemLabel: "loans",
           onPageChange: setPage,
+          pageSize,
+          pageSizeOptions: PAGE_SIZE_OPTIONS,
+          onPageSizeChange: (size) => {
+            setPageSize(size);
+            setPage(1);
+          },
         }}
       >
         <Table>
@@ -175,5 +182,3 @@ function ActiveLoansSkeleton() {
     </>
   );
 }
-
-const PAGE_SIZE = 10;
