@@ -5,13 +5,17 @@ import { LOAN } from "@/lib/tokens";
 import { fontDisplay } from "./ui";
 import { NewApplicationDrawer } from "./NewApplicationDrawer";
 import { Button } from "@/components/patterns";
+import { loanReportsApi } from "@/api/loans";
+import { useBackendData } from "@/api/useBackendData";
 
 type Tab = { label: string; to: string; badge?: number };
 
 const TABS: Tab[] = [
   { label: "Overview", to: "/loans" },
-  { label: "Applications", to: "/loans/applications", badge: 36 },
-  { label: "Active Loans", to: "/loans/active", badge: 1300 },
+  // Applications/Active Loans badges come from live data (see liveBadges
+  // below) rather than a fixture here, so no fake count flashes before it.
+  { label: "Applications", to: "/loans/applications" },
+  { label: "Active Loans", to: "/loans/active" },
   { label: "Disbursements", to: "/loans/disbursements", badge: 5 },
   { label: "Repayments", to: "/loans/repayments" },
   { label: "Arrears & PAR", to: "/loans/arrears", badge: 92 },
@@ -26,6 +30,15 @@ const fmtBadge = (n: number) =>
 export function LoansShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [openWizard, setOpenWizard] = useState(false);
+
+  const { data: applicationsTotal } = useBackendData("loans:applications-total", () =>
+    loanReportsApi.applicationsTotal(),
+  );
+  const { data: activeReport } = useBackendData("loans:active", () => loanReportsApi.active());
+  const liveBadges: Record<string, number | undefined> = {
+    "/loans/applications": applicationsTotal ?? undefined,
+    "/loans/active": activeReport?.totalLoans,
+  };
 
   // Exact match for tab activation
   const activeTab =
@@ -48,6 +61,7 @@ export function LoansShell({ children }: { children: ReactNode }) {
         <div className="flex items-end gap-1" style={{ height: 50 }}>
           {TABS.map((t) => {
             const active = t === activeTab;
+            const badge = liveBadges[t.to] ?? t.badge;
             return (
               <Link
                 key={t.to}
@@ -64,7 +78,7 @@ export function LoansShell({ children }: { children: ReactNode }) {
                 }}
               >
                 {t.label}
-                {t.badge != null && (
+                {badge != null && (
                   <span
                     style={{
                       background: active ? LOAN.navy : "#EEF1F6",
@@ -75,7 +89,7 @@ export function LoansShell({ children }: { children: ReactNode }) {
                       fontWeight: 100,
                     }}
                   >
-                    {fmtBadge(t.badge)}
+                    {fmtBadge(badge)}
                   </span>
                 )}
               </Link>

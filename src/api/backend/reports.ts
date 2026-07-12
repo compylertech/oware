@@ -12,7 +12,7 @@ import { ACTIVE_LOANS, APPLICATIONS } from "../loans/data";
 import type {
   ActiveLoanRowDto,
   ActiveLoansReportDto,
-  ApplicationRowDto,
+  ApplicationsReportDto,
   ApprovalRowDto,
   ArrearsRowDto,
   DisbursementRowDto,
@@ -141,13 +141,26 @@ export const loanReportsApi = {
     const { stage, fromDate, toDate, limit = 20, offset = 0, officeCode, loanOfficerId } = params;
     return withMock(
       async () => {
-        const dto = await request<{ applications?: ApplicationRowDto[] }>(
-          "/loan-accounts/reports/applications",
-          { query: { stage, fromDate, toDate, limit, offset, officeCode, loanOfficerId } },
-        );
+        const dto = await request<ApplicationsReportDto>("/loan-accounts/reports/applications", {
+          query: { stage, fromDate, toDate, limit, offset, officeCode, loanOfficerId },
+        });
         return (dto.applications ?? []).map(mapApplication);
       },
       () => APPLICATIONS,
+    );
+  },
+
+  /** Total application count across the whole (unfiltered) result set —
+   * cheap to fetch with limit=1 since we only need `total`, not the rows. */
+  applicationsTotal(): Promise<number> {
+    return withMock(
+      async () => {
+        const dto = await request<ApplicationsReportDto>("/loan-accounts/reports/applications", {
+          query: { limit: 1, offset: 0 },
+        });
+        return dto.total ?? 0;
+      },
+      () => APPLICATIONS.length,
     );
   },
 

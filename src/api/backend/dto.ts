@@ -321,6 +321,17 @@ export type ApplicationRowDto = {
   officerName?: string | null;
 };
 
+/** GET /loan-accounts/reports/applications response — `total` is the count
+ * across the whole filtered result set, not just this page's `applications`. */
+export type ApplicationsReportDto = {
+  stage?: string;
+  statusId?: number;
+  total?: number;
+  limit?: number;
+  offset?: number;
+  applications?: ApplicationRowDto[];
+};
+
 export type ActiveLoanRowDto = {
   loanId: number;
   accountNo?: string;

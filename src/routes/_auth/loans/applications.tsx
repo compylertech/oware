@@ -160,7 +160,7 @@ function ApplicationsPage() {
     ? allApplications.filter((a) => a.product === productFilter)
     : allApplications;
 
-  const [view, setView] = useState<"board" | "table">("board");
+  const [view, setView] = useState<"board" | "table">("table");
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(APPLICATIONS.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
