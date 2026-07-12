@@ -9,6 +9,7 @@ import { fmtGHS, loanReportsApi, type AppStage } from "@/api/loans";
 import { referencesApi } from "@/api/backend";
 import { useBackendData } from "@/api/useBackendData";
 import { Button, TableCard, PAGE_SIZE_OPTIONS } from "@/components/patterns";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_auth/loans/applications")({
   component: ApplicationsPage,
@@ -134,7 +135,9 @@ function ApplicationsPage() {
         </div>
       </div>
 
-      {view === "board" ? (
+      {!data ? (
+        <ApplicationsSkeleton />
+      ) : view === "board" ? (
         <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(6,1fr)" }}>
           {COLUMNS.map((col) => {
             const items = APPLICATIONS.filter((a) => a.stage === col.stage);
@@ -273,5 +276,19 @@ function ApplicationsPage() {
         </TableCard>
       )}
     </LoansShell>
+  );
+}
+
+/** Rough placeholder for the table content while the first-ever load is in
+ * flight — never a fixture standing in for real rows. */
+function ApplicationsSkeleton() {
+  return (
+    <TableCard title="Loan Applications">
+      <div className="p-4 space-y-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-10 w-full" />
+        ))}
+      </div>
+    </TableCard>
   );
 }

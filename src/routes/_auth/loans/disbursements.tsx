@@ -1,19 +1,22 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type KeyboardEvent } from "react";
+import { toast } from "sonner";
+import { Send } from "lucide-react";
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
 import { Ava, Table, Td, Th, THead, Tr, Chip, fontMono } from "@/components/loans/ui";
 import { FilterDropdown, type FilterOption } from "@/components/loans/FilterDropdown";
-import { fmtGHS, loanReportsApi } from "@/api/loans";
-import { referencesApi } from "@/api/backend";
-import { useBackendData } from "@/api/useBackendData";
-import { Tabs, TableCard, DateRangeFilter, PAGE_SIZE_OPTIONS } from "@/components/patterns";
+import { fmtGHS, loanAccountsApi, loanReportsApi, type DisbursementQueueRow } from "@/api/loans";
+import { apiErrorMessage, referencesApi } from "@/api/backend";
+import { useBackendData, refreshBackendData } from "@/api/useBackendData";
+import { Tabs, TableCard, DateRangeFilter, PAGE_SIZE_OPTIONS, Button } from "@/components/patterns";
 
 export const Route = createFileRoute("/_auth/loans/disbursements")({
   component: DisbursementsPage,
 });
 
 const PAGE_SIZE_DEFAULT = 10;
+const today = () => new Date().toISOString().slice(0, 10);
 
 function DisbursementsPage() {
   const navigate = useNavigate();
@@ -47,19 +50,50 @@ function DisbursementsPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE_DEFAULT);
 
-  const { data } = useBackendData(
-    `loans:disbursements:${tab}:${officeFilter ?? ""}:${productFilter ?? ""}:${dateFrom}:${dateTo}`,
-    () =>
-      loanReportsApi.disbursements({
-        status: tab,
-        full,
-        officeCode: officeFilter ?? undefined,
-        loanProductCode: full ? (productFilter ?? undefined) : undefined,
-        fromDate: full ? dateFrom || undefined : undefined,
-        toDate: full ? dateTo || undefined : undefined,
-        limit: 500,
-      }),
-  );
+  function cacheKeyFor(status: "pending" | "disbursed") {
+    return `loans:disbursements:${status}:${officeFilter ?? ""}:${productFilter ?? ""}:${dateFrom}:${dateTo}`;
+  }
+
+  function fetchDisbursements(status: "pending" | "disbursed") {
+    return loanReportsApi.disbursements({
+      status,
+      full,
+      officeCode: officeFilter ?? undefined,
+      loanProductCode: full ? (productFilter ?? undefined) : undefined,
+      fromDate: full ? dateFrom || undefined : undefined,
+      toDate: full ? dateTo || undefined : undefined,
+      limit: 500,
+    });
+  }
+
+  const { data } = useBackendData(cacheKeyFor(tab), () => fetchDisbursements(tab));
+
+  const [confirmRow, setConfirmRow] = useState<DisbursementQueueRow | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function onConfirmDisburse() {
+    if (!confirmRow) return;
+    setBusy(true);
+    try {
+      await loanAccountsApi.disburse(confirmRow.accountNo, { actionDate: today() });
+      toast.success(`Disbursed ${confirmRow.client}'s ${confirmRow.product} loan.`);
+      // Refresh both this exact filter combination and the sidebar badge's
+      // default (unfiltered) key, so the row disappears from Pending and the
+      // badge count drops without a full reload.
+      await Promise.all([
+        refreshBackendData(cacheKeyFor("pending"), () => fetchDisbursements("pending")),
+        refreshBackendData(cacheKeyFor("disbursed"), () => fetchDisbursements("disbursed")),
+        refreshBackendData("loans:disbursements:pending:::", () =>
+          loanReportsApi.disbursements({ status: "pending", limit: 500 }),
+        ),
+      ]);
+      setConfirmRow(null);
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const pendingRows = data?.pending ?? [];
   const disbursedRows = data?.recentlyDisbursed ?? [];
@@ -83,7 +117,7 @@ function DisbursementsPage() {
     navigate({ to: "/loans/$loanId", params: { loanId: accountNo } });
   }
 
-  function onRowKeyDown(event: KeyboardEvent<HTMLTableRowElement>, accountNo: string) {
+  function onRowKeyDown(event: KeyboardEvent<HTMLElement>, accountNo: string) {
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
     openLoanByAccountNo(accountNo);
@@ -207,21 +241,21 @@ function DisbursementsPage() {
               <Th>Office</Th>
               <Th>Approved</Th>
               <Th>Waiting</Th>
+              <Th style={{ textAlign: "right" }}>Actions</Th>
             </THead>
             <tbody>
               {pendingPageRows.map((r) => (
-                <Tr
-                  key={r.accountNo}
-                  hover
-                  role="link"
-                  tabIndex={0}
-                  aria-label={`View ${r.accountNo} details`}
-                  onClick={() => openLoanByAccountNo(r.accountNo)}
-                  onKeyDown={(event) => onRowKeyDown(event, r.accountNo)}
-                  style={{ cursor: "pointer" }}
-                >
+                <Tr key={r.accountNo} hover>
                   <Td>
-                    <div className="flex items-center gap-2">
+                    <div
+                      className="flex items-center gap-2"
+                      role="link"
+                      tabIndex={0}
+                      aria-label={`View ${r.accountNo} details`}
+                      onClick={() => openLoanByAccountNo(r.accountNo)}
+                      onKeyDown={(event) => onRowKeyDown(event, r.accountNo)}
+                      style={{ cursor: "pointer" }}
+                    >
                       <Ava name={r.client} bg={LOAN.blue} size={28} />
                       <span style={{ fontWeight: 300 }}>{r.client}</span>
                     </div>
@@ -234,6 +268,18 @@ function DisbursementsPage() {
                   <Td style={{ color: LOAN.muted }}>{r.officeName}</Td>
                   <Td style={{ color: LOAN.muted }}>{r.approvedDate || "—"}</Td>
                   <Td style={{ color: LOAN.muted }}>{r.daysSinceApproval} day{r.daysSinceApproval === 1 ? "" : "s"}</Td>
+                  <Td>
+                    <div className="flex justify-end">
+                      <Button
+                        variant="primaryOutline"
+                        size="sm"
+                        icon={<Send size={14} />}
+                        onClick={() => setConfirmRow(r)}
+                      >
+                        Disburse
+                      </Button>
+                    </div>
+                  </Td>
                 </Tr>
               ))}
             </tbody>
@@ -299,6 +345,62 @@ function DisbursementsPage() {
           </Table>
         </TableCard>
       )}
+
+      {confirmRow && (
+        <ConfirmDisburseDialog
+          row={confirmRow}
+          busy={busy}
+          onCancel={() => setConfirmRow(null)}
+          onConfirm={() => void onConfirmDisburse()}
+        />
+      )}
     </LoansShell>
+  );
+}
+
+function ConfirmDisburseDialog({
+  row,
+  busy,
+  onCancel,
+  onConfirm,
+}: {
+  row: DisbursementQueueRow;
+  busy: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div
+      onClick={busy ? undefined : onCancel}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(13,27,62,0.45)",
+        zIndex: 60,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 16,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ background: "#fff", borderRadius: 14, padding: 24, width: 400, maxWidth: "100%" }}
+      >
+        <div style={{ fontSize: 17, fontWeight: 200, color: LOAN.ink }}>Disburse loan?</div>
+        <p style={{ fontSize: 13, color: LOAN.muted, marginTop: 8, lineHeight: 1.5 }}>
+          This will disburse {row.client}&rsquo;s {row.product} loan ({fmtGHS(row.amount)}, account{" "}
+          {row.accountNo}).
+        </p>
+        <div className="flex justify-end gap-2" style={{ marginTop: 20 }}>
+          <Button variant="outline" onClick={onCancel} disabled={busy}>
+            Cancel
+          </Button>
+          <Button variant="primary" icon={<Send size={14} />} onClick={onConfirm} disabled={busy}>
+            {busy ? "Disbursing…" : "Disburse"}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

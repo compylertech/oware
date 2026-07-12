@@ -9,6 +9,7 @@ import { fmtGHS, loanAccountsApi, loanReportsApi, type ApprovalRow } from "@/api
 import { apiErrorMessage } from "@/api/backend";
 import { useBackendData, refreshBackendData } from "@/api/useBackendData";
 import { Tabs, Button, TableCard, EmptyRow, PAGE_SIZE_OPTIONS } from "@/components/patterns";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Check, X } from "lucide-react";
 
 export const Route = createFileRoute("/_auth/loans/approvals")({
@@ -93,6 +94,9 @@ function ApprovalsPage() {
       />
 
       {tab === "my" ? (
+        !data ? (
+          <TableSkeleton title="Approval Queue" />
+        ) : (
         <TableCard
           title="Approval Queue"
           resultLabel={`${rows.length} approvals`}
@@ -162,6 +166,9 @@ function ApprovalsPage() {
             </tbody>
           </Table>
         </TableCard>
+        )
+      ) : !historyData ? (
+        <TableSkeleton title="Approval History" />
       ) : (
         <TableCard
           title="Approval History"
@@ -277,5 +284,19 @@ function ConfirmDialog({
         </div>
       </div>
     </div>
+  );
+}
+
+/** Rough placeholder for a table's content while the first-ever load is in
+ * flight — never a fixture standing in for real rows. */
+function TableSkeleton({ title }: { title: string }) {
+  return (
+    <TableCard title={title}>
+      <div className="p-4 space-y-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-10 w-full" />
+        ))}
+      </div>
+    </TableCard>
   );
 }
