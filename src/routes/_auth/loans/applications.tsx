@@ -6,7 +6,6 @@ import { Ava, Table, THead, Tr, Th, Td, fontDisplay, fontMono } from "@/componen
 import { StagePill } from "@/components/loans/StagePill";
 import { FilterDropdown, type FilterOption } from "@/components/loans/FilterDropdown";
 import { fmtGHS, loanReportsApi, type AppStage } from "@/api/loans";
-import { useClients } from "@/api/clients";
 import { referencesApi } from "@/api/backend";
 import { useBackendData } from "@/api/useBackendData";
 import { Button, TableCard, PAGE_SIZE_OPTIONS } from "@/components/patterns";
@@ -24,22 +23,30 @@ const COLUMNS: { stage: AppStage; dot: string }[] = [
   { stage: "Rejected", dot: LOAN.red },
 ];
 
+// The only stage values the endpoint accepts (confirmed live — anything
+// else, e.g. "rejected", 400s: "expected one of: submitted, approved,
+// active, or omit for all").
+const STAGE_OPTIONS: FilterOption[] = [
+  { key: "submitted", label: "Submitted" },
+  { key: "approved", label: "Approved" },
+  { key: "active", label: "Active" },
+];
+
 function ApplicationsPage() {
   const [officeFilter, setOfficeFilter] = useState<string | null>(null);
-  const [officerFilter, setOfficerFilter] = useState<string | null>(null);
+  const [stageFilter, setStageFilter] = useState<string | null>(null);
   const [productFilter, setProductFilter] = useState<string | null>(null);
 
-  // officeCode/loanOfficerId/loanProductCode are all real server-side
-  // filters (confirmed live, including all three combined at once) — the
-  // fetch itself changes per filter combination, not a client-side re-slice
-  // of one big batch.
+  // officeCode/stage/loanProductCode are all real server-side filters
+  // (confirmed live, including all combined at once) — the fetch itself
+  // changes per filter combination, not a client-side re-slice of one batch.
   const { data } = useBackendData(
-    `loans:applications:${officeFilter ?? ""}:${officerFilter ?? ""}:${productFilter ?? ""}`,
+    `loans:applications:${officeFilter ?? ""}:${stageFilter ?? ""}:${productFilter ?? ""}`,
     () =>
       loanReportsApi.applications({
         limit: 500,
         officeCode: officeFilter ?? undefined,
-        loanOfficerId: officerFilter ?? undefined,
+        stage: stageFilter ?? undefined,
         loanProductCode: productFilter ?? undefined,
       }),
   );
@@ -61,14 +68,6 @@ function ApplicationsPage() {
       .list("OFFICE")
       .then((opts) => setOfficeOptions(opts.map((o) => ({ key: o.code, label: o.name }))));
   }, []);
-
-  // Loan officers are modeled as staff clients — filter the app-wide client
-  // registry (already hydrated) instead of a dedicated (currently 500ing)
-  // staff/officer endpoint, per direction.
-  const clients = useClients();
-  const officerOptions: FilterOption[] = clients
-    .filter((c) => c.isStaff && c.fineractClientId != null)
-    .map((c) => ({ key: String(c.fineractClientId), label: c.name }));
 
   const [view, setView] = useState<"board" | "table">("table");
   const [page, setPage] = useState(1);
@@ -100,11 +99,11 @@ function ApplicationsPage() {
             }}
           />
           <FilterDropdown
-            placeholder="Officer"
-            options={officerOptions}
-            selectedKey={officerFilter}
+            placeholder="All Statuses"
+            options={STAGE_OPTIONS}
+            selectedKey={stageFilter}
             onSelect={(key) => {
-              setOfficerFilter(key);
+              setStageFilter(key);
               setPage(1);
             }}
           />
