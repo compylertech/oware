@@ -17,7 +17,7 @@ const TABS: Tab[] = [
   { label: "Applications", to: "/loans/applications" },
   { label: "Active Loans", to: "/loans/active" },
   { label: "Approvals", to: "/loans/approvals" },
-  { label: "Disbursements", to: "/loans/disbursements", badge: 5 },
+  { label: "Disbursements", to: "/loans/disbursements" },
   { label: "Repayments", to: "/loans/repayments" },
   { label: "Arrears & PAR", to: "/loans/arrears", badge: 92 },
   { label: "Loan Products", to: "/loans/products" },
@@ -45,10 +45,16 @@ export function LoansShell({ children }: { children: ReactNode }) {
   const { data: approvalsReport } = useBackendData("loans:approvals", () =>
     loanReportsApi.approvals({ limit: 500 }),
   );
+  // Same cache key as the Disbursements page's default (Pending tab, no
+  // office/product/date filters) fetch.
+  const { data: disbursementsReport } = useBackendData("loans:disbursements:pending:::", () =>
+    loanReportsApi.disbursements({ status: "pending", limit: 500 }),
+  );
   const liveBadges: Record<string, number | undefined> = {
     "/loans/applications": applicationsTotal ?? undefined,
     "/loans/active": activeReport?.loans.length,
     "/loans/approvals": approvalsReport?.rows.length,
+    "/loans/disbursements": disbursementsReport?.pending.length,
   };
 
   // Exact match for tab activation

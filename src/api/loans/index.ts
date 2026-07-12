@@ -13,6 +13,9 @@ export type {
   ActiveLoansReport,
   ApprovalsReport,
   ApprovalRow,
+  DisbursementsReport,
+  DisbursementQueueRow,
+  DisbursementCompletedRow,
 } from "../backend/reports";
 export type { LoanAccountCreate } from "../backend/accounts";
 

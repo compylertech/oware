@@ -377,8 +377,12 @@ export type ApprovalsReportDto = {
   approvals?: ApprovalRowDto[];
 };
 
-export type DisbursementRowDto = {
-  loanId: number;
+// GET /loan-accounts/reports/disbursements — shapes verified against
+// /v3/api-docs/all's LoanDisbursementsResponseDto/DisbursementQueueItemDto/
+// DisbursementCompletedItemDto. `loanId` is only populated when full=false;
+// full=true (Fineract's richer report) omits it, exposing accountNo only.
+export type DisbursementQueueItemDto = {
+  loanId?: number | null;
   accountNo?: string;
   clientName?: string;
   productName?: string;
@@ -386,6 +390,45 @@ export type DisbursementRowDto = {
   approvedDate?: string;
   officerName?: string | null;
   daysSinceApproval?: number;
+  officeName?: string | null;
+  currency?: string | null;
+  fundName?: string | null;
+  loanPurpose?: string | null;
+  termFrequency?: number | null;
+  termFrequencyPeriod?: string | null;
+  annualNominalInterestRate?: number | null;
+  expectedDisbursalDate?: string | null;
+  daysToDisbursal?: number | null;
+};
+
+export type DisbursementCompletedItemDto = {
+  loanId?: number | null;
+  accountNo?: string;
+  clientName?: string;
+  productName?: string;
+  disbursedAmount?: number;
+  disbursedDate?: string;
+  daysAgo?: number | null;
+  officeName?: string | null;
+  currency?: string | null;
+  fundName?: string | null;
+  annualNominalInterestRate?: number | null;
+  totalLoanAmount?: number | null;
+  totalRepaidAmount?: number | null;
+};
+
+export type DisbursementsReportDto = {
+  full?: boolean;
+  limit?: number;
+  offset?: number;
+  awaitingCount?: number;
+  awaitingAmount?: number;
+  todayCount?: number;
+  todayAmount?: number;
+  thisWeekCount?: number;
+  thisWeekAmount?: number;
+  pending?: DisbursementQueueItemDto[];
+  recentlyDisbursed?: DisbursementCompletedItemDto[];
 };
 
 export type ArrearsRowDto = {

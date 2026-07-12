@@ -13,14 +13,7 @@ import type {
   LoanApplication,
   LoanProduct,
 } from "../loans/types";
-import type {
-  ActiveLoanRowDto,
-  ApplicationRowDto,
-  ArrearsRowDto,
-  ClientDto,
-  DisbursementRowDto,
-  ProductDto,
-} from "./dto";
+import type { ActiveLoanRowDto, ApplicationRowDto, ArrearsRowDto, ClientDto, ProductDto } from "./dto";
 
 function fmtDate(iso?: string | null): string {
   if (!iso) return "—";
@@ -160,20 +153,6 @@ export function mapApplication(dto: ApplicationRowDto): LoanApplication {
     stage: appStageFrom(dto.statusId, dto.statusName),
     officer: dto.officerName || "—",
     submitted: fmtDay(dto.submittedDate),
-    avatar: avatarFor(client || String(dto.loanId)),
-  };
-}
-
-export function mapDisbursement(dto: DisbursementRowDto): LoanApplication {
-  const client = dto.clientName ?? "";
-  return {
-    id: dto.accountNo ?? String(dto.loanId ?? ""),
-    client,
-    product: dto.productName ?? "",
-    amount: dto.approvedAmount ?? 0,
-    stage: "To Disburse",
-    officer: dto.officerName || "—",
-    submitted: fmtDay(dto.approvedDate),
     avatar: avatarFor(client || String(dto.loanId)),
   };
 }

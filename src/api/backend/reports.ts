@@ -16,11 +16,13 @@ import type {
   ApprovalRowDto,
   ApprovalsReportDto,
   ArrearsRowDto,
-  DisbursementRowDto,
+  DisbursementCompletedItemDto,
+  DisbursementQueueItemDto,
+  DisbursementsReportDto,
   OverviewDto,
 } from "./dto";
 import { request, withMock } from "./http";
-import { mapActiveLoan, mapApplication, mapArrears, mapDisbursement } from "./mappers";
+import { mapActiveLoan, mapApplication, mapArrears } from "./mappers";
 
 export type PipelineStage = { count: number; amount: number };
 
@@ -52,6 +54,71 @@ export type ApprovalsReport = {
   count: number;
   totalAmount: number;
   rows: ApprovalRow[];
+};
+
+export type DisbursementQueueRow = {
+  loanId: number | null;
+  accountNo: string;
+  client: string;
+  product: string;
+  amount: number;
+  approvedDate: string;
+  officer: string;
+  daysSinceApproval: number;
+  officeName: string;
+  expectedDisbursalDate: string;
+  daysToDisbursal: number | null;
+};
+
+function mapDisbursementQueueRow(dto: DisbursementQueueItemDto): DisbursementQueueRow {
+  return {
+    loanId: dto.loanId ?? null,
+    accountNo: dto.accountNo ?? String(dto.loanId ?? ""),
+    client: dto.clientName ?? "—",
+    product: dto.productName ?? "—",
+    amount: dto.approvedAmount ?? 0,
+    approvedDate: dto.approvedDate ?? "",
+    officer: dto.officerName || "—",
+    daysSinceApproval: dto.daysSinceApproval ?? 0,
+    officeName: dto.officeName ?? "—",
+    expectedDisbursalDate: dto.expectedDisbursalDate ?? "",
+    daysToDisbursal: dto.daysToDisbursal ?? null,
+  };
+}
+
+export type DisbursementCompletedRow = {
+  loanId: number | null;
+  accountNo: string;
+  client: string;
+  product: string;
+  amount: number;
+  disbursedDate: string;
+  daysAgo: number | null;
+  officeName: string;
+};
+
+function mapDisbursementCompletedRow(dto: DisbursementCompletedItemDto): DisbursementCompletedRow {
+  return {
+    loanId: dto.loanId ?? null,
+    accountNo: dto.accountNo ?? String(dto.loanId ?? ""),
+    client: dto.clientName ?? "—",
+    product: dto.productName ?? "—",
+    amount: dto.disbursedAmount ?? 0,
+    disbursedDate: dto.disbursedDate ?? "",
+    daysAgo: dto.daysAgo ?? null,
+    officeName: dto.officeName ?? "—",
+  };
+}
+
+export type DisbursementsReport = {
+  awaitingCount: number;
+  awaitingAmount: number;
+  todayCount: number;
+  todayAmount: number;
+  thisWeekCount: number;
+  thisWeekAmount: number;
+  pending: DisbursementQueueRow[];
+  recentlyDisbursed: DisbursementCompletedRow[];
 };
 
 export type ActiveLoansReport = {
@@ -257,16 +324,82 @@ export const loanReportsApi = {
     );
   },
 
-  disbursements(status?: "pending" | "disbursed"): Promise<LoanApplication[]> {
+  /** By default (full unset/false) reads this catalog's own lightweight
+   * report — status/limit/offset only, no officeCode needed. Set full:true
+   * to use Fineract's own richer reports instead, which is what unlocks
+   * officeCode/loanProductCode/fromDate/toDate — but officeCode is
+   * effectively required then (confirmed live: full=true with no officeCode
+   * silently returns zero rows rather than erroring). fromDate/toDate only
+   * affect status="disbursed" ("Active Loans by Disbursal Period" needs a
+   * range); they're silently ignored for status="pending".
+   */
+  disbursements(
+    params: {
+      status?: "pending" | "disbursed";
+      full?: boolean;
+      officeCode?: string;
+      loanProductCode?: string;
+      fromDate?: string;
+      toDate?: string;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ): Promise<DisbursementsReport> {
+    const {
+      status,
+      full,
+      officeCode,
+      loanProductCode,
+      fromDate,
+      toDate,
+      limit = 20,
+      offset = 0,
+    } = params;
     return withMock(
       async () => {
-        const dto = await request<{ pending?: DisbursementRowDto[] }>(
-          "/loan-accounts/reports/disbursements",
-          { query: { status } },
-        );
-        return (dto.pending ?? []).map(mapDisbursement);
+        const dto = await request<DisbursementsReportDto>("/loan-accounts/reports/disbursements", {
+          query: { status, full, officeCode, loanProductCode, fromDate, toDate, limit, offset },
+        });
+        return {
+          awaitingCount: dto.awaitingCount ?? 0,
+          awaitingAmount: dto.awaitingAmount ?? 0,
+          todayCount: dto.todayCount ?? 0,
+          todayAmount: dto.todayAmount ?? 0,
+          thisWeekCount: dto.thisWeekCount ?? 0,
+          thisWeekAmount: dto.thisWeekAmount ?? 0,
+          pending: (dto.pending ?? []).map(mapDisbursementQueueRow),
+          recentlyDisbursed: (dto.recentlyDisbursed ?? []).map(mapDisbursementCompletedRow),
+        };
       },
-      () => APPLICATIONS.filter((a) => a.stage === "To Disburse" || a.stage === "Approved"),
+      () => {
+        const pendingSeed = APPLICATIONS.filter(
+          (a) => a.stage === "To Disburse" || a.stage === "Approved",
+        );
+        return {
+          awaitingCount: pendingSeed.length,
+          awaitingAmount: pendingSeed.reduce((s, a) => s + a.amount, 0),
+          todayCount: 0,
+          todayAmount: 0,
+          thisWeekCount: 0,
+          thisWeekAmount: 0,
+          pending: pendingSeed.map(
+            (a): DisbursementQueueRow => ({
+              loanId: null,
+              accountNo: a.id,
+              client: a.client,
+              product: a.product,
+              amount: a.amount,
+              approvedDate: a.submitted,
+              officer: a.officer,
+              daysSinceApproval: 0,
+              officeName: "—",
+              expectedDisbursalDate: "",
+              daysToDisbursal: null,
+            }),
+          ),
+          recentlyDisbursed: [],
+        };
+      },
     );
   },
 
