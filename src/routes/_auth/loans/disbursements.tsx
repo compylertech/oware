@@ -9,7 +9,15 @@ import { FilterDropdown, type FilterOption } from "@/components/loans/FilterDrop
 import { fmtGHS, loanAccountsApi, loanReportsApi, type DisbursementQueueRow } from "@/api/loans";
 import { apiErrorMessage, referencesApi } from "@/api/backend";
 import { useBackendData, refreshBackendData } from "@/api/useBackendData";
-import { Tabs, TableCard, DateRangeFilter, PAGE_SIZE_OPTIONS, Button } from "@/components/patterns";
+import {
+  Tabs,
+  TableCard,
+  DateRangeFilter,
+  PAGE_SIZE_OPTIONS,
+  Button,
+  EmptyRow,
+} from "@/components/patterns";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_auth/loans/disbursements")({
   component: DisbursementsPage,
@@ -17,6 +25,18 @@ export const Route = createFileRoute("/_auth/loans/disbursements")({
 
 const PAGE_SIZE_DEFAULT = 10;
 const today = () => new Date().toISOString().slice(0, 10);
+
+// The backend only computes daysAgo/daysSinceApproval under full=true for
+// some fields; fall back to a client-side calc from the date so the column
+// doesn't just read "—" whenever full=false (the common, no-office-filter
+// case).
+function daysSince(dateStr: string): number | null {
+  if (!dateStr) return null;
+  const then = new Date(dateStr);
+  if (Number.isNaN(then.getTime())) return null;
+  const diffMs = Date.now() - then.getTime();
+  return Math.max(0, Math.round(diffMs / 86_400_000));
+}
 
 function DisbursementsPage() {
   const navigate = useNavigate();
@@ -50,13 +70,15 @@ function DisbursementsPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE_DEFAULT);
 
-  function cacheKeyFor(status: "pending" | "disbursed") {
-    return `loans:disbursements:${status}:${officeFilter ?? ""}:${productFilter ?? ""}:${dateFrom}:${dateTo}`;
-  }
+  // Omitting `status` returns pending AND recentlyDisbursed (plus every
+  // stat) together in one call — confirmed live, including combined with
+  // full=true/officeCode/date range. Fetching per-tab with status: tab was
+  // the bug behind the Pending/Disbursed badges: whichever tab wasn't
+  // active came back with an empty array since that fetch never asked for it.
+  const cacheKey = `loans:disbursements:${officeFilter ?? ""}:${productFilter ?? ""}:${dateFrom}:${dateTo}`;
 
-  function fetchDisbursements(status: "pending" | "disbursed") {
+  function fetchDisbursements() {
     return loanReportsApi.disbursements({
-      status,
       full,
       officeCode: officeFilter ?? undefined,
       loanProductCode: full ? (productFilter ?? undefined) : undefined,
@@ -66,7 +88,7 @@ function DisbursementsPage() {
     });
   }
 
-  const { data } = useBackendData(cacheKeyFor(tab), () => fetchDisbursements(tab));
+  const { data } = useBackendData(cacheKey, fetchDisbursements);
 
   const [confirmRow, setConfirmRow] = useState<DisbursementQueueRow | null>(null);
   const [busy, setBusy] = useState(false);
@@ -81,11 +103,8 @@ function DisbursementsPage() {
       // default (unfiltered) key, so the row disappears from Pending and the
       // badge count drops without a full reload.
       await Promise.all([
-        refreshBackendData(cacheKeyFor("pending"), () => fetchDisbursements("pending")),
-        refreshBackendData(cacheKeyFor("disbursed"), () => fetchDisbursements("disbursed")),
-        refreshBackendData("loans:disbursements:pending:::", () =>
-          loanReportsApi.disbursements({ status: "pending", limit: 500 }),
-        ),
+        refreshBackendData(cacheKey, fetchDisbursements),
+        refreshBackendData("loans:disbursements:::", () => loanReportsApi.disbursements({ limit: 500 })),
       ]);
       setConfirmRow(null);
     } catch (err) {
@@ -134,7 +153,7 @@ function DisbursementsPage() {
         }}
         items={[
           { key: "pending", label: "Pending", badge: data ? pendingRows.length : undefined },
-          { key: "disbursed", label: "Disbursed" },
+          { key: "disbursed", label: "Disbursed", badge: data ? disbursedRows.length : undefined },
         ]}
       />
 
@@ -244,44 +263,53 @@ function DisbursementsPage() {
               <Th style={{ textAlign: "right" }}>Actions</Th>
             </THead>
             <tbody>
-              {pendingPageRows.map((r) => (
-                <Tr key={r.accountNo} hover>
-                  <Td>
-                    <div
-                      className="flex items-center gap-2"
-                      role="link"
-                      tabIndex={0}
-                      aria-label={`View ${r.accountNo} details`}
-                      onClick={() => openLoanByAccountNo(r.accountNo)}
-                      onKeyDown={(event) => onRowKeyDown(event, r.accountNo)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <Ava name={r.client} bg={LOAN.blue} size={28} />
-                      <span style={{ fontWeight: 300 }}>{r.client}</span>
-                    </div>
-                  </Td>
-                  <Td>
-                    <span style={{ ...fontMono, color: LOAN.navy }}>{r.accountNo}</span>
-                  </Td>
-                  <Td>{r.product}</Td>
-                  <Td style={{ fontWeight: 100 }}>{fmtGHS(r.amount)}</Td>
-                  <Td style={{ color: LOAN.muted }}>{r.officeName}</Td>
-                  <Td style={{ color: LOAN.muted }}>{r.approvedDate || "—"}</Td>
-                  <Td style={{ color: LOAN.muted }}>{r.daysSinceApproval} day{r.daysSinceApproval === 1 ? "" : "s"}</Td>
-                  <Td>
-                    <div className="flex justify-end">
-                      <Button
-                        variant="primaryOutline"
-                        size="sm"
-                        icon={<Send size={14} />}
-                        onClick={() => setConfirmRow(r)}
-                      >
-                        Disburse
-                      </Button>
-                    </div>
-                  </Td>
-                </Tr>
-              ))}
+              {pendingPageRows.length === 0 ? (
+                <EmptyRow colSpan={8}>No loans awaiting disbursal.</EmptyRow>
+              ) : (
+                pendingPageRows.map((r) => {
+                  const waiting = r.daysSinceApproval || daysSince(r.approvedDate) || 0;
+                  return (
+                    <Tr key={r.accountNo} hover>
+                      <Td>
+                        <div
+                          className="flex items-center gap-2"
+                          role="link"
+                          tabIndex={0}
+                          aria-label={`View ${r.accountNo} details`}
+                          onClick={() => openLoanByAccountNo(r.accountNo)}
+                          onKeyDown={(event) => onRowKeyDown(event, r.accountNo)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <Ava name={r.client} bg={LOAN.blue} size={28} />
+                          <span style={{ fontWeight: 300 }}>{r.client}</span>
+                        </div>
+                      </Td>
+                      <Td>
+                        <span style={{ ...fontMono, color: LOAN.navy }}>{r.accountNo}</span>
+                      </Td>
+                      <Td>{r.product}</Td>
+                      <Td style={{ fontWeight: 100 }}>{fmtGHS(r.amount)}</Td>
+                      <Td style={{ color: LOAN.muted }}>{r.officeName}</Td>
+                      <Td style={{ color: LOAN.muted }}>{r.approvedDate || "—"}</Td>
+                      <Td style={{ color: LOAN.muted }}>
+                        {waiting} day{waiting === 1 ? "" : "s"}
+                      </Td>
+                      <Td>
+                        <div className="flex justify-end">
+                          <Button
+                            variant="primaryOutline"
+                            size="sm"
+                            icon={<Send size={14} />}
+                            onClick={() => setConfirmRow(r)}
+                          >
+                            Disburse
+                          </Button>
+                        </div>
+                      </Td>
+                    </Tr>
+                  );
+                })
+              )}
             </tbody>
           </Table>
         </TableCard>
@@ -314,33 +342,40 @@ function DisbursementsPage() {
               <Th>Days Ago</Th>
             </THead>
             <tbody>
-              {disbursedPageRows.map((r) => (
-                <Tr
-                  key={r.accountNo}
-                  hover
-                  role="link"
-                  tabIndex={0}
-                  aria-label={`View ${r.accountNo} details`}
-                  onClick={() => openLoanByAccountNo(r.accountNo)}
-                  onKeyDown={(event) => onRowKeyDown(event, r.accountNo)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <Td>
-                    <div className="flex items-center gap-2">
-                      <Ava name={r.client} bg={LOAN.green} size={28} />
-                      <span style={{ fontWeight: 300 }}>{r.client}</span>
-                    </div>
-                  </Td>
-                  <Td>
-                    <span style={{ ...fontMono, color: LOAN.navy }}>{r.accountNo}</span>
-                  </Td>
-                  <Td>{r.product}</Td>
-                  <Td style={{ fontWeight: 100 }}>{fmtGHS(r.amount)}</Td>
-                  <Td style={{ color: LOAN.muted }}>{r.officeName}</Td>
-                  <Td style={{ color: LOAN.muted }}>{r.disbursedDate || "—"}</Td>
-                  <Td style={{ color: LOAN.muted }}>{r.daysAgo ?? "—"}</Td>
-                </Tr>
-              ))}
+              {disbursedPageRows.length === 0 ? (
+                <EmptyRow colSpan={7}>No disbursements found.</EmptyRow>
+              ) : (
+                disbursedPageRows.map((r) => {
+                  const daysAgo = r.daysAgo ?? daysSince(r.disbursedDate);
+                  return (
+                    <Tr
+                      key={r.accountNo}
+                      hover
+                      role="link"
+                      tabIndex={0}
+                      aria-label={`View ${r.accountNo} details`}
+                      onClick={() => openLoanByAccountNo(r.accountNo)}
+                      onKeyDown={(event) => onRowKeyDown(event, r.accountNo)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <Td>
+                        <div className="flex items-center gap-2">
+                          <Ava name={r.client} bg={LOAN.green} size={28} />
+                          <span style={{ fontWeight: 300 }}>{r.client}</span>
+                        </div>
+                      </Td>
+                      <Td>
+                        <span style={{ ...fontMono, color: LOAN.navy }}>{r.accountNo}</span>
+                      </Td>
+                      <Td>{r.product}</Td>
+                      <Td style={{ fontWeight: 100 }}>{fmtGHS(r.amount)}</Td>
+                      <Td style={{ color: LOAN.muted }}>{r.officeName}</Td>
+                      <Td style={{ color: LOAN.muted }}>{r.disbursedDate || "—"}</Td>
+                      <Td style={{ color: LOAN.muted }}>{daysAgo ?? "—"}</Td>
+                    </Tr>
+                  );
+                })
+              )}
             </tbody>
           </Table>
         </TableCard>

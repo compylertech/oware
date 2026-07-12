@@ -45,10 +45,10 @@ export function LoansShell({ children }: { children: ReactNode }) {
   const { data: approvalsReport } = useBackendData("loans:approvals", () =>
     loanReportsApi.approvals({ limit: 500 }),
   );
-  // Same cache key as the Disbursements page's default (Pending tab, no
-  // office/product/date filters) fetch.
-  const { data: disbursementsReport } = useBackendData("loans:disbursements:pending:::", () =>
-    loanReportsApi.disbursements({ status: "pending", limit: 500 }),
+  // Same cache key as the Disbursements page's default (no office/product/
+  // date filters) fetch.
+  const { data: disbursementsReport } = useBackendData("loans:disbursements:::", () =>
+    loanReportsApi.disbursements({ limit: 500 }),
   );
   const liveBadges: Record<string, number | undefined> = {
     "/loans/applications": applicationsTotal ?? undefined,
