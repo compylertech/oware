@@ -97,10 +97,22 @@ export const loanReportsApi = {
     );
   },
 
-  active(): Promise<ActiveLoansReport> {
+  active(
+    params: {
+      /** Validated against the LOAN_PRODUCT reference category's own `code`
+       * (e.g. "HOUSING_LOAN") — NOT the loan product catalogue's short code
+       * ("HLN"); an unrecognized code 400s. */
+      loanProductCode?: string;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ): Promise<ActiveLoansReport> {
+    const { loanProductCode, limit = 20, offset = 0 } = params;
     return withMock(
       async () => {
-        const dto = await request<ActiveLoansReportDto>("/loan-accounts/reports/active");
+        const dto = await request<ActiveLoansReportDto>("/loan-accounts/reports/active", {
+          query: { loanProductCode, limit, offset },
+        });
         return {
           totalOutstanding: dto.totalOutstanding ?? 0,
           onTimeCount: dto.onTimeCount ?? 0,

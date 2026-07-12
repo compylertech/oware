@@ -34,10 +34,16 @@ export function LoansShell({ children }: { children: ReactNode }) {
   const { data: applicationsTotal } = useBackendData("loans:applications-total", () =>
     loanReportsApi.applicationsTotal(),
   );
-  const { data: activeReport } = useBackendData("loans:active", () => loanReportsApi.active());
+  // Same cache key + params as the unfiltered call on the Active Loans page
+  // itself, so visiting it doesn't refetch. `totalLoans` mirrors however many
+  // rows come back (not a true grand total — see active.tsx), so a large
+  // limit is needed here too or this badge would cap at the default page size.
+  const { data: activeReport } = useBackendData("loans:active:", () =>
+    loanReportsApi.active({ limit: 500 }),
+  );
   const liveBadges: Record<string, number | undefined> = {
     "/loans/applications": applicationsTotal ?? undefined,
-    "/loans/active": activeReport?.totalLoans,
+    "/loans/active": activeReport?.loans.length,
   };
 
   // Exact match for tab activation
