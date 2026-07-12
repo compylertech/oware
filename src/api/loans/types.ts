@@ -1,4 +1,10 @@
-export type AppStage = "Submitted" | "Under Review" | "Approved" | "To Disburse" | "Rejected";
+export type AppStage =
+  | "Submitted"
+  | "Under Review"
+  | "Approved"
+  | "To Disburse"
+  | "Active"
+  | "Rejected";
 
 export type LoanApplication = {
   id: string;

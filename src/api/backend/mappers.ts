@@ -122,15 +122,20 @@ export function mapLoanProduct(dto: ProductDto, index = 0): LoanProduct {
 // ── Loan applications ─────────────────────────────────────────────────────────
 
 function appStageFrom(statusId?: number, statusName?: string): AppStage {
-  // Fineract loan status ids take precedence when present.
+  // Fineract loan status ids take precedence when present. Confirmed live:
+  // 300 comes back with statusName "Active" for fully-disbursed loans — not
+  // "awaiting disbursal" — so it's its own stage, distinct from 200
+  // ("Approved", not yet disbursed). 800 is unconfirmed against a live
+  // instance; left under "To Disburse" until seen for real.
   switch (statusId) {
     case 100:
       return "Submitted";
     case 200:
       return "Approved";
-    case 300:
-    case 800: // approved, awaiting disbursal / active
+    case 800: // approved, awaiting disbursal (unconfirmed)
       return "To Disburse";
+    case 300: // disbursed and active
+      return "Active";
     case 400: // withdrawn
     case 500: // rejected
       return "Rejected";
@@ -139,6 +144,7 @@ function appStageFrom(statusId?: number, statusName?: string): AppStage {
   if (s.includes("reject") || s.includes("withdraw") || s.includes("declin")) return "Rejected";
   if (s.includes("pending")) return "Submitted"; // "…and pending approval"
   if (s.includes("disburse")) return "To Disburse";
+  if (s.includes("active")) return "Active";
   if (s.includes("approv")) return "Approved";
   if (s.includes("review")) return "Under Review";
   return "Submitted";

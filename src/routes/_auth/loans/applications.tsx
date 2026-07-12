@@ -20,6 +20,7 @@ const COLUMNS: { stage: AppStage; dot: string }[] = [
   { stage: "Under Review", dot: LOAN.blue },
   { stage: "Approved", dot: LOAN.amber },
   { stage: "To Disburse", dot: LOAN.green },
+  { stage: "Active", dot: LOAN.purple },
   { stage: "Rejected", dot: LOAN.red },
 ];
 
@@ -135,7 +136,7 @@ function ApplicationsPage() {
       </div>
 
       {view === "board" ? (
-        <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(5,1fr)" }}>
+        <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(6,1fr)" }}>
           {COLUMNS.map((col) => {
             const items = APPLICATIONS.filter((a) => a.stage === col.stage);
             return (

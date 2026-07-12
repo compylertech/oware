@@ -9,7 +9,6 @@ type Status =
   | "Closed"
   | "Verified"
   | "Pending valuation"
-  | "Active"
   | "Verification"
   | "1–30"
   | "31–60"
