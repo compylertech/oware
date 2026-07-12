@@ -2,12 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
-import { Ava, Table, THead, Tr, Th, Td, Chip, MiniBar, fontMono } from "@/components/loans/ui";
+import { Panel, Ava, Table, THead, Tr, Th, Td, Chip, MiniBar, fontMono } from "@/components/loans/ui";
 import { StagePill } from "@/components/loans/StagePill";
 import { fmtGHS, loanReportsApi } from "@/api/loans";
 import { useBackendData } from "@/api/useBackendData";
 import { ChevronDown } from "lucide-react";
 import { Button, TableCard } from "@/components/patterns";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_auth/loans/active")({
   component: ActiveLoansPage,
@@ -15,8 +16,19 @@ export const Route = createFileRoute("/_auth/loans/active")({
 
 function ActiveLoansPage() {
   const { data } = useBackendData("loans:active", () => loanReportsApi.active());
-  const ACTIVE_LOANS = data?.loans ?? [];
   const [page, setPage] = useState(1);
+
+  // Cached data (even stale) shows instantly with no skeleton — only a
+  // genuinely first-ever load has nothing to show yet.
+  if (!data) {
+    return (
+      <LoansShell>
+        <ActiveLoansSkeleton />
+      </LoansShell>
+    );
+  }
+
+  const ACTIVE_LOANS = data.loans;
   const totalPages = Math.max(1, Math.ceil(ACTIVE_LOANS.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pageRows = ACTIVE_LOANS.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
@@ -24,20 +36,20 @@ function ActiveLoansPage() {
   return (
     <LoansShell>
       <div className="grid gap-3 mb-4" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
-        <Chip label="Total Outstanding" value={fmtGHS(data?.totalOutstanding ?? 0)} />
+        <Chip label="Total Outstanding" value={fmtGHS(data.totalOutstanding)} />
         <Chip
           label="On-time"
-          value={(data?.onTimeCount ?? 0).toLocaleString("en-GH")}
+          value={data.onTimeCount.toLocaleString("en-GH")}
           meta="loans"
           metaColor={LOAN.green}
         />
         <Chip
           label="In Arrears"
-          value={(data?.inArrearsCount ?? 0).toLocaleString("en-GH")}
+          value={data.inArrearsCount.toLocaleString("en-GH")}
           meta="loans"
           metaColor={LOAN.red}
         />
-        <Chip label="Avg. Loan Size" value={fmtGHS(Math.round(data?.avgLoanSize ?? 0))} />
+        <Chip label="Avg. Loan Size" value={fmtGHS(Math.round(data.avgLoanSize))} />
       </div>
 
       <TableCard
@@ -114,6 +126,32 @@ function ActiveLoansPage() {
         </Table>
       </TableCard>
     </LoansShell>
+  );
+}
+
+/** Rough placeholder for Active Loans while the first-ever load is in
+ * flight — never a fixture standing in for real numbers. */
+function ActiveLoansSkeleton() {
+  return (
+    <>
+      <div className="grid gap-3 mb-4" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Panel key={i} style={{ padding: 16 }}>
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-6 w-20 mt-3" />
+            <Skeleton className="h-3 w-14 mt-2" />
+          </Panel>
+        ))}
+      </div>
+
+      <TableCard title="Active Loans">
+        <div className="p-4 space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-10 w-full" />
+          ))}
+        </div>
+      </TableCard>
+    </>
   );
 }
 
