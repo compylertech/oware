@@ -13,7 +13,7 @@ import type {
   LoanApplication,
   LoanProduct,
 } from "../loans/types";
-import type { ActiveLoanRowDto, ApplicationRowDto, ArrearsRowDto, ClientDto, ProductDto } from "./dto";
+import type { ActiveLoanRowDto, ApplicationRowDto, ClientDto, ProductDto } from "./dto";
 
 function fmtDate(iso?: string | null): string {
   if (!iso) return "—";
@@ -177,21 +177,6 @@ export function mapActiveLoan(dto: ActiveLoanRowDto): ActiveLoan {
     nextDue: dto.nextDueDate ? fmtDay(dto.nextDueDate) : (dto.statusLabel ?? "—"),
     repaid: Math.round(dto.repaidPercent ?? 0),
     status: activeStatus(dto),
-    avatar: avatarFor(client || String(dto.loanId)),
-  };
-}
-
-export function mapArrears(dto: ArrearsRowDto): ActiveLoan {
-  const client = dto.clientName ?? "";
-  const outstanding = (dto.principalOutstanding ?? 0) + (dto.interestOutstanding ?? 0);
-  return {
-    id: dto.accountNo ?? String(dto.loanId ?? ""),
-    client,
-    product: dto.productName ?? "",
-    outstanding,
-    nextDue: dto.daysOverdue != null ? `${dto.daysOverdue}d overdue` : "—",
-    repaid: 0,
-    status: "In Arrears",
     avatar: avatarFor(client || String(dto.loanId)),
   };
 }

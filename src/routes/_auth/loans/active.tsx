@@ -2,7 +2,18 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
-import { Panel, Ava, Table, THead, Tr, Th, Td, Chip, MiniBar, fontMono } from "@/components/loans/ui";
+import {
+  Panel,
+  Ava,
+  Table,
+  THead,
+  Tr,
+  Th,
+  Td,
+  Chip,
+  MiniBar,
+  fontMono,
+} from "@/components/loans/ui";
 import { StagePill } from "@/components/loans/StagePill";
 import { FilterDropdown, type FilterOption } from "@/components/loans/FilterDropdown";
 import { fmtGHS, loanReportsApi } from "@/api/loans";
@@ -119,6 +130,7 @@ function ActiveLoansPage() {
                   <Link
                     to="/loans/$loanId"
                     params={{ loanId: l.id }}
+                    search={{ from: "active" }}
                     style={{ ...fontMono, fontWeight: 100, color: LOAN.navy }}
                   >
                     {l.id}

@@ -10,7 +10,6 @@
 // when you need a submittable productCode.
 
 import type { LoanProduct } from "../loans/types";
-import { PRODUCTS as LOAN_PRODUCT_SEED } from "../loans/data";
 import type { Page, ProductDto } from "./dto";
 import { request, withMock } from "./http";
 import { mapLoanProduct } from "./mappers";
@@ -28,14 +27,14 @@ export const loanProductsApi = {
         });
         return content(res).map(mapLoanProduct);
       },
-      () => LOAN_PRODUCT_SEED,
+      () => [],
     );
   },
 
   get(code: string): Promise<LoanProduct | undefined> {
     return withMock(
       async () => mapLoanProduct(await request<ProductDto>(`/loan-products/${code}`)),
-      () => LOAN_PRODUCT_SEED.find((p) => p.name === code),
+      () => undefined,
     );
   },
 
@@ -44,6 +43,22 @@ export const loanProductsApi = {
     return withMock(
       () => request<void>("/loan-products/sync", { method: "POST" }),
       () => undefined,
+    );
+  },
+
+  /** Raw products (numeric principal/repayment economics + the submittable
+   * `code`) — the loan application wizard needs these to prefill Loan
+   * Details/Repayment defaults, which the presentational `list()` above
+   * throws away in favor of display strings. */
+  listRaw(): Promise<ProductDto[]> {
+    return withMock(
+      async () => {
+        const res = await request<Page<ProductDto> | ProductDto[]>("/loan-products", {
+          query: { page: 0, size: 50 },
+        });
+        return content(res);
+      },
+      () => [],
     );
   },
 };

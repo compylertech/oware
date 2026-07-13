@@ -36,6 +36,13 @@ export type { ClientSearch } from "./clients";
 export { referencesApi } from "./references";
 export { transactionOperationsApi } from "./transactionOperations";
 export type { TransactionOperationSearch } from "./transactionOperations";
+export { dashboardApi } from "./dashboard";
+export type {
+  ClientGrowthPoint,
+  TransactionVolumePoint,
+  DashboardSummary,
+  DashboardDateRange,
+} from "./dashboard";
 
 import { clientsApi } from "./clients";
 import { loanProductsApi, savingsProductsApi, shareProductsApi } from "./products";
@@ -43,6 +50,7 @@ import { loanAccountsApi, savingsAccountsApi, shareAccountsApi } from "./account
 import { loanReportsApi } from "./reports";
 import { referencesApi } from "./references";
 import { transactionOperationsApi } from "./transactionOperations";
+import { dashboardApi } from "./dashboard";
 
 /** Aggregate API surface grouped by domain. */
 export const api = {
@@ -56,6 +64,7 @@ export const api = {
   loanReports: loanReportsApi,
   references: referencesApi,
   transactionOperations: transactionOperationsApi,
+  dashboard: dashboardApi,
 };
 
 export type Api = typeof api;

@@ -31,6 +31,7 @@ import { Route as AuthLoansDisbursementsRouteImport } from './routes/_auth/loans
 import { Route as AuthLoansCollateralRouteImport } from './routes/_auth/loans/collateral'
 import { Route as AuthLoansArrearsRouteImport } from './routes/_auth/loans/arrears'
 import { Route as AuthLoansApprovalsRouteImport } from './routes/_auth/loans/approvals'
+import { Route as AuthLoansApplyRouteImport } from './routes/_auth/loans/apply'
 import { Route as AuthLoansApplicationsRouteImport } from './routes/_auth/loans/applications'
 import { Route as AuthLoansActiveRouteImport } from './routes/_auth/loans/active'
 import { Route as AuthLoansLoanIdRouteImport } from './routes/_auth/loans/$loanId'
@@ -151,6 +152,11 @@ const AuthLoansApprovalsRoute = AuthLoansApprovalsRouteImport.update({
   path: '/loans/approvals',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthLoansApplyRoute = AuthLoansApplyRouteImport.update({
+  id: '/loans/apply',
+  path: '/loans/apply',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthLoansApplicationsRoute = AuthLoansApplicationsRouteImport.update({
   id: '/loans/applications',
   path: '/loans/applications',
@@ -223,6 +229,7 @@ export interface FileRoutesByFullPath {
   '/loans/$loanId': typeof AuthLoansLoanIdRoute
   '/loans/active': typeof AuthLoansActiveRoute
   '/loans/applications': typeof AuthLoansApplicationsRoute
+  '/loans/apply': typeof AuthLoansApplyRoute
   '/loans/approvals': typeof AuthLoansApprovalsRoute
   '/loans/arrears': typeof AuthLoansArrearsRoute
   '/loans/collateral': typeof AuthLoansCollateralRoute
@@ -256,6 +263,7 @@ export interface FileRoutesByTo {
   '/loans/$loanId': typeof AuthLoansLoanIdRoute
   '/loans/active': typeof AuthLoansActiveRoute
   '/loans/applications': typeof AuthLoansApplicationsRoute
+  '/loans/apply': typeof AuthLoansApplyRoute
   '/loans/approvals': typeof AuthLoansApprovalsRoute
   '/loans/arrears': typeof AuthLoansArrearsRoute
   '/loans/collateral': typeof AuthLoansCollateralRoute
@@ -291,6 +299,7 @@ export interface FileRoutesById {
   '/_auth/loans/$loanId': typeof AuthLoansLoanIdRoute
   '/_auth/loans/active': typeof AuthLoansActiveRoute
   '/_auth/loans/applications': typeof AuthLoansApplicationsRoute
+  '/_auth/loans/apply': typeof AuthLoansApplyRoute
   '/_auth/loans/approvals': typeof AuthLoansApprovalsRoute
   '/_auth/loans/arrears': typeof AuthLoansArrearsRoute
   '/_auth/loans/collateral': typeof AuthLoansCollateralRoute
@@ -326,6 +335,7 @@ export interface FileRouteTypes {
     | '/loans/$loanId'
     | '/loans/active'
     | '/loans/applications'
+    | '/loans/apply'
     | '/loans/approvals'
     | '/loans/arrears'
     | '/loans/collateral'
@@ -359,6 +369,7 @@ export interface FileRouteTypes {
     | '/loans/$loanId'
     | '/loans/active'
     | '/loans/applications'
+    | '/loans/apply'
     | '/loans/approvals'
     | '/loans/arrears'
     | '/loans/collateral'
@@ -393,6 +404,7 @@ export interface FileRouteTypes {
     | '/_auth/loans/$loanId'
     | '/_auth/loans/active'
     | '/_auth/loans/applications'
+    | '/_auth/loans/apply'
     | '/_auth/loans/approvals'
     | '/_auth/loans/arrears'
     | '/_auth/loans/collateral'
@@ -574,6 +586,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoansApprovalsRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/loans/apply': {
+      id: '/_auth/loans/apply'
+      path: '/loans/apply'
+      fullPath: '/loans/apply'
+      preLoaderRoute: typeof AuthLoansApplyRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/loans/applications': {
       id: '/_auth/loans/applications'
       path: '/loans/applications'
@@ -660,6 +679,7 @@ interface AuthRouteChildren {
   AuthLoansLoanIdRoute: typeof AuthLoansLoanIdRoute
   AuthLoansActiveRoute: typeof AuthLoansActiveRoute
   AuthLoansApplicationsRoute: typeof AuthLoansApplicationsRoute
+  AuthLoansApplyRoute: typeof AuthLoansApplyRoute
   AuthLoansApprovalsRoute: typeof AuthLoansApprovalsRoute
   AuthLoansArrearsRoute: typeof AuthLoansArrearsRoute
   AuthLoansCollateralRoute: typeof AuthLoansCollateralRoute
@@ -691,6 +711,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthLoansLoanIdRoute: AuthLoansLoanIdRoute,
   AuthLoansActiveRoute: AuthLoansActiveRoute,
   AuthLoansApplicationsRoute: AuthLoansApplicationsRoute,
+  AuthLoansApplyRoute: AuthLoansApplyRoute,
   AuthLoansApprovalsRoute: AuthLoansApprovalsRoute,
   AuthLoansArrearsRoute: AuthLoansArrearsRoute,
   AuthLoansCollateralRoute: AuthLoansCollateralRoute,

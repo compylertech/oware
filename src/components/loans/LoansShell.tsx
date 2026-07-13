@@ -1,9 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Download, Plus, Bell } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { LOAN } from "@/lib/tokens";
 import { fontDisplay } from "./ui";
-import { NewApplicationDrawer } from "./NewApplicationDrawer";
 import { Button } from "@/components/patterns";
 import { loanReportsApi } from "@/api/loans";
 import { useBackendData } from "@/api/useBackendData";
@@ -19,7 +18,7 @@ const TABS: Tab[] = [
   { label: "Approvals", to: "/loans/approvals" },
   { label: "Disbursements", to: "/loans/disbursements" },
   { label: "Repayments", to: "/loans/repayments" },
-  { label: "Arrears & PAR", to: "/loans/arrears", badge: 92 },
+  { label: "Arrears & PAR", to: "/loans/arrears" },
   { label: "Loan Products", to: "/loans/products" },
   { label: "Collateral & Guarantors", to: "/loans/collateral" },
 ];
@@ -29,7 +28,12 @@ const fmtBadge = (n: number) =>
 
 export function LoansShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const [openWizard, setOpenWizard] = useState(false);
+  // Loan detail rolls under whichever tab the user actually navigated from
+  // (Active Loans vs Disbursements), carried via the ?from= search param —
+  // not hardcoded to Active Loans.
+  const fromSearch = useRouterState({
+    select: (s) => (s.location.search as { from?: string }).from,
+  });
 
   const { data: applicationsTotal } = useBackendData("loans:applications-total", () =>
     loanReportsApi.applicationsTotal(),
@@ -50,18 +54,30 @@ export function LoansShell({ children }: { children: ReactNode }) {
   const { data: disbursementsReport } = useBackendData("loans:disbursements:::", () =>
     loanReportsApi.disbursements({ limit: 500 }),
   );
+  // Same cache key as the Arrears page's preview fetch. loansInArrears is a
+  // summary field unaffected by limit/bucket, so any call returns the real
+  // total regardless of how small a page it asks for.
+  const { data: arrearsReport } = useBackendData("loans:arrears:preview", () =>
+    loanReportsApi.arrears({ limit: 5 }),
+  );
   const liveBadges: Record<string, number | undefined> = {
     "/loans/applications": applicationsTotal ?? undefined,
     "/loans/active": activeReport?.loans.length,
     "/loans/approvals": approvalsReport?.rows.length,
     "/loans/disbursements": disbursementsReport?.pending.length,
+    "/loans/arrears": arrearsReport?.loansInArrears,
   };
 
   // Exact match for tab activation
   const activeTab =
     TABS.find((t) => t.to === pathname) ??
-    // loan detail rolls under "Active Loans"
-    (pathname.startsWith("/loans/") ? TABS.find((t) => t.to === "/loans/active") : TABS[0]) ??
+    // Loan detail rolls under wherever the user actually came from.
+    (pathname.startsWith("/loans/")
+      ? TABS.find(
+          (t) =>
+            t.to === (fromSearch === "disbursements" ? "/loans/disbursements" : "/loans/active"),
+        )
+      : TABS[0]) ??
     TABS[0];
 
   return (
@@ -153,7 +169,6 @@ export function LoansShell({ children }: { children: ReactNode }) {
             const showNewApp = ["/loans", "/loans/applications"].includes(path);
             const showReminders = path === "/loans/arrears";
             const showNewProduct = path === "/loans/products";
-            const showRegisterCollat = path === "/loans/collateral";
             return (
               <>
                 {showExport && (
@@ -162,13 +177,11 @@ export function LoansShell({ children }: { children: ReactNode }) {
                   </Button>
                 )}
                 {showNewApp && (
-                  <Button
-                    variant="success"
-                    icon={<Plus size={14} />}
-                    onClick={() => setOpenWizard(true)}
-                  >
-                    New Application
-                  </Button>
+                  <Link to="/loans/apply">
+                    <Button variant="success" icon={<Plus size={14} />}>
+                      New Application
+                    </Button>
+                  </Link>
                 )}
                 {showReminders && (
                   <Button variant="success" icon={<Bell size={14} />}>
@@ -180,11 +193,6 @@ export function LoansShell({ children }: { children: ReactNode }) {
                     New Product
                   </Button>
                 )}
-                {showRegisterCollat && (
-                  <Button variant="success" icon={<Plus size={14} />}>
-                    Register Collateral
-                  </Button>
-                )}
               </>
             );
           })()}
@@ -192,8 +200,6 @@ export function LoansShell({ children }: { children: ReactNode }) {
       </div>
 
       <div style={{ padding: "0 28px 32px" }}>{children}</div>
-
-      <NewApplicationDrawer open={openWizard} onClose={() => setOpenWizard(false)} />
     </div>
   );
 }

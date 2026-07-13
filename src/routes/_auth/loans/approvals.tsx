@@ -4,9 +4,9 @@ import { toast } from "sonner";
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
 import { Table, Td, Th, THead, Tr, fontMono } from "@/components/loans/ui";
-import { StagePill } from "@/components/loans/StagePill";
 import { fmtGHS, loanAccountsApi, loanReportsApi, type ApprovalRow } from "@/api/loans";
 import { apiErrorMessage } from "@/api/backend";
+import { StatusPill } from "@/components/common/StatusPill";
 import { useBackendData, refreshBackendData } from "@/api/useBackendData";
 import { Tabs, Button, TableCard, EmptyRow, PAGE_SIZE_OPTIONS } from "@/components/patterns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -210,7 +210,7 @@ function ApprovalsPage() {
                     </Td>
                     <Td>{a.submitted}</Td>
                     <Td>
-                      <StagePill stage={a.stage} />
+                      <StatusPill label="Approved" tone="green" />
                     </Td>
                   </Tr>
                 ))
@@ -270,7 +270,7 @@ function ConfirmDialog({
         <div style={{ fontSize: 17, fontWeight: 200, color: LOAN.ink }}>{title}</div>
         <p style={{ fontSize: 13, color: LOAN.muted, marginTop: 8, lineHeight: 1.5 }}>{body}</p>
         <div className="flex justify-end gap-2" style={{ marginTop: 20 }}>
-          <Button variant="outline" onClick={onCancel} disabled={busy}>
+          <Button variant={isReject ? "outline" : "danger"} onClick={onCancel} disabled={busy}>
             Cancel
           </Button>
           <Button

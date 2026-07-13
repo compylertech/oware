@@ -296,6 +296,196 @@ export type TransactionDto = {
   reversed?: boolean;
 };
 
+// GET /loan-accounts/{loanAccountId} — a single loan's full detail (verified
+// against a live instance). Note there's no clientName here, only clientId
+// (this service's own UUID) — cross-reference the app-wide client registry.
+export type LoanAccountDetailDto = {
+  id: string;
+  clientId?: string;
+  fineractLoanAccountId?: number;
+  fineractClientId?: number;
+  fineractProductId?: number;
+  accountNo: string;
+  externalId?: string | null;
+  productCode?: string;
+  productName?: string;
+  currencyCode?: string;
+  principal?: number;
+  approvedPrincipal?: number | null;
+  disbursedPrincipal?: number | null;
+  totalOutstanding?: number | null;
+  loanType?: string;
+  loanTermFrequency?: number;
+  loanTermFrequencyType?: string;
+  numberOfRepayments?: number;
+  repaymentEvery?: number;
+  repaymentFrequencyType?: string;
+  interestRatePerPeriod?: number;
+  interestRateFrequencyType?: string;
+  amortizationType?: string;
+  interestType?: string;
+  interestCalculationPeriodType?: string;
+  submittedOnDate?: string;
+  approvedOnDate?: string | null;
+  expectedDisbursementDate?: string | null;
+  actualDisbursementDate?: string | null;
+  closedOnDate?: string | null;
+  status?: string;
+  syncedWithFineract?: boolean;
+};
+
+// GET /loan-accounts/{loanAccountId}/repayment-schedule — verified against a
+// live instance. The first period (periodNumber: null) is Fineract's
+// disbursement-row convention, not a real installment.
+export type LoanRepaymentPeriodDto = {
+  periodNumber: number | null;
+  fromDate: string | null;
+  dueDate: string | null;
+  principalDue: number | null;
+  principalPaid: number | null;
+  principalOutstanding: number | null;
+  interestDue: number | null;
+  interestPaid: number | null;
+  interestOutstanding: number | null;
+  feeChargesDue: number | null;
+  feeChargesPaid: number | null;
+  feeChargesOutstanding: number | null;
+  penaltyChargesDue: number | null;
+  penaltyChargesPaid: number | null;
+  penaltyChargesOutstanding: number | null;
+  totalDueForPeriod: number | null;
+  totalPaidForPeriod: number | null;
+  totalOutstandingForPeriod: number | null;
+  totalOverdue: number | null;
+  completed: boolean;
+};
+
+export type LoanRepaymentScheduleDto = {
+  loanAccountId?: string;
+  fineractLoanAccountId?: number;
+  accountNo?: string;
+  currencyCode?: string;
+  loanTermInDays?: number;
+  totalPrincipalExpected?: number;
+  totalPrincipalPaid?: number;
+  totalInterestCharged?: number;
+  totalFeeChargesCharged?: number;
+  totalPenaltyChargesCharged?: number;
+  totalRepaymentExpected?: number;
+  totalRepayment?: number;
+  totalOutstanding?: number;
+  periods?: LoanRepaymentPeriodDto[];
+};
+
+// GET /loan-accounts/{loanAccountId}/transactions/history — a flat array,
+// verified against a live instance. Neither this nor repayment-schedule
+// actually respect limit/offset (confirmed live — same full result either
+// way), so pagination for both is done client-side.
+export type LoanTransactionHistoryItemDto = {
+  transactionId: number;
+  transactionDate: string;
+  transactionType: string;
+  amount: number;
+  principal: number;
+  interest: number;
+  fees: number;
+  penalty: number;
+  reversed: boolean;
+};
+
+// POST /loan-accounts/{loanAccountId}/transactions/repayment — the posted
+// transaction shape here differs from the savings TransactionDto (loan-
+// specific *Portion fields + outstandingLoanBalance instead of a running
+// balance), verified against a live instance.
+export type LoanRepaymentTransactionDto = {
+  id: number;
+  loanId: number;
+  transactionTypeCode?: string;
+  transactionTypeValue?: string;
+  transactionDate: string;
+  currencyCode?: string;
+  amount: number;
+  principalPortion?: number;
+  interestPortion?: number;
+  feeChargesPortion?: number;
+  penaltyChargesPortion?: number;
+  outstandingLoanBalance?: number;
+  reversed?: boolean;
+  submittedByUsername?: string | null;
+  note?: string | null;
+};
+
+export type LoanRepaymentResultDto = {
+  operationId?: string;
+  status?: string;
+  transaction: LoanRepaymentTransactionDto;
+};
+
+// GET /loan-accounts/{loanAccountId}/transactions/preview?amount= —
+// allocation preview for a prospective repayment, verified against a live
+// instance.
+export type LoanRepaymentPreviewDto = {
+  loanId?: number;
+  amount?: number;
+  penalty?: number;
+  interest?: number;
+  fees?: number;
+  principal?: number;
+  totalApplied?: number;
+};
+
+// POST /loan-accounts/{loanAccountId}/guarantors — verified against a live
+// instance. entityId for guarantorTypeCode "CUSTOMER" is the guarantor's own
+// Fineract client id (Client.fineractClientId in this app), not our UUID.
+export type CreateLoanGuarantorDto = {
+  guarantorTypeCode: string;
+  clientRelationshipTypeCode: string;
+  entityId: number;
+  savingsId?: number;
+  amount?: number;
+};
+
+export type LoanGuarantorResultDto = {
+  fineractOfficeId?: number;
+  fineractLoanAccountId?: number;
+  fineractGuarantorId?: number;
+};
+
+// GET /loan-accounts/{loanAccountId}/guarantors — verified against a live
+// instance.
+export type LoanGuarantorDetailsDto = {
+  fineractGuarantorId: number;
+  fineractLoanAccountId?: number;
+  clientRelationshipTypeName?: string;
+  guarantorTypeCode?: string;
+  guarantorTypeValue?: string;
+  firstName?: string;
+  lastName?: string;
+  entityId?: number;
+  officeName?: string;
+  joinedDate?: string;
+  status?: boolean;
+  externalGuarantor?: boolean;
+  existingClient?: boolean;
+  staffMember?: boolean;
+};
+
+// POST/GET /loan-accounts/{loanAccountId}/collaterals — verified against a
+// live instance. GET now exists (previously creation-only).
+export type CreateLoanCollateralDto = {
+  collateralTypeCode: string;
+  value: number;
+  description?: string;
+};
+
+export type LoanCollateralResultDto = {
+  fineractLoanAccountId?: number;
+  fineractCollateralId?: number;
+  collateralTypeCode?: string;
+  value?: number;
+  description?: string;
+};
+
 /** POST /savings-accounts/{ref}/transactions/deposit|withdrawal response —
  * wraps the resulting transaction with the async-review operation's id/status
  * (mirrors the transaction-operations workflow; POSTED means it went straight
@@ -431,16 +621,43 @@ export type DisbursementsReportDto = {
   recentlyDisbursed?: DisbursementCompletedItemDto[];
 };
 
-export type ArrearsRowDto = {
+// GET /loan-accounts/reports/arrears — verified against a live instance.
+// `bucket`/`limit`/`offset` narrow `arrears`/`filteredCount` only; the
+// summary fields (parAmount, bucketXCount/Amount, etc.) always cover every
+// loan in arrears regardless of the filter.
+export type ArrearsItemDto = {
   loanId: number;
   accountNo?: string;
   clientName?: string;
   productName?: string;
   principalOutstanding?: number;
   interestOutstanding?: number;
+  principalOverdue?: number;
+  interestOverdue?: number;
   totalOverdue?: number;
   overdueSince?: string;
   daysOverdue?: number;
+  daysToNextDue?: number;
+};
+
+export type LoanArrearsReportDto = {
+  parAmount?: number;
+  parPercent?: number;
+  loansInArrears?: number;
+  avgDaysOverdue?: number;
+  bucket1to30Count?: number;
+  bucket1to30Amount?: number;
+  bucket31to60Count?: number;
+  bucket31to60Amount?: number;
+  bucket61to90Count?: number;
+  bucket61to90Amount?: number;
+  bucket90PlusCount?: number;
+  bucket90PlusAmount?: number;
+  bucket?: string | null;
+  filteredCount?: number;
+  limit?: number;
+  offset?: number;
+  arrears?: ArrearsItemDto[];
 };
 
 /** `reports/overview` payload (the fields the UI cares about). */
@@ -584,4 +801,30 @@ export type TransactionOperationDto = {
   status: TransactionOperationStatus | string;
   failureReason?: string | null;
   reviewComments?: string | null;
+};
+
+// ── Dashboard ────────────────────────────────────────────────────────────────
+// GET /dashboard/client-growth | transaction-volume | summary — verified
+// against a live instance. `month` is 1-indexed. Sparse months (zero activity)
+// are simply absent from the growth/volume arrays, not returned as zero rows.
+
+export type ClientGrowthPointDto = {
+  year: number;
+  month: number;
+  newClientsCount: number;
+};
+
+export type TransactionVolumePointDto = {
+  year: number;
+  month: number;
+  transactionCount: number;
+  netVolume: number;
+  variance: number;
+};
+
+export type DashboardSummaryDto = {
+  totalClients: number;
+  activeAccounts: number;
+  depositsThisMonth: number;
+  pendingKycCount: number;
 };

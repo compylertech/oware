@@ -4,25 +4,27 @@
 //
 // Each endpoint returns an object whose row list lives under an
 // endpoint-specific key (loans / applications / approvals / pending / arrears).
-// Live responses are mapped to the UI's LoanApplication / ActiveLoan types;
-// offline they return the seed fixtures so the screens render identically.
-
+// Live responses are mapped to the UI's LoanApplication / ActiveLoan types.
+// Offline/unreachable-backend fallbacks return empty/zeroed shapes, never
+// fixture rows — the Loan Management section must never show fabricated
+// names or numbers, even when the backend is down (the empty/zero state is
+// itself the honest signal that nothing loaded).
 import type { ActiveLoan, LoanApplication } from "../loans/types";
-import { ACTIVE_LOANS, APPLICATIONS } from "../loans/data";
 import type {
   ActiveLoanRowDto,
   ActiveLoansReportDto,
   ApplicationsReportDto,
   ApprovalRowDto,
   ApprovalsReportDto,
-  ArrearsRowDto,
+  ArrearsItemDto,
   DisbursementCompletedItemDto,
   DisbursementQueueItemDto,
   DisbursementsReportDto,
+  LoanArrearsReportDto,
   OverviewDto,
 } from "./dto";
 import { request, withMock } from "./http";
-import { mapActiveLoan, mapApplication, mapArrears } from "./mappers";
+import { mapActiveLoan, mapApplication } from "./mappers";
 
 export type PipelineStage = { count: number; amount: number };
 
@@ -145,7 +147,9 @@ export type LoanOverview = {
   arrearsAging: Record<string, PipelineStage>;
 };
 
-function stageMap(dto?: Record<string, { count?: number; amount?: number }>): Record<string, PipelineStage> {
+function stageMap(
+  dto?: Record<string, { count?: number; amount?: number }>,
+): Record<string, PipelineStage> {
   const out: Record<string, PipelineStage> = {};
   for (const [k, v] of Object.entries(dto ?? {})) {
     out[k] = { count: v.count ?? 0, amount: v.amount ?? 0 };
@@ -174,20 +178,14 @@ export const loanReportsApi = {
         };
       },
       () => ({
-        activeCount: ACTIVE_LOANS.filter((l) => l.status !== "Closed").length,
-        activeAmount: ACTIVE_LOANS.reduce((s, l) => s + l.outstanding, 0),
-        pendingApprovals: APPLICATIONS.filter((a) => a.stage === "Under Review").length,
-        arrears: ACTIVE_LOANS.filter((l) => l.status === "In Arrears").length,
-        pendingDisbCount: APPLICATIONS.filter((a) => a.stage === "To Disburse").length,
-        pendingDisbAmount: APPLICATIONS.filter((a) => a.stage === "To Disburse").reduce(
-          (s, a) => s + a.amount,
-          0,
-        ),
+        activeCount: 0,
+        activeAmount: 0,
+        pendingApprovals: 0,
+        arrears: 0,
+        pendingDisbCount: 0,
+        pendingDisbAmount: 0,
         par30Rate: 0,
-        arrearsAmount: ACTIVE_LOANS.filter((l) => l.status === "In Arrears").reduce(
-          (s, l) => s + l.outstanding,
-          0,
-        ),
+        arrearsAmount: 0,
         collections: 0,
         pipeline: {},
         arrearsAging: {},
@@ -221,14 +219,12 @@ export const loanReportsApi = {
         };
       },
       () => ({
-        totalOutstanding: ACTIVE_LOANS.reduce((s, l) => s + l.outstanding, 0),
-        onTimeCount: ACTIVE_LOANS.filter((l) => l.status !== "In Arrears").length,
-        inArrearsCount: ACTIVE_LOANS.filter((l) => l.status === "In Arrears").length,
-        avgLoanSize: ACTIVE_LOANS.length
-          ? ACTIVE_LOANS.reduce((s, l) => s + l.outstanding, 0) / ACTIVE_LOANS.length
-          : 0,
-        totalLoans: ACTIVE_LOANS.length,
-        loans: ACTIVE_LOANS,
+        totalOutstanding: 0,
+        onTimeCount: 0,
+        inArrearsCount: 0,
+        avgLoanSize: 0,
+        totalLoans: 0,
+        loans: [],
       }),
     );
   },
@@ -265,11 +261,20 @@ export const loanReportsApi = {
     return withMock(
       async () => {
         const dto = await request<ApplicationsReportDto>("/loan-accounts/reports/applications", {
-          query: { stage, fromDate, toDate, limit, offset, officeCode, loanOfficerId, loanProductCode },
+          query: {
+            stage,
+            fromDate,
+            toDate,
+            limit,
+            offset,
+            officeCode,
+            loanOfficerId,
+            loanProductCode,
+          },
         });
         return (dto.applications ?? []).map(mapApplication);
       },
-      () => APPLICATIONS,
+      () => [],
     );
   },
 
@@ -283,7 +288,7 @@ export const loanReportsApi = {
         });
         return dto.total ?? 0;
       },
-      () => APPLICATIONS.length,
+      () => 0,
     );
   },
 
@@ -304,23 +309,7 @@ export const loanReportsApi = {
           rows: (dto.approvals ?? []).map(mapApprovalRow),
         };
       },
-      () => {
-        const rows = APPLICATIONS.filter(
-          (a) => a.stage === "Under Review" || a.stage === "Submitted",
-        ).map(
-          (a): ApprovalRow => ({
-            loanId: 0,
-            accountNo: a.id,
-            client: a.client,
-            product: a.product,
-            amount: a.amount,
-            submittedDate: a.submitted,
-            officer: a.officer,
-            daysWaiting: 0,
-          }),
-        );
-        return { count: rows.length, totalAmount: rows.reduce((s, r) => s + r.amount, 0), rows };
-      },
+      () => ({ count: 0, totalAmount: 0, rows: [] }),
     );
   },
 
@@ -371,79 +360,129 @@ export const loanReportsApi = {
           recentlyDisbursed: (dto.recentlyDisbursed ?? []).map(mapDisbursementCompletedRow),
         };
       },
-      () => {
-        const pendingSeed = APPLICATIONS.filter(
-          (a) => a.stage === "To Disburse" || a.stage === "Approved",
-        );
-        return {
-          awaitingCount: pendingSeed.length,
-          awaitingAmount: pendingSeed.reduce((s, a) => s + a.amount, 0),
-          todayCount: 0,
-          todayAmount: 0,
-          thisWeekCount: 0,
-          thisWeekAmount: 0,
-          pending: pendingSeed.map(
-            (a): DisbursementQueueRow => ({
-              loanId: null,
-              accountNo: a.id,
-              client: a.client,
-              product: a.product,
-              amount: a.amount,
-              approvedDate: a.submitted,
-              officer: a.officer,
-              daysSinceApproval: 0,
-              officeName: "—",
-              expectedDisbursalDate: "",
-              daysToDisbursal: null,
-            }),
-          ),
-          recentlyDisbursed: [],
-        };
-      },
+      () => ({
+        awaitingCount: 0,
+        awaitingAmount: 0,
+        todayCount: 0,
+        todayAmount: 0,
+        thisWeekCount: 0,
+        thisWeekAmount: 0,
+        pending: [],
+        recentlyDisbursed: [],
+      }),
     );
   },
 
-  arrears(): Promise<ActiveLoan[]> {
+  // bucket/limit/offset only narrow the `arrears` list + filteredCount — the
+  // summary fields (parAmount, bucketXCount/Amount, etc.) always cover every
+  // loan in arrears regardless of the filter (confirmed in the OpenAPI
+  // parameter description). filteredCount is a true grand total under the
+  // current bucket filter, so this paginates for real (unlike some of the
+  // other loan reports where the "total" field just mirrors the page size).
+  arrears(params: ArrearsParams = {}): Promise<ArrearsReport> {
+    const { bucket, limit = 20, offset = 0 } = params;
     return withMock(
-      async () => {
-        const dto = await request<{ arrears?: ArrearsRowDto[] }>("/loan-accounts/reports/arrears");
-        return (dto.arrears ?? []).map(mapArrears);
-      },
-      () => ACTIVE_LOANS.filter((l) => l.status === "In Arrears"),
-    );
-  },
-
-  /** Overdue rows shaped for the Arrears "Overdue Loans" table. */
-  arrearsRows(): Promise<ArrearsRow[]> {
-    return withMock(
-      async () => {
-        const dto = await request<{ arrears?: ArrearsRowDto[] }>("/loan-accounts/reports/arrears");
-        return (dto.arrears ?? []).map((a) => {
-          const days = a.daysOverdue ?? 0;
-          return {
-            client: a.clientName ?? "",
-            outstanding: (a.principalOutstanding ?? 0) + (a.interestOutstanding ?? 0),
-            days,
-            bucket: bucketFor(days),
-          };
-        });
-      },
-      () => [],
+      async () =>
+        mapArrearsReport(
+          await request<LoanArrearsReportDto>("/loan-accounts/reports/arrears", {
+            query: { bucket, limit, offset },
+          }),
+        ),
+      () => EMPTY_ARREARS_REPORT,
     );
   },
 };
 
-export type ArrearsBucket = "1–30" | "31–60" | "61–90" | "90+";
+export type ArrearsBucketKey = "1to30" | "31to60" | "61to90" | "90plus";
+
 export type ArrearsRow = {
+  loanId: number;
+  accountNo: string;
   client: string;
-  outstanding: number;
-  days: number;
-  bucket: ArrearsBucket;
+  product: string;
+  principalOutstanding: number;
+  interestOutstanding: number;
+  principalOverdue: number;
+  interestOverdue: number;
+  totalOverdue: number;
+  overdueSince: string;
+  daysOverdue: number;
+  daysToNextDue: number;
+  bucket: ArrearsBucketKey;
 };
 
-function bucketFor(days: number): ArrearsBucket {
-  if (days <= 30) return "1–30";
-  if (days <= 60) return "31–60";
-  if (days <= 90) return "61–90";
-  return "90+";
+export type ArrearsReport = {
+  parAmount: number;
+  parPercent: number;
+  loansInArrears: number;
+  avgDaysOverdue: number;
+  buckets: Record<ArrearsBucketKey, { count: number; amount: number }>;
+  filteredCount: number;
+  limit: number;
+  offset: number;
+  rows: ArrearsRow[];
+};
+
+export type ArrearsParams = { bucket?: ArrearsBucketKey; limit?: number; offset?: number };
+
+const EMPTY_ARREARS_REPORT: ArrearsReport = {
+  parAmount: 0,
+  parPercent: 0,
+  loansInArrears: 0,
+  avgDaysOverdue: 0,
+  buckets: {
+    "1to30": { count: 0, amount: 0 },
+    "31to60": { count: 0, amount: 0 },
+    "61to90": { count: 0, amount: 0 },
+    "90plus": { count: 0, amount: 0 },
+  },
+  filteredCount: 0,
+  limit: 20,
+  offset: 0,
+  rows: [],
+};
+
+function bucketFor(days: number): ArrearsBucketKey {
+  if (days <= 30) return "1to30";
+  if (days <= 60) return "31to60";
+  if (days <= 90) return "61to90";
+  return "90plus";
+}
+
+function mapArrearsItem(dto: ArrearsItemDto): ArrearsRow {
+  const days = dto.daysOverdue ?? 0;
+  return {
+    loanId: dto.loanId,
+    accountNo: dto.accountNo ?? "",
+    client: dto.clientName ?? "",
+    product: dto.productName ?? "",
+    principalOutstanding: dto.principalOutstanding ?? 0,
+    interestOutstanding: dto.interestOutstanding ?? 0,
+    principalOverdue: dto.principalOverdue ?? 0,
+    interestOverdue: dto.interestOverdue ?? 0,
+    totalOverdue: dto.totalOverdue ?? 0,
+    overdueSince: dto.overdueSince ?? "",
+    daysOverdue: days,
+    daysToNextDue: dto.daysToNextDue ?? 0,
+    bucket: bucketFor(days),
+  };
+}
+
+function mapArrearsReport(dto: LoanArrearsReportDto): ArrearsReport {
+  return {
+    parAmount: dto.parAmount ?? 0,
+    parPercent: dto.parPercent ?? 0,
+    loansInArrears: dto.loansInArrears ?? 0,
+    avgDaysOverdue: dto.avgDaysOverdue ?? 0,
+    buckets: {
+      "1to30": { count: dto.bucket1to30Count ?? 0, amount: dto.bucket1to30Amount ?? 0 },
+      "31to60": { count: dto.bucket31to60Count ?? 0, amount: dto.bucket31to60Amount ?? 0 },
+      "61to90": { count: dto.bucket61to90Count ?? 0, amount: dto.bucket61to90Amount ?? 0 },
+      "90plus": { count: dto.bucket90PlusCount ?? 0, amount: dto.bucket90PlusAmount ?? 0 },
+    },
+    filteredCount: dto.filteredCount ?? 0,
+    limit: dto.limit ?? 20,
+    offset: dto.offset ?? 0,
+    rows: (dto.arrears ?? []).map(mapArrearsItem),
+  };
 }

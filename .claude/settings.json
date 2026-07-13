@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -n 'State/Province Code\\\\|Country Code' -B3 -A12 \"/Users/dquaidoo/Desktop/code/playground/oware/src/routes/_auth/clients/\\\\$clientId.tsx\")",
+      "Read(//Users/dquaidoo/Desktop/code/playground/oware/src/routes/_auth/clients/**)",
+      "Bash(grep -n \"async function submitAddressForm\" -A 20 \"/Users/dquaidoo/Desktop/code/playground/oware/src/routes/_auth/clients/\\\\$clientId.tsx\")",
+      "Bash(grep -n \"type FamilyRow\\\\|function mapFamilyMember\" -A 15 \"/Users/dquaidoo/Desktop/code/playground/oware/src/routes/_auth/clients/\\\\$clientId.tsx\")",
+      "Bash(grep -n \"prettyLabel\\(\" \"/Users/dquaidoo/Desktop/code/playground/oware/src/routes/_auth/clients/\\\\$clientId.tsx\")",
+      "Bash(grep -n \"addressTypeOptions\\\\|stateOptions\\\\|countryOptions\" \"/Users/dquaidoo/Desktop/code/playground/oware/src/routes/_auth/clients/\\\\$clientId.tsx\" | head -20)",
+      "Bash(python3 -c ' *)",
+      "Bash(grep -n 'navigate\\\\|loans/$loanId\\\\|to: \"/loans' /Users/dquaidoo/Desktop/code/playground/oware/src/routes/_auth/loans/active.tsx /Users/dquaidoo/Desktop/code/playground/oware/src/routes/_auth/loans/disbursements.tsx)",
+      "Bash(npx prettier *)",
+      "Bash(npx vite *)",
+      "Bash(grep -rn \"loan.status\\\\|status===\\\\|status ===\\\\|\\\\.status\\\\b\" /Users/dquaidoo/Desktop/code/playground/oware/src/routes/_auth/loans/\\\\$loanId.tsx)",
+      "Read(//Users/dquaidoo/Desktop/code/playground/oware/src/routes/_auth/loans/**)",
+      "Bash(curl -s http://localhost:8084/v3/api-docs/all -o /tmp/apidocs2.json)",
+      "Bash(curl -s -X POST http://localhost:8084/api/v1/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"admin@acme.test\",\"password\":\"AdminPass123!\",\"tenantId\":\"acme\"}')",
+      "Bash(curl -s -X POST http://localhost:8084/api/v1/auth/login -H \"Content-Type: application/json\" -H \"X-Tenant-Id: acme\" -d '{\"email\":\"admin@acme.test\",\"password\":\"AdminPass123!\"}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8081/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8081/loans/arrears)",
+      "Bash(curl -s -X POST http://localhost:8081/api/v1/auth/login -H \"Content-Type: application/json\" -H \"X-Tenant-Id: acme\" -d '{\"email\":\"admin@acme.test\",\"password\":\"AdminPass123!\"}' -w \"\\\\nHTTP:%{http_code}\\\\n\")"
+    ]
+  }
+}

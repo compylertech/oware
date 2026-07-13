@@ -104,7 +104,9 @@ function DisbursementsPage() {
       // badge count drops without a full reload.
       await Promise.all([
         refreshBackendData(cacheKey, fetchDisbursements),
-        refreshBackendData("loans:disbursements:::", () => loanReportsApi.disbursements({ limit: 500 })),
+        refreshBackendData("loans:disbursements:::", () =>
+          loanReportsApi.disbursements({ limit: 500 }),
+        ),
       ]);
       setConfirmRow(null);
     } catch (err) {
@@ -119,10 +121,7 @@ function DisbursementsPage() {
   const totalItems = tab === "pending" ? pendingRows.length : disbursedRows.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const pendingPageRows = pendingRows.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
+  const pendingPageRows = pendingRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const disbursedPageRows = disbursedRows.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize,
@@ -133,7 +132,11 @@ function DisbursementsPage() {
   }
 
   function openLoanByAccountNo(accountNo: string) {
-    navigate({ to: "/loans/$loanId", params: { loanId: accountNo } });
+    navigate({
+      to: "/loans/$loanId",
+      params: { loanId: accountNo },
+      search: { from: "disbursements" },
+    });
   }
 
   function onRowKeyDown(event: KeyboardEvent<HTMLElement>, accountNo: string) {
@@ -157,22 +160,27 @@ function DisbursementsPage() {
         ]}
       />
 
-      {tab === "pending" ? (
+      {!data ? (
         <div className="grid gap-3 mb-4" style={{ gridTemplateColumns: "repeat(2,1fr)" }}>
-          <Chip label="Awaiting Disbursal" value={String(data?.awaitingCount ?? 0)} />
-          <Chip label="Awaiting Amount" value={fmtGHS(data?.awaitingAmount ?? 0)} />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+        </div>
+      ) : tab === "pending" ? (
+        <div className="grid gap-3 mb-4" style={{ gridTemplateColumns: "repeat(2,1fr)" }}>
+          <Chip label="Awaiting Disbursal" value={String(data.awaitingCount ?? 0)} />
+          <Chip label="Awaiting Amount" value={fmtGHS(data.awaitingAmount ?? 0)} />
         </div>
       ) : (
         <div className="grid gap-3 mb-4" style={{ gridTemplateColumns: "repeat(2,1fr)" }}>
           <Chip
             label="Disbursed This Week"
-            value={String(data?.thisWeekCount ?? 0)}
-            meta={fmtGHS(data?.thisWeekAmount ?? 0)}
+            value={String(data.thisWeekCount ?? 0)}
+            meta={fmtGHS(data.thisWeekAmount ?? 0)}
           />
           <Chip
             label="Disbursed Today"
-            value={String(data?.todayCount ?? 0)}
-            meta={fmtGHS(data?.todayAmount ?? 0)}
+            value={String(data.todayCount ?? 0)}
+            meta={fmtGHS(data.todayAmount ?? 0)}
           />
         </div>
       )}
@@ -233,7 +241,9 @@ function DisbursementsPage() {
         </div>
       </div>
 
-      {tab === "pending" ? (
+      {!data ? (
+        <Skeleton className="h-80 w-full" />
+      ) : tab === "pending" ? (
         <TableCard
           title="Disbursement Queue"
           resultLabel={`${pendingRows.length} disbursements`}
@@ -428,10 +438,10 @@ function ConfirmDisburseDialog({
           {row.accountNo}).
         </p>
         <div className="flex justify-end gap-2" style={{ marginTop: 20 }}>
-          <Button variant="outline" onClick={onCancel} disabled={busy}>
+          <Button variant="danger" onClick={onCancel} disabled={busy}>
             Cancel
           </Button>
-          <Button variant="primary" icon={<Send size={14} />} onClick={onConfirm} disabled={busy}>
+          <Button variant="success" icon={<Send size={14} />} onClick={onConfirm} disabled={busy}>
             {busy ? "Disbursing…" : "Disburse"}
           </Button>
         </div>
