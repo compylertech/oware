@@ -292,7 +292,7 @@ function ReportsPage() {
           onClose={() => setGenerating(null)}
           onSubmit={() => {
             setGenerating(null);
-            toast.success("Report queued — you'll be notified when ready.");
+            toast.success("Report queued - you'll be notified when ready.");
           }}
         />
       )}

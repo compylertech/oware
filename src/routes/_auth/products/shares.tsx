@@ -1,146 +1,61 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { ArrowLeft, PieChart, Users2, TrendingUp, DollarSign, Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { ArrowLeft, Plus, AlertTriangle } from "lucide-react";
 import { FONTS, tokens } from "@/lib/tokens";
 import { Modal, MField, MInput, MTextarea, MSelect } from "@/components/common/Modal";
+import { Button } from "@/components/patterns";
+import { ProductCardGrid, type ProductCardData } from "@/components/products/ProductCard";
+import { WizardStepper } from "@/components/products/WizardStepper";
 import {
-  StatCard,
-  StatGrid,
-  Button,
-  Pill,
-  Table,
-  TableCard,
-  Td,
-  Th,
-  THead,
-  Tr,
-} from "@/components/patterns";
+  AccountingStep,
+  ACCOUNTING_RULE_OPTIONS,
+  type GLField,
+} from "@/components/products/AccountingStep";
+import { ReviewCard, ReviewRow, optionLabel, diffField } from "@/components/products/ProductReview";
+import {
+  shareProductsApi,
+  referencesApi,
+  apiErrorMessage,
+  type ProductDto,
+  type ReferenceValueDto,
+  type CreateShareProductDto,
+  type UpdateShareProductDto,
+} from "@/api/backend";
+import { useBackendData, refreshBackendData } from "@/api/useBackendData";
 
 export const Route = createFileRoute("/_auth/products/shares")({
-  component: ShareCapitalPage,
+  component: ShareProductsPage,
 });
 
-type Klass = "A" | "B" | "C";
+const SHARE_LIST_KEY = "products:shares";
+const PRODUCT_COLORS = ["#3B5BDB", "#059669", "#B45309", "#7C3AED", "#DC2626"];
 
-type ShareHolder = {
-  id: string;
-  name: string;
-  branch: string;
-  klass: Klass;
-  shares: number;
-  shareValue: number;
-  joined: string;
-};
-
-const SEED: ShareHolder[] = [
-  {
-    id: "1",
-    name: "Pearl Adzoko",
-    branch: "Accra Main",
-    klass: "A",
-    shares: 1200,
-    shareValue: 20,
-    joined: "12 Feb 2022",
-  },
-  {
-    id: "2",
-    name: "Kwame Mensah",
-    branch: "Kumasi Central",
-    klass: "B",
-    shares: 540,
-    shareValue: 20,
-    joined: "03 May 2023",
-  },
-  {
-    id: "3",
-    name: "Ama Boateng",
-    branch: "Tema",
-    klass: "A",
-    shares: 2050,
-    shareValue: 20,
-    joined: "18 Sep 2020",
-  },
-  {
-    id: "4",
-    name: "Kofi Asare",
-    branch: "Takoradi",
-    klass: "C",
-    shares: 300,
-    shareValue: 20,
-    joined: "27 Nov 2024",
-  },
-  {
-    id: "5",
-    name: "Esi Tetteh",
-    branch: "Accra Main",
-    klass: "B",
-    shares: 880,
-    shareValue: 20,
-    joined: "09 Jul 2021",
-  },
-  {
-    id: "6",
-    name: "Akosua Nyarko",
-    branch: "Tema",
-    klass: "A",
-    shares: 1450,
-    shareValue: 20,
-    joined: "14 Apr 2022",
-  },
-];
-
-const KLASS_STYLE: Record<Klass, { bg: string; fg: string }> = {
-  A: { bg: "#EEF2FF", fg: "#3B5BDB" },
-  B: { bg: "#EEF9F3", fg: "#065F46" },
-  C: { bg: "#F5F3FF", fg: "#7C3AED" },
-};
-
-function ShareCapitalPage() {
-  const [holders, setHolders] = useState<ShareHolder[]>(SEED);
-  const totalShares = holders.reduce((s, m) => s + m.shares, 0);
-
-  const today = new Date().toISOString().slice(0, 10);
-  const [open, setOpen] = useState(false);
-  const [f, setF] = useState({
-    member: "",
-    klass: "Class A",
-    count: "",
-    price: "20.00",
-    date: today,
-    method: "Cash",
-    notes: "",
-  });
-  const total = (Number(f.count) || 0) * (Number(f.price) || 0);
-  const issue = () => {
-    if (!f.member || !Number(f.count)) return;
-    const klassMap: Record<string, Klass> = { "Class A": "A", "Class B": "B", "Class C": "C" };
-    setHolders((h) => [
-      ...h,
+function toShareProductCards(products: ProductDto[]): ProductCardData[] {
+  return products.map((p, i) => ({
+    code: p.code,
+    name: p.name,
+    type: "Shares",
+    typeColor: PRODUCT_COLORS[i % PRODUCT_COLORS.length],
+    cells: [
       {
-        id: String(Date.now()),
-        name: f.member,
-        branch: "—",
-        klass: klassMap[f.klass],
-        shares: Number(f.count),
-        shareValue: Number(f.price) || 0,
-        joined: new Date(f.date).toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        }),
+        label: "Unit Price",
+        value: p.unitPrice != null ? `${p.currencyCode ?? ""} ${p.unitPrice}`.trim() : "—",
       },
-    ]);
-    setF({
-      member: "",
-      klass: "Class A",
-      count: "",
-      price: "20.00",
-      date: today,
-      method: "Cash",
-      notes: "",
-    });
-    setOpen(false);
-  };
+      { label: "Currency", value: p.currencyCode ?? "—" },
+      { label: "Code", value: p.code },
+      { label: "Status", value: p.status ?? "—" },
+    ],
+    footerLeft: p.status ?? "—",
+    active: (p.status ?? "").toUpperCase() === "ACTIVE",
+  }));
+}
+
+function ShareProductsPage() {
+  const { data } = useBackendData(SHARE_LIST_KEY, () => shareProductsApi.list());
+  const PRODUCTS = toShareProductCards(data ?? []);
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<ProductDto | null>(null);
 
   return (
     <div
@@ -151,318 +66,804 @@ function ShareCapitalPage() {
         fontFamily: FONTS.body,
       }}
     >
-      <div>
-        <Link
-          to="/cooperative"
-          style={{
-            color: tokens.navy,
-            fontSize: 13,
-            fontWeight: 300,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            textDecoration: "none",
-            cursor: "pointer",
-          }}
-        >
-          <ArrowLeft size={14} /> Back to Cooperative
-        </Link>
+      <Link
+        to="/products"
+        style={{
+          color: tokens.navy,
+          fontSize: 13,
+          fontWeight: 300,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+          textDecoration: "none",
+          cursor: "pointer",
+        }}
+      >
+        <ArrowLeft size={14} /> Back to Products
+      </Link>
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-end",
-            marginTop: 14,
-            gap: 16,
-          }}
-        >
-          <div>
-            <div
-              style={{ fontSize: 11, fontWeight: 100, letterSpacing: 1.2, color: tokens.textMuted }}
-            >
-              COOPERATIVE
-            </div>
-            <h1
-              style={{
-                fontFamily: FONTS.display,
-                fontSize: 26,
-                fontWeight: 200,
-                color: tokens.text,
-                margin: "6px 0 6px",
-              }}
-            >
-              Share Capital
-            </h1>
-            <p style={{ color: tokens.textSub, fontSize: 14, margin: 0 }}>
-              Issued shares, dividend declarations and capital position.
-            </p>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Pill color="#7C3AED" bg="#F5F3FF" uppercase>
-              AGM-governed
-            </Pill>
-            <Button variant="success" onClick={() => setOpen(true)} icon={<Plus size={14} />}>
-              Issue Shares
-            </Button>
-          </div>
-        </div>
-
-        {/* KPIs */}
-        <StatGrid style={{ marginTop: 18 }}>
-          <StatCard
-            icon={<PieChart size={18} />}
-            iconBg="#F5F3FF"
-            iconColor="#7C3AED"
-            label="Total shares issued"
-            value="2,456,000"
-          />
-          <StatCard
-            icon={<Users2 size={18} />}
-            iconBg="#EEF2FF"
-            iconColor="#3B5BDB"
-            label="Members holding shares"
-            value="412"
-          />
-          <StatCard
-            icon={<TrendingUp size={18} />}
-            iconBg="#ECFDF5"
-            iconColor="#059669"
-            label="Dividend rate"
-            value="8.5%"
-            meta={
-              <span
-                style={{
-                  background: "#FFFBEB",
-                  color: "#854F0B",
-                  borderRadius: 7,
-                  padding: "3px 8px",
-                  fontWeight: 300,
-                }}
-              >
-                Set by AGM/2026/02
-              </span>
-            }
-          />
-          <StatCard
-            icon={<DollarSign size={18} />}
-            iconBg="#FFFBEB"
-            iconColor="#B45309"
-            label="Capital value"
-            value="GH₵ 24.6M"
-          />
-        </StatGrid>
-
-        {/* Share Register */}
-        <TableCard
-          title="Share Register"
-          description="Member share holdings by class."
-          style={{ marginTop: 22 }}
-        >
-          <Table>
-            <THead>
-              {["Member", "Class", "Shares held", "Share value", "Total value", "Joined"].map(
-                (h, i) => (
-                  <Th
-                    key={h}
-                    align={i >= 2 && i <= 4 ? "right" : "left"}
-                    style={{ padding: "11px 16px", fontSize: 11, color: "#5B6A86" }}
-                  >
-                    {h}
-                  </Th>
-                ),
-              )}
-            </THead>
-            <tbody>
-              {holders.map((m) => {
-                const k = KLASS_STYLE[m.klass];
-                const total = m.shares * m.shareValue;
-                return (
-                  <Tr key={m.id} hover>
-                    <Td>
-                      <div style={{ fontSize: 13, fontWeight: 100, color: tokens.text }}>
-                        {m.name}
-                      </div>
-                      <div style={{ fontSize: 11, color: tokens.textMuted, marginTop: 2 }}>
-                        {m.branch}
-                      </div>
-                    </Td>
-                    <Td>
-                      <Pill color={k.fg} bg={k.bg} size="sm" style={{ fontWeight: 100 }}>
-                        Class {m.klass}
-                      </Pill>
-                    </Td>
-                    <Td
-                      numeric
-                      align="right"
-                      style={{
-                        fontFamily: FONTS.body,
-                        fontWeight: 100,
-                        color: tokens.text,
-                      }}
-                    >
-                      {m.shares.toLocaleString()}
-                    </Td>
-                    <Td
-                      numeric
-                      align="right"
-                      style={{
-                        fontFamily: FONTS.body,
-                        fontWeight: 500,
-                        color: "#4A5878",
-                      }}
-                    >
-                      GH₵ {m.shareValue.toFixed(2)}
-                    </Td>
-                    <Td
-                      numeric
-                      align="right"
-                      style={{
-                        fontFamily: FONTS.body,
-                        fontWeight: 100,
-                        color: tokens.text,
-                      }}
-                    >
-                      GH₵ {total.toLocaleString()}
-                    </Td>
-                    <Td muted>{m.joined}</Td>
-                  </Tr>
-                );
-              })}
-            </tbody>
-            <tfoot>
-              <Tr style={{ background: "#FAFBFD" }}>
-                <Td
-                  colSpan={2}
-                  style={{
-                    padding: "11px 16px",
-                    fontWeight: 100,
-                    color: tokens.textMuted,
-                    letterSpacing: 0.4,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Visible total
-                </Td>
-                <Td
-                  numeric
-                  align="right"
-                  style={{
-                    padding: "11px 16px",
-                    fontFamily: FONTS.body,
-                    fontWeight: 100,
-                    color: tokens.text,
-                  }}
-                >
-                  {totalShares.toLocaleString()}
-                </Td>
-                <Td colSpan={3} />
-              </Tr>
-            </tfoot>
-          </Table>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          marginTop: 14,
+          gap: 16,
+          marginBottom: 22,
+        }}
+      >
+        <div>
           <div
+            style={{ fontSize: 11, fontWeight: 100, letterSpacing: 1.2, color: tokens.textMuted }}
+          >
+            PRODUCTS
+          </div>
+          <h1
             style={{
-              padding: "12px 20px",
-              borderTop: `1px solid ${tokens.border}`,
-              fontSize: 12,
-              color: tokens.textMuted,
-              fontStyle: "italic",
+              fontFamily: FONTS.display,
+              fontSize: 26,
+              fontWeight: 200,
+              color: tokens.text,
+              margin: "6px 0 6px",
             }}
           >
-            Share Capital is governed — dividend rate and minimum holding are set by AGM resolution.
-          </div>
-        </TableCard>
+            Share Products
+          </h1>
+          <p style={{ color: tokens.textSub, fontSize: 14, margin: 0 }}>
+            Share product catalogue — pricing, lock-in rules and GL mappings.
+          </p>
+        </div>
+        <Button variant="success" icon={<Plus size={16} />} onClick={() => setOpen(true)}>
+          New product
+        </Button>
       </div>
 
-      <Modal
-        open={open}
-        onClose={() => setOpen(false)}
-        title="Issue Shares"
-        maxWidth={500}
-        footer={
-          <>
-            <Button variant="outline" onClick={() => setOpen(false)}>
+      <ProductCardGrid
+        products={PRODUCTS}
+        onEdit={(code) => setEditing((data ?? []).find((p) => p.code === code) ?? null)}
+      />
+
+      <NewShareProductModal open={open} onClose={() => setOpen(false)} />
+      <EditShareProductModal open={!!editing} onClose={() => setEditing(null)} product={editing} />
+    </div>
+  );
+}
+
+const SHARE_STEPS = ["Basic Info", "Share Terms", "Accounting", "Review"];
+
+const SHARE_GL_FIELDS: GLField[] = [
+  { key: "shareReferenceAccountCode", label: "Share Reference Account" },
+  { key: "shareSuspenseAccountCode", label: "Share Suspense Account" },
+  { key: "shareEquityAccountCode", label: "Share Equity Account" },
+  { key: "incomeFromFeeAccountCode", label: "Income from Fees Account" },
+];
+
+const shareDefaultForm = {
+  name: "",
+  shortName: "",
+  description: "",
+  currencyCode: "GHS",
+  totalShares: "",
+  nominalShares: "",
+  minimumShares: "",
+  maximumShares: "",
+  unitPrice: "",
+  lockinFrequency: "",
+  lockinType: "DAYS",
+  accountingRule: "NONE",
+};
+
+function NewShareProductModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [currencyOptions, setCurrencyOptions] = useState<ReferenceValueDto[]>([]);
+  const [lockinTypeOptions, setLockinTypeOptions] = useState<ReferenceValueDto[]>([]);
+  const [glOptions, setGlOptions] = useState<ReferenceValueDto[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    void referencesApi.list("CURRENCY").then(setCurrencyOptions);
+    void referencesApi.list("SHARE_LOCKIN_PERIOD_FREQUENCY_TYPE").then(setLockinTypeOptions);
+    void referencesApi.list("GL_ACCOUNT").then(setGlOptions);
+  }, [open]);
+
+  const [stepIdx, setStepIdx] = useState(0);
+  const [furthestStepIdx, setFurthestStepIdx] = useState(0);
+  const [f, setF] = useState(shareDefaultForm);
+  const [gl, setGl] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  function close() {
+    setErr(null);
+    setStepIdx(0);
+    setFurthestStepIdx(0);
+    setF(shareDefaultForm);
+    setGl({});
+    onClose();
+  }
+
+  const totalShares = parseInt(f.totalShares, 10);
+  const nominalShares = parseInt(f.nominalShares, 10);
+  const unitPrice = parseFloat(f.unitPrice);
+  const termsValid =
+    !!totalShares &&
+    totalShares > 0 &&
+    !!nominalShares &&
+    nominalShares > 0 &&
+    !!unitPrice &&
+    unitPrice > 0;
+
+  const needsGl = f.accountingRule !== "NONE";
+  const glComplete = !needsGl || SHARE_GL_FIELDS.every((field) => gl[field.key]);
+
+  const stepValid = [
+    !!f.name.trim() &&
+      !!f.shortName.trim() &&
+      f.shortName.trim().length <= 4 &&
+      !!f.description.trim() &&
+      !!f.currencyCode,
+    termsValid,
+    glComplete,
+    true,
+  ];
+  const canGoNext = stepValid[stepIdx];
+
+  function goNext() {
+    if (!canGoNext) return;
+    const next = Math.min(stepIdx + 1, SHARE_STEPS.length - 1);
+    setStepIdx(next);
+    setFurthestStepIdx((v) => Math.max(v, next));
+  }
+
+  const payload: CreateShareProductDto | null = useMemo(() => {
+    if (!f.name.trim() || !f.shortName.trim() || !f.description.trim() || !termsValid) return null;
+    return {
+      name: f.name.trim(),
+      shortName: f.shortName.trim(),
+      description: f.description.trim(),
+      currencyCode: f.currencyCode,
+      totalShares,
+      nominalShares,
+      minimumShares: f.minimumShares ? parseInt(f.minimumShares, 10) : undefined,
+      maximumShares: f.maximumShares ? parseInt(f.maximumShares, 10) : undefined,
+      unitPrice,
+      lockinPeriodFrequency: f.lockinFrequency ? parseInt(f.lockinFrequency, 10) : undefined,
+      lockinPeriodFrequencyType: f.lockinFrequency ? f.lockinType : undefined,
+      accountingRule: f.accountingRule,
+      ...(needsGl
+        ? {
+            shareReferenceAccountCode: gl.shareReferenceAccountCode,
+            shareSuspenseAccountCode: gl.shareSuspenseAccountCode,
+            shareEquityAccountCode: gl.shareEquityAccountCode,
+            incomeFromFeeAccountCode: gl.incomeFromFeeAccountCode,
+          }
+        : {}),
+    };
+  }, [f, gl, needsGl, termsValid, totalShares, nominalShares, unitPrice]);
+
+  async function submit() {
+    if (!payload) return;
+    setErr(null);
+    setSaving(true);
+    try {
+      const result = await shareProductsApi.create(payload);
+      if (!result) throw new Error("Backend is not reachable right now.");
+      toast.success(`Share product "${result.name}" created.`);
+      await refreshBackendData(SHARE_LIST_KEY, () => shareProductsApi.list());
+      close();
+    } catch (submitErr) {
+      setErr(apiErrorMessage(submitErr, "Something went wrong creating this product."));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={close}
+      title="New Share Product"
+      maxWidth={620}
+      footer={
+        <div className="flex w-full items-center justify-between">
+          {stepIdx > 0 ? (
+            <Button variant="outline" onClick={() => setStepIdx(stepIdx - 1)} disabled={saving}>
+              Previous
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={close} disabled={saving}>
               Cancel
             </Button>
-            <Button variant="success" onClick={issue}>
-              Issue Shares
+          )}
+          {stepIdx < SHARE_STEPS.length - 1 ? (
+            <Button variant="success" onClick={goNext} disabled={!canGoNext}>
+              Next →
             </Button>
-          </>
-        }
-      >
-        <MField label="Member">
-          <MInput
-            value={f.member}
-            onChange={(e) => setF({ ...f, member: e.target.value })}
-            placeholder="Search member name or ID…"
-          />
-        </MField>
-        <MField label="Share Class">
-          <MSelect
-            value={f.klass}
-            onChange={(e) => setF({ ...f, klass: e.target.value })}
-            options={["Class A", "Class B", "Class C"]}
-          />
-        </MField>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <MField label="Number of Shares">
-            <MInput
-              type="number"
-              min={1}
-              value={f.count}
-              onChange={(e) => setF({ ...f, count: e.target.value })}
+          ) : (
+            <Button variant="success" onClick={() => void submit()} disabled={saving || !payload}>
+              {saving ? "Creating…" : "Create Product"}
+            </Button>
+          )}
+        </div>
+      }
+    >
+      <WizardStepper
+        steps={SHARE_STEPS}
+        currentIndex={stepIdx}
+        furthestIndex={furthestStepIdx}
+        onStepClick={setStepIdx}
+      />
+
+      {stepIdx === 0 && (
+        <>
+          <MField label="Name">
+            <MInput value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
+          </MField>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <MField label="Short name * (max 4 chars)">
+              <MInput
+                value={f.shortName}
+                maxLength={4}
+                onChange={(e) => setF({ ...f, shortName: e.target.value.toUpperCase() })}
+              />
+            </MField>
+            <MField label="Currency">
+              <MSelect
+                value={f.currencyCode}
+                onChange={(e) => setF({ ...f, currencyCode: e.target.value })}
+                options={
+                  currencyOptions.length
+                    ? currencyOptions.map((o) => ({
+                        value: o.code,
+                        label: `${o.name} (${o.code})`,
+                      }))
+                    : [{ value: "GHS", label: "Ghana Cedi (GHS)" }]
+                }
+              />
+            </MField>
+          </div>
+          <MField label="Description *">
+            <MTextarea
+              rows={2}
+              value={f.description}
+              onChange={(e) => setF({ ...f, description: e.target.value })}
             />
           </MField>
-          <MField label="Price per Share (GH₵)">
+        </>
+      )}
+
+      {stepIdx === 1 && (
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <MField label="Total Shares">
+              <MInput
+                type="number"
+                min={1}
+                value={f.totalShares}
+                onChange={(e) => setF({ ...f, totalShares: e.target.value })}
+              />
+            </MField>
+            <MField label="Nominal Shares">
+              <MInput
+                type="number"
+                min={1}
+                value={f.nominalShares}
+                onChange={(e) => setF({ ...f, nominalShares: e.target.value })}
+              />
+            </MField>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <MField label="Minimum Shares (optional)">
+              <MInput
+                type="number"
+                min={0}
+                value={f.minimumShares}
+                onChange={(e) => setF({ ...f, minimumShares: e.target.value })}
+              />
+            </MField>
+            <MField label="Maximum Shares (optional)">
+              <MInput
+                type="number"
+                min={0}
+                value={f.maximumShares}
+                onChange={(e) => setF({ ...f, maximumShares: e.target.value })}
+              />
+            </MField>
+          </div>
+          <MField label="Unit Price">
             <MInput
               type="number"
               step="0.01"
-              value={f.price}
-              onChange={(e) => setF({ ...f, price: e.target.value })}
+              value={f.unitPrice}
+              onChange={(e) => setF({ ...f, unitPrice: e.target.value })}
             />
           </MField>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <MField label="Lock-in Period (optional)">
+              <MInput
+                type="number"
+                min={0}
+                value={f.lockinFrequency}
+                onChange={(e) => setF({ ...f, lockinFrequency: e.target.value })}
+                placeholder="e.g. 6"
+              />
+            </MField>
+            <MField label="Lock-in Frequency">
+              <MSelect
+                value={f.lockinType}
+                onChange={(e) => setF({ ...f, lockinType: e.target.value })}
+                options={
+                  lockinTypeOptions.length
+                    ? lockinTypeOptions.map((o) => ({ value: o.code, label: o.name }))
+                    : ["DAYS"]
+                }
+              />
+            </MField>
+          </div>
+        </>
+      )}
+
+      {stepIdx === 2 && (
+        <AccountingStep
+          accountingRule={f.accountingRule}
+          onAccountingRuleChange={(v) => setF({ ...f, accountingRule: v })}
+          glFields={SHARE_GL_FIELDS}
+          glValues={gl}
+          onGlChange={(key, value) => setGl({ ...gl, [key]: value })}
+          glOptions={glOptions}
+        />
+      )}
+
+      {stepIdx === 3 && (
+        <div className="space-y-4">
+          <ReviewCard title="Basic Info">
+            <ReviewRow label="Name" value={f.name || "—"} />
+            <ReviewRow label="Short Name" value={f.shortName || "—"} />
+            <ReviewRow label="Currency" value={f.currencyCode} />
+            <ReviewRow label="Description" value={f.description || "—"} />
+          </ReviewCard>
+
+          <ReviewCard title="Share Terms">
+            <ReviewRow label="Total Shares" value={f.totalShares || "—"} />
+            <ReviewRow label="Nominal Shares" value={f.nominalShares || "—"} />
+            <ReviewRow
+              label="Share Range"
+              value={
+                f.minimumShares || f.maximumShares
+                  ? `${f.minimumShares || "—"} – ${f.maximumShares || "—"}`
+                  : "—"
+              }
+            />
+            <ReviewRow
+              label="Unit Price"
+              value={f.unitPrice ? `${f.currencyCode} ${f.unitPrice}` : "—"}
+            />
+            <ReviewRow
+              label="Lock-in Period"
+              value={
+                f.lockinFrequency
+                  ? `${f.lockinFrequency} ${optionLabel(lockinTypeOptions, f.lockinType).toLowerCase()}`
+                  : "—"
+              }
+            />
+          </ReviewCard>
+
+          <ReviewCard title="Accounting">
+            <ReviewRow
+              label="Accounting Rule"
+              value={
+                ACCOUNTING_RULE_OPTIONS.find((o) => o.value === f.accountingRule)?.label ??
+                f.accountingRule
+              }
+            />
+            {needsGl &&
+              SHARE_GL_FIELDS.map((field) => (
+                <ReviewRow
+                  key={field.key}
+                  label={field.label}
+                  value={gl[field.key] ? optionLabel(glOptions, gl[field.key]) : "—"}
+                />
+              ))}
+          </ReviewCard>
         </div>
-        <MField label="Issue Date">
-          <MInput
-            type="date"
-            value={f.date}
-            onChange={(e) => setF({ ...f, date: e.target.value })}
-          />
-        </MField>
-        <MField label="Payment Method">
-          <MSelect
-            value={f.method}
-            onChange={(e) => setF({ ...f, method: e.target.value })}
-            options={["Cash", "Deduction", "Bank Transfer"]}
-          />
-        </MField>
-        <MField label="Notes">
-          <MTextarea
-            rows={2}
-            value={f.notes}
-            onChange={(e) => setF({ ...f, notes: e.target.value })}
-          />
-        </MField>
+      )}
+
+      {err && (
         <div
+          className="flex items-center gap-2"
           style={{
-            textAlign: "right",
-            fontSize: 13,
-            color: "#16233F",
-            fontFamily: FONTS.body,
-            paddingTop: 4,
-            borderTop: `1px solid ${tokens.border}`,
+            background: "#FEF3F2",
+            border: "1px solid #FECDCA",
+            color: "#B42318",
+            borderRadius: 8,
+            padding: "8px 12px",
+            fontSize: 12,
           }}
         >
-          Total Value:{" "}
-          <span style={{ fontWeight: 100, fontVariantNumeric: "tabular-nums" }}>
-            GH₵{" "}
-            {total.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </span>
+          <AlertTriangle size={14} /> {err}
         </div>
-      </Modal>
-    </div>
+      )}
+    </Modal>
+  );
+}
+
+const EDIT_SHARE_STEPS = ["Basic Info", "Share Terms", "Accounting", "Review"];
+
+function editShareFormFromProduct(p: ProductDto) {
+  return {
+    name: p.name ?? "",
+    shortName: p.shortName ?? "",
+    description: p.description ?? "",
+    currencyCode: p.currencyCode ?? "",
+    totalShares: p.totalShares != null ? String(p.totalShares) : "",
+    nominalShares: p.nominalShares != null ? String(p.nominalShares) : "",
+    minimumShares: p.minimumShares != null ? String(p.minimumShares) : "",
+    maximumShares: p.maximumShares != null ? String(p.maximumShares) : "",
+    unitPrice: p.unitPrice != null ? String(p.unitPrice) : "",
+    lockinFrequency: p.lockinPeriodFrequency != null ? String(p.lockinPeriodFrequency) : "",
+    lockinType: p.lockinPeriodFrequencyType ?? "",
+    accountingRule: p.accountingRule ?? "NONE",
+  };
+}
+
+function glFromShareProduct(p: ProductDto): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const field of SHARE_GL_FIELDS) {
+    out[field.key] = (p as unknown as Record<string, string | null | undefined>)[field.key] ?? "";
+  }
+  return out;
+}
+
+function EditShareProductModal({
+  open,
+  onClose,
+  product,
+}: {
+  open: boolean;
+  onClose: () => void;
+  product: ProductDto | null;
+}) {
+  const [currencyOptions, setCurrencyOptions] = useState<ReferenceValueDto[]>([]);
+  const [lockinTypeOptions, setLockinTypeOptions] = useState<ReferenceValueDto[]>([]);
+  const [glOptions, setGlOptions] = useState<ReferenceValueDto[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    void referencesApi.list("CURRENCY").then(setCurrencyOptions);
+    void referencesApi.list("SHARE_LOCKIN_PERIOD_FREQUENCY_TYPE").then(setLockinTypeOptions);
+    void referencesApi.list("GL_ACCOUNT").then(setGlOptions);
+  }, [open]);
+
+  const [stepIdx, setStepIdx] = useState(0);
+  const [baseline, setBaseline] = useState(() => editShareFormFromProduct({} as ProductDto));
+  const [f, setF] = useState(baseline);
+  const [glBaseline, setGlBaseline] = useState<Record<string, string>>({});
+  const [gl, setGl] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open || !product) return;
+    const seeded = editShareFormFromProduct(product);
+    const seededGl = glFromShareProduct(product);
+    setBaseline(seeded);
+    setF(seeded);
+    setGlBaseline(seededGl);
+    setGl(seededGl);
+    setStepIdx(0);
+    setErr(null);
+  }, [open, product]);
+
+  function close() {
+    setErr(null);
+    setStepIdx(0);
+    onClose();
+  }
+
+  const payload: UpdateShareProductDto = useMemo(() => {
+    const body: UpdateShareProductDto = {
+      name: diffField(baseline.name, f.name),
+      shortName: diffField(baseline.shortName, f.shortName),
+      description: diffField(baseline.description, f.description),
+      currencyCode: diffField(baseline.currencyCode, f.currencyCode),
+      lockinPeriodFrequencyType: diffField(baseline.lockinType, f.lockinType),
+      accountingRule: diffField(baseline.accountingRule, f.accountingRule),
+    };
+    const totalDiff = diffField(baseline.totalShares, f.totalShares);
+    if (totalDiff !== undefined) body.totalShares = parseInt(totalDiff, 10);
+    const nominalDiff = diffField(baseline.nominalShares, f.nominalShares);
+    if (nominalDiff !== undefined) body.nominalShares = parseInt(nominalDiff, 10);
+    const minDiff = diffField(baseline.minimumShares, f.minimumShares);
+    if (minDiff !== undefined) body.minimumShares = parseInt(minDiff, 10);
+    const maxDiff = diffField(baseline.maximumShares, f.maximumShares);
+    if (maxDiff !== undefined) body.maximumShares = parseInt(maxDiff, 10);
+    const priceDiff = diffField(baseline.unitPrice, f.unitPrice);
+    if (priceDiff !== undefined) body.unitPrice = parseFloat(priceDiff);
+    const lockinDiff = diffField(baseline.lockinFrequency, f.lockinFrequency);
+    if (lockinDiff !== undefined) body.lockinPeriodFrequency = parseInt(lockinDiff, 10);
+    for (const field of SHARE_GL_FIELDS) {
+      const glDiff = diffField(glBaseline[field.key] ?? "", gl[field.key] ?? "");
+      if (glDiff !== undefined) (body as Record<string, unknown>)[field.key] = glDiff;
+    }
+    for (const key of Object.keys(body) as (keyof UpdateShareProductDto)[]) {
+      if (body[key] === undefined) delete body[key];
+    }
+    return body;
+  }, [f, gl, baseline, glBaseline]);
+
+  const hasChanges = Object.keys(payload).length > 0;
+
+  async function submit() {
+    if (!product || !hasChanges) return;
+    setErr(null);
+    setSaving(true);
+    try {
+      const result = await shareProductsApi.update(product.code, payload);
+      if (!result) throw new Error("Backend is not reachable right now.");
+      toast.success(`Share product "${result.name}" updated.`);
+      await refreshBackendData(SHARE_LIST_KEY, () => shareProductsApi.list());
+      close();
+    } catch (submitErr) {
+      setErr(apiErrorMessage(submitErr, "Something went wrong updating this product."));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={close}
+      title={`Edit Share Product${product ? ` — ${product.name}` : ""}`}
+      maxWidth={620}
+      footer={
+        <div className="flex w-full items-center justify-between">
+          {stepIdx > 0 ? (
+            <Button variant="outline" onClick={() => setStepIdx(stepIdx - 1)} disabled={saving}>
+              Previous
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={close} disabled={saving}>
+              Cancel
+            </Button>
+          )}
+          {stepIdx < EDIT_SHARE_STEPS.length - 1 ? (
+            <Button variant="success" onClick={() => setStepIdx(stepIdx + 1)}>
+              Next →
+            </Button>
+          ) : (
+            <Button
+              variant="success"
+              onClick={() => void submit()}
+              disabled={saving || !hasChanges}
+            >
+              {saving ? "Saving…" : "Save Changes"}
+            </Button>
+          )}
+        </div>
+      }
+    >
+      <WizardStepper
+        steps={EDIT_SHARE_STEPS}
+        currentIndex={stepIdx}
+        furthestIndex={EDIT_SHARE_STEPS.length - 1}
+        onStepClick={setStepIdx}
+      />
+
+      {stepIdx === 0 && (
+        <>
+          <MField label="Name">
+            <MInput value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
+          </MField>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <MField label="Short name (max 4 chars)">
+              <MInput
+                value={f.shortName}
+                maxLength={4}
+                onChange={(e) => setF({ ...f, shortName: e.target.value.toUpperCase() })}
+              />
+            </MField>
+            <MField label="Currency">
+              <MSelect
+                value={f.currencyCode}
+                onChange={(e) => setF({ ...f, currencyCode: e.target.value })}
+                options={
+                  currencyOptions.length
+                    ? currencyOptions.map((o) => ({
+                        value: o.code,
+                        label: `${o.name} (${o.code})`,
+                      }))
+                    : f.currencyCode
+                      ? [f.currencyCode]
+                      : []
+                }
+              />
+            </MField>
+          </div>
+          <MField label="Description">
+            <MTextarea
+              rows={2}
+              value={f.description}
+              onChange={(e) => setF({ ...f, description: e.target.value })}
+            />
+          </MField>
+        </>
+      )}
+
+      {stepIdx === 1 && (
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <MField label="Total Shares">
+              <MInput
+                type="number"
+                min={0}
+                value={f.totalShares}
+                onChange={(e) => setF({ ...f, totalShares: e.target.value })}
+              />
+            </MField>
+            <MField label="Nominal Shares">
+              <MInput
+                type="number"
+                min={0}
+                value={f.nominalShares}
+                onChange={(e) => setF({ ...f, nominalShares: e.target.value })}
+              />
+            </MField>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <MField label="Minimum Shares">
+              <MInput
+                type="number"
+                min={0}
+                value={f.minimumShares}
+                onChange={(e) => setF({ ...f, minimumShares: e.target.value })}
+              />
+            </MField>
+            <MField label="Maximum Shares">
+              <MInput
+                type="number"
+                min={0}
+                value={f.maximumShares}
+                onChange={(e) => setF({ ...f, maximumShares: e.target.value })}
+              />
+            </MField>
+          </div>
+          <MField label="Unit Price">
+            <MInput
+              type="number"
+              step="0.01"
+              value={f.unitPrice}
+              onChange={(e) => setF({ ...f, unitPrice: e.target.value })}
+            />
+          </MField>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <MField label="Lock-in Period">
+              <MInput
+                type="number"
+                min={0}
+                value={f.lockinFrequency}
+                onChange={(e) => setF({ ...f, lockinFrequency: e.target.value })}
+                placeholder="e.g. 6"
+              />
+            </MField>
+            <MField label="Lock-in Frequency">
+              <MSelect
+                value={f.lockinType}
+                onChange={(e) => setF({ ...f, lockinType: e.target.value })}
+                options={
+                  lockinTypeOptions.length
+                    ? lockinTypeOptions.map((o) => ({ value: o.code, label: o.name }))
+                    : f.lockinType
+                      ? [f.lockinType]
+                      : ["DAYS"]
+                }
+              />
+            </MField>
+          </div>
+        </>
+      )}
+
+      {stepIdx === 2 && (
+        <AccountingStep
+          accountingRule={f.accountingRule}
+          onAccountingRuleChange={(v) => setF({ ...f, accountingRule: v })}
+          glFields={SHARE_GL_FIELDS}
+          glValues={gl}
+          onGlChange={(key, value) => setGl({ ...gl, [key]: value })}
+          glOptions={glOptions}
+        />
+      )}
+
+      {stepIdx === 3 && (
+        <div className="space-y-4">
+          {!hasChanges && (
+            <div
+              style={{
+                background: "#F5F8FE",
+                border: "1px solid #DDE4EF",
+                color: "#5B6A86",
+                borderRadius: 8,
+                padding: "10px 12px",
+                fontSize: 12,
+              }}
+            >
+              No changes yet — edit a field on an earlier step to see it here.
+            </div>
+          )}
+          <ReviewCard title="Changes to save">
+            {payload.name !== undefined && <ReviewRow label="Name" value={payload.name} />}
+            {payload.shortName !== undefined && (
+              <ReviewRow label="Short Name" value={payload.shortName} />
+            )}
+            {payload.currencyCode !== undefined && (
+              <ReviewRow label="Currency" value={payload.currencyCode} />
+            )}
+            {payload.description !== undefined && (
+              <ReviewRow label="Description" value={payload.description} />
+            )}
+            {payload.totalShares !== undefined && (
+              <ReviewRow label="Total Shares" value={payload.totalShares} />
+            )}
+            {payload.nominalShares !== undefined && (
+              <ReviewRow label="Nominal Shares" value={payload.nominalShares} />
+            )}
+            {payload.minimumShares !== undefined && (
+              <ReviewRow label="Minimum Shares" value={payload.minimumShares} />
+            )}
+            {payload.maximumShares !== undefined && (
+              <ReviewRow label="Maximum Shares" value={payload.maximumShares} />
+            )}
+            {payload.unitPrice !== undefined && (
+              <ReviewRow
+                label="Unit Price"
+                value={`${payload.currencyCode ?? f.currencyCode} ${payload.unitPrice}`}
+              />
+            )}
+            {payload.lockinPeriodFrequency !== undefined && (
+              <ReviewRow label="Lock-in Period" value={payload.lockinPeriodFrequency} />
+            )}
+            {payload.lockinPeriodFrequencyType !== undefined && (
+              <ReviewRow
+                label="Lock-in Frequency"
+                value={optionLabel(lockinTypeOptions, payload.lockinPeriodFrequencyType)}
+              />
+            )}
+            {payload.accountingRule !== undefined && (
+              <ReviewRow
+                label="Accounting Rule"
+                value={
+                  ACCOUNTING_RULE_OPTIONS.find((o) => o.value === payload.accountingRule)?.label ??
+                  payload.accountingRule
+                }
+              />
+            )}
+            {SHARE_GL_FIELDS.filter(
+              (field) => (payload as Record<string, unknown>)[field.key] !== undefined,
+            ).map((field) => (
+              <ReviewRow
+                key={field.key}
+                label={field.label}
+                value={optionLabel(glOptions, (payload as Record<string, string>)[field.key])}
+              />
+            ))}
+          </ReviewCard>
+        </div>
+      )}
+
+      {err && (
+        <div
+          className="flex items-center gap-2"
+          style={{
+            background: "#FEF3F2",
+            border: "1px solid #FECDCA",
+            color: "#B42318",
+            borderRadius: 8,
+            padding: "8px 12px",
+            fontSize: 12,
+          }}
+        >
+          <AlertTriangle size={14} /> {err}
+        </div>
+      )}
+    </Modal>
   );
 }

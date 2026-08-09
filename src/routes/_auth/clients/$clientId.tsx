@@ -255,7 +255,7 @@ type SharePosition = {
 };
 
 // Everything about a client except transactions, which are date/filter
-// dependent and comparatively cheap to refetch — kept out of the cacheable
+// dependent and comparatively cheap to refetch - kept out of the cacheable
 // bundle below so changing the transactions date filter never has to redo
 // the client/addresses/family/identities/notes/share-position fetch.
 type LoadedClientCore = {
@@ -275,7 +275,7 @@ type LoadedClientCore = {
 // client (e.g. navigating away and back) hydrates instantly from here instead
 // of re-issuing the same handful of GET requests. Every write path
 // (reloadDetail) refreshes this entry, so it never goes stale after our own
-// mutations — it can only go stale if the record changes from elsewhere
+// mutations - it can only go stale if the record changes from elsewhere
 // (another tab/user) without us reloading, which is an acceptable tradeoff
 // for a same-session cache.
 const clientDetailCache = new Map<string, LoadedClientCore>();
@@ -287,7 +287,7 @@ const EMPTY_CLIENT: BackendClient = {
   externalId: "",
   status: "Pending",
   officeName: "",
-  activationDate: "—",
+  activationDate: "-",
 };
 
 function statusFrom(value?: string): StatusKind {
@@ -302,7 +302,7 @@ function statusFrom(value?: string): StatusKind {
 }
 
 /** Fineract identifier status arrives as "clientIdentifierStatusType.active" /
- * "…inactive" — statusFrom's substring match would wrongly read "inactive" as
+ * "…inactive" - statusFrom's substring match would wrongly read "inactive" as
  * "Active" (it ends with "active"), so take the exact segment after the dot. */
 function identifierStatusFrom(value?: string): StatusKind {
   const tail = (value ?? "").split(".").pop() ?? "";
@@ -313,7 +313,7 @@ function identifierStatusFrom(value?: string): StatusKind {
 }
 
 function fmtDisplayDate(value?: string | null): string {
-  if (!value) return "—";
+  if (!value) return "-";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
@@ -322,7 +322,7 @@ function fmtDisplayDate(value?: string | null): string {
 function mapSavingsAccount(account: SavingsAccountSummaryDto): SavingsAccountRow {
   return {
     acc: account.accountNo ?? String(account.id),
-    product: account.productName ?? "—",
+    product: account.productName ?? "-",
     balance: account.accountBalance ?? 0,
     status: statusFrom(account.statusValue ?? account.statusCode),
     activated: fmtDisplayDate(account.activatedOnDate ?? account.submittedOnDate),
@@ -332,7 +332,7 @@ function mapSavingsAccount(account: SavingsAccountSummaryDto): SavingsAccountRow
 function mapLoanAccount(account: LoanAccountSummaryDto): LoanAccountRow {
   return {
     acc: account.accountNo ?? String(account.id),
-    product: account.productName ?? "—",
+    product: account.productName ?? "-",
     balance: account.loanBalance ?? 0,
     status: statusFrom(account.statusValue ?? account.statusCode),
     disbursed: fmtDisplayDate(account.expectedDisbursementDate ?? account.submittedOnDate),
@@ -350,7 +350,7 @@ function mapTransaction(tx: TransactionDto, accountRef: string, index: number): 
     amount: tx.amount ?? 0,
     balance: tx.runningBalance ?? 0,
     ref: reference,
-    narration: tx.note ?? tx.type ?? "—",
+    narration: tx.note ?? tx.type ?? "-",
     acc: accountRef,
   };
 }
@@ -361,7 +361,7 @@ function mapAddress(address: ClientAddressDto): AddressRow {
     addressTypeId: address.addressTypeId,
     stateProvinceId: address.stateProvinceId,
     countryId: address.countryId,
-    type: address.addressType ?? "—",
+    type: address.addressType ?? "-",
     line1: address.addressLine1 ?? "",
     line2: address.addressLine2 ?? "",
     city: address.city ?? "",
@@ -381,16 +381,16 @@ function mapFamilyMember(member: ClientFamilyMemberDto): FamilyRow {
     firstName,
     middleName,
     lastName,
-    name: [firstName, lastName].filter(Boolean).join(" ") || "—",
+    name: [firstName, lastName].filter(Boolean).join(" ") || "-",
     qualification: member.qualification ?? "",
     relationshipId: member.relationshipId,
-    relationship: member.relationship ?? "—",
+    relationship: member.relationship ?? "-",
     genderId: member.genderId,
-    gender: member.gender ?? "—",
+    gender: member.gender ?? "-",
     professionId: member.professionId,
-    profession: member.profession ?? "—",
+    profession: member.profession ?? "-",
     maritalStatusId: member.maritalStatusId,
-    maritalStatus: member.maritalStatus ?? "—",
+    maritalStatus: member.maritalStatus ?? "-",
     dateOfBirth: member.dateOfBirth ?? "",
     mobile: member.mobileNumber ?? "",
     age:
@@ -407,8 +407,8 @@ function mapIdentifier(identifier: ClientIdentifierDto): IdentityRow {
   return {
     id: identifier.id,
     documentTypeId: identifier.documentTypeId,
-    type: identifier.documentTypeName ?? "—",
-    no: identifier.documentKey ?? "—",
+    type: identifier.documentTypeName ?? "-",
+    no: identifier.documentKey ?? "-",
     description: identifier.description ?? "",
     status: identifierStatusFrom(identifier.status),
     statusCode: statusTail.toLowerCase() || "active",
@@ -482,7 +482,7 @@ async function loadTransactionsFor(
 ): Promise<TransactionRow[]> {
   // Use allSettled: a single account whose transactions endpoint 404s (seen
   // live for a just-created account not yet fully synced) must not blank out
-  // the whole page — every other account's data, and the account list itself,
+  // the whole page - every other account's data, and the account list itself,
   // should still render.
   const results = await Promise.allSettled(
     savings.map(async (account) => {
@@ -532,7 +532,7 @@ function ClientDetail() {
   const [savingsProducts, setSavingsProducts] = useState<ProductDto[]>([]);
   const [sharePosition, setSharePosition] = useState<SharePosition | null>(null);
   // True until the core bundle (share position, savings, addresses, family,
-  // identities, notes) has loaded at least once for this client — gates the
+  // identities, notes) has loaded at least once for this client - gates the
   // tab content behind a skeleton so we never show a default/empty value
   // (e.g. "Unregistered") that then flashes into the real one once data lands.
   const [coreLoading, setCoreLoading] = useState(true);
@@ -672,7 +672,7 @@ function ClientDetail() {
     setSharePosition(core.sharePosition);
   }
 
-  /** Always hits the backend and refreshes the cache — call after any mutation. */
+  /** Always hits the backend and refreshes the cache - call after any mutation. */
   async function reloadDetail() {
     const core = await loadClientDetailCore(clientId);
     clientDetailCache.set(clientId, core);
@@ -720,7 +720,7 @@ function ClientDetail() {
       let core: LoadedClientCore;
       if (loadedCoreClientIdRef.current === clientId) {
         // Same client as last run (only the date filter changed, or the cache
-        // hit above already applied it) — the cache is guaranteed to hold
+        // hit above already applied it) - the cache is guaranteed to hold
         // this entry.
         core = clientDetailCache.get(clientId)!;
       } else {
@@ -759,7 +759,7 @@ function ClientDetail() {
       clientId,
       productCode: createAcctForm.productCode,
       externalId: createAcctForm.externalId.trim() || null,
-      // Hidden from the UI per spec — the backend requires it, so we send today's date.
+      // Hidden from the UI per spec - the backend requires it, so we send today's date.
       submittedOnDate: new Date().toISOString().slice(0, 10),
     });
     setCreateAcctOpen(false);
@@ -901,7 +901,7 @@ function ClientDetail() {
     setIdentityForm({
       id: row.id,
       documentTypeCode: matchedType?.code ?? identifierTypeOptions[0]?.code ?? "",
-      documentKey: row.no === "—" ? "" : row.no,
+      documentKey: row.no === "-" ? "" : row.no,
       description: row.description,
       status: row.statusCode,
     });
@@ -1284,7 +1284,7 @@ function ClientDetail() {
                       <StatusPill tone="red" label="Unregistered" />
                     )}
                   </Field>
-                  <Field label="Admission Date" value={sharePosition?.admissionDate ?? "—"} />
+                  <Field label="Admission Date" value={sharePosition?.admissionDate ?? "-"} />
                 </div>
                 {sharePosition ? (
                   <div
@@ -1312,7 +1312,7 @@ function ClientDetail() {
                       color: "#D92D20",
                     }}
                   >
-                    Not yet a cooperative member — issue shares to enroll this client.
+                    Not yet a cooperative member - issue shares to enroll this client.
                   </div>
                 )}
                 <div
@@ -1338,14 +1338,14 @@ function ClientDetail() {
                   <div className="grid grid-cols-3 gap-5">
                     <Mono
                       label="Shares Held"
-                      value={sharePosition ? String(sharePosition.sharesHeld) : "—"}
+                      value={sharePosition ? String(sharePosition.sharesHeld) : "-"}
                     />
                     <Mono
                       label="Share Par Value"
                       value={
                         sharePosition
                           ? `GH₵ ${sharePosition.parValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
-                          : "—"
+                          : "-"
                       }
                     />
                     <Mono
@@ -1353,7 +1353,7 @@ function ClientDetail() {
                       value={
                         sharePosition
                           ? `GH₵ ${sharePosition.totalCapital.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
-                          : "—"
+                          : "-"
                       }
                     />
                   </div>
@@ -1493,7 +1493,7 @@ function ClientDetail() {
                   <option value="All">All Accounts</option>
                   {savings.map((s) => (
                     <option key={s.acc} value={s.acc}>
-                      {s.acc} — {s.product}
+                      {s.acc} - {s.product}
                     </option>
                   ))}
                 </select>
@@ -1597,9 +1597,9 @@ function ClientDetail() {
                       <Tr key={a.addressId ?? `${a.type}-${a.line1}-${i}`} hover>
                         <Td>{a.type}</Td>
                         <Td>{a.line1}</Td>
-                        <Td muted>{a.line2 || "—"}</Td>
-                        <Td muted>{a.city || "—"}</Td>
-                        <Td muted>{a.region || "—"}</Td>
+                        <Td muted>{a.line2 || "-"}</Td>
+                        <Td muted>{a.city || "-"}</Td>
+                        <Td muted>{a.region || "-"}</Td>
                         <Td>
                           <StatusPill status={a.active ? "Active" : "Inactive"} />
                         </Td>
@@ -1725,7 +1725,7 @@ function ClientDetail() {
                         >
                           {i.no}
                         </Td>
-                        <Td muted>{i.description || "—"}</Td>
+                        <Td muted>{i.description || "-"}</Td>
                         <Td>
                           <StatusPill status={i.status} />
                         </Td>
@@ -2080,7 +2080,7 @@ function ClientDetail() {
             value={addressForm.stateProvinceCode}
             onChange={(e) => setAddressForm((f) => ({ ...f, stateProvinceCode: e.target.value }))}
             options={[
-              { value: "", label: "— None —" },
+              { value: "", label: "- None -" },
               ...stateOptions.map((o) => ({ value: o.code, label: o.name })),
             ]}
           />

@@ -6,7 +6,7 @@
 //
 // Responsibilities:
 //   - build the same-origin URL and attach JSON headers
-//   - attach the logged-in user's Bearer token (auth is end-to-end JWT now —
+//   - attach the logged-in user's Bearer token (auth is end-to-end JWT now -
 //     the backend no longer accepts HTTP Basic) and transparently refresh it
 //     once on a 401 before giving up
 //   - attach an Idempotency-Key on writes (matches the Postman collection)
@@ -113,11 +113,11 @@ function unwrap<T>(payload: ApiEnvelope<T> | T): T {
 }
 
 // Auth endpoints are public (no bearer token to send) and must never trigger
-// the refresh-on-401 dance below — refresh itself hits /auth/refresh, and a
+// the refresh-on-401 dance below - refresh itself hits /auth/refresh, and a
 // failed login is a real "wrong password", not an expired-token situation.
 const NO_REFRESH_PATHS = new Set(["/auth/login", "/auth/refresh", "/auth/register"]);
 
-/** Single request attempt — no refresh/retry logic. */
+/** Single request attempt - no refresh/retry logic. */
 async function rawRequest<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   // Only run in the browser: SSR renders fixtures, the browser hydrates live data.
   if (FORCE_MOCK || typeof window === "undefined") throw new BackendUnavailable();
@@ -194,7 +194,7 @@ async function refreshAccessToken(): Promise<void> {
 }
 
 /**
- * Publicly triggerable refresh — used by the session-expiry watcher to renew
+ * Publicly triggerable refresh - used by the session-expiry watcher to renew
  * the access token ahead of time (either silently while the user is active,
  * or after they confirm they want to stay signed in). Shares the same
  * dedup guard as the reactive 401-triggered refresh above.

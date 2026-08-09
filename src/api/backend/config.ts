@@ -1,6 +1,6 @@
 // Backend integration configuration (client side).
 //
-// The browser never talks to the corebanking backend directly — it would be
+// The browser never talks to the corebanking backend directly - it would be
 // blocked by CORS and would expose credentials. Instead every call goes to the
 // app's own same-origin proxy at `/api/v1/*` (see src/server.ts), which forwards
 // to the real backend with server-side auth.

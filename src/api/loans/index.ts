@@ -1,7 +1,7 @@
-// Loans domain — applications, active loans, and the product catalogue.
+// Loans domain - applications, active loans, and the product catalogue.
 export * from "./types";
 
-// Backend services — every endpoint hits the real API; offline/unreachable
+// Backend services - every endpoint hits the real API; offline/unreachable
 // fallbacks return empty/zeroed shapes, never fixture data.
 export { loanProductsApi } from "../backend/products";
 export { loanAccountsApi } from "../backend/accounts";
@@ -35,6 +35,6 @@ export type {
 } from "../backend/accounts";
 
 /** Format a number as Ghana cedis, always showing exactly two decimals
- * (e.g. GH₵85,000.00) — figures are never rounded off to whole numbers. */
+ * (e.g. GH₵85,000.00) - figures are never rounded off to whole numbers. */
 export const fmtGHS = (n: number) =>
   "GH₵" + n.toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });

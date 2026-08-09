@@ -20,9 +20,9 @@ api/
 
 Each domain folder follows the same shape:
 
-- **`types.ts`** — the domain's TypeScript types.
-- **`data.ts`** — the seed/fixture data.
-- **`index.ts`** — the public surface the app imports. Today it re-exports
+- **`types.ts`** - the domain's TypeScript types.
+- **`data.ts`** - the seed/fixture data.
+- **`index.ts`** - the public surface the app imports. Today it re-exports
   fixtures; swap these bodies to call `request()` when a real backend exists.
 
 ## Adding a domain

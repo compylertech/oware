@@ -43,7 +43,7 @@ function LoansOverview() {
     loanReportsApi.applications({ limit: 5 }),
   );
 
-  // Cached data (even stale) is shown instantly with no skeleton — only a
+  // Cached data (even stale) is shown instantly with no skeleton - only a
   // genuinely first-ever load has nothing to show yet.
   if (!ov || !recent) {
     return (
@@ -211,7 +211,7 @@ function LoansOverview() {
 }
 
 /** Rough placeholder for the overview while the first-ever load is in
- * flight — never a fixture standing in for real numbers. */
+ * flight - never a fixture standing in for real numbers. */
 function LoansOverviewSkeleton() {
   const cardStyle = { border: `1px solid ${LOAN.border}`, borderRadius: 12, padding: 16 };
   return (

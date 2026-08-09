@@ -1,6 +1,6 @@
 // Small helper to fetch live backend data without flashing a seed/dummy
 // value on first paint. Callers render their own loading UI (skeleton) while
-// `loading` is true and `data` is null — never a fixture standing in for the
+// `loading` is true and `data` is null - never a fixture standing in for the
 // real thing, since a fixture flashing before real numbers land reads as a bug.
 //
 // Fetched results are cached in-memory per `key`, shared across every mount
@@ -10,7 +10,7 @@
 //
 // The cache is a proper shared store (subscribe/notify), not just a memo: if
 // two components read the same key (e.g. a page's table and the sidebar's
-// count badge), refreshBackendData() updates both at once — necessary after a
+// count badge), refreshBackendData() updates both at once - necessary after a
 // mutation (approve/reject a loan, etc.) so every reader of that key reflects
 // the new state without a full page reload.
 
@@ -43,7 +43,7 @@ function subscribe(key: string, listener: () => void): () => void {
 const DEFAULT_STALE_MS = 60_000;
 
 /** Re-fetch `key` right now and push the result to every mounted reader of
- * it. Use after a mutation that invalidates cached data — e.g. approving a
+ * it. Use after a mutation that invalidates cached data - e.g. approving a
  * loan should update both the approvals queue and any badge counting it. */
 export async function refreshBackendData<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
   const result = await fetcher();
@@ -65,14 +65,14 @@ export function useBackendData<T>(
   const data = useSyncExternalStore(
     (onStoreChange) => subscribe(key, onStoreChange),
     () => (cache.get(key) as CacheEntry<T> | undefined)?.data ?? null,
-    () => null, // SSR/first-paint snapshot — never has cached data
+    () => null, // SSR/first-paint snapshot - never has cached data
   );
 
   useEffect(() => {
     const entry = cache.get(key) as CacheEntry<T> | undefined;
     if (entry) {
       setLoading(false);
-      if (Date.now() - entry.fetchedAt < staleMs) return; // fresh enough — skip refetch
+      if (Date.now() - entry.fetchedAt < staleMs) return; // fresh enough - skip refetch
     } else {
       setLoading(true);
     }

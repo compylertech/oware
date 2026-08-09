@@ -1,4 +1,4 @@
-// Investments domain — institutions, proposals, positions, maturity alerts and
+// Investments domain - institutions, proposals, positions, maturity alerts and
 // exposure monitoring. Mirrors com.obenyaade.cooperative.modules.investments.
 // Routes/components import from `@/api/investments` only.
 export * from "./types";

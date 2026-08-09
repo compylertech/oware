@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
@@ -8,7 +8,7 @@ import { FilterDropdown, type FilterOption } from "@/components/loans/FilterDrop
 import { fmtGHS, loanReportsApi, type AppStage } from "@/api/loans";
 import { referencesApi } from "@/api/backend";
 import { useBackendData } from "@/api/useBackendData";
-import { Button, TableCard, PAGE_SIZE_OPTIONS } from "@/components/patterns";
+import { SegmentedControl, TableCard, PAGE_SIZE_OPTIONS } from "@/components/patterns";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_auth/loans/applications")({
@@ -24,7 +24,7 @@ const COLUMNS: { stage: AppStage; dot: string }[] = [
   { stage: "Rejected", dot: LOAN.red },
 ];
 
-// The only stage values the endpoint accepts (confirmed live — anything
+// The only stage values the endpoint accepts (confirmed live - anything
 // else, e.g. "rejected", 400s: "expected one of: submitted, approved,
 // active, or omit for all").
 const STAGE_OPTIONS: FilterOption[] = [
@@ -39,7 +39,7 @@ function ApplicationsPage() {
   const [productFilter, setProductFilter] = useState<string | null>(null);
 
   // officeCode/stage/loanProductCode are all real server-side filters
-  // (confirmed live, including all combined at once) — the fetch itself
+  // (confirmed live, including all combined at once) - the fetch itself
   // changes per filter combination, not a client-side re-slice of one batch.
   const { data } = useBackendData(
     `loans:applications:${officeFilter ?? ""}:${stageFilter ?? ""}:${productFilter ?? ""}`,
@@ -54,7 +54,7 @@ function ApplicationsPage() {
   const APPLICATIONS = data ?? [];
 
   // Validated against the LOAN_PRODUCT reference category's own code (e.g.
-  // "AUTO_LOAN"), not the product catalogue's short code ("ALN") — same
+  // "AUTO_LOAN"), not the product catalogue's short code ("ALN") - same
   // mismatch already noted for Active Loans' product filter.
   const [productOptions, setProductOptions] = useState<FilterOption[]>([]);
   useEffect(() => {
@@ -109,30 +109,14 @@ function ApplicationsPage() {
             }}
           />
         </div>
-        <div
-          style={{
-            display: "inline-flex",
-            border: `1px solid ${LOAN.border}`,
-            borderRadius: 10,
-            overflow: "hidden",
-          }}
-        >
-          {(["board", "table"] as const).map((v) => (
-            <Button
-              type="button"
-              key={v}
-              onClick={() => setView(v)}
-              variant={view === v ? "primary" : "outline"}
-              size="sm"
-              style={{
-                textTransform: "capitalize",
-                borderRadius: 0,
-              }}
-            >
-              {v}
-            </Button>
-          ))}
-        </div>
+        <SegmentedControl
+          value={view}
+          onChange={setView}
+          options={[
+            { key: "board", label: "Board" },
+            { key: "table", label: "Table" },
+          ]}
+        />
       </div>
 
       {!data ? (
@@ -172,14 +156,19 @@ function ApplicationsPage() {
                 </div>
                 <div className="space-y-2">
                   {items.map((a) => (
-                    <div
+                    <Link
                       key={a.id}
+                      to="/loans/$loanId"
+                      params={{ loanId: a.id }}
+                      search={{ from: "applications" }}
                       style={{
                         background: "#fff",
                         border: `1px solid ${LOAN.border}`,
                         borderRadius: 10,
                         padding: 10,
-                        cursor: "grab",
+                        cursor: "pointer",
+                        display: "block",
+                        textDecoration: "none",
                       }}
                     >
                       <div className="flex items-center gap-2">
@@ -216,7 +205,7 @@ function ApplicationsPage() {
                       >
                         {a.submitted} · {a.officer}
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -254,13 +243,19 @@ function ApplicationsPage() {
               {pageRows.map((a) => (
                 <Tr key={a.id} hover style={{ cursor: "pointer" }}>
                   <Td>
-                    <div className="flex items-center gap-2">
+                    <Link
+                      to="/loans/$loanId"
+                      params={{ loanId: a.id }}
+                      search={{ from: "applications" }}
+                      className="flex items-center gap-2"
+                      style={{ textDecoration: "none", color: "inherit" }}
+                    >
                       <Ava name={a.client} bg={a.avatar} size={28} />
                       <div>
-                        <div style={{ fontWeight: 300 }}>{a.client}</div>
+                        <div style={{ fontWeight: 300, color: LOAN.ink }}>{a.client}</div>
                         <div style={{ ...fontMono, fontSize: 11, color: LOAN.muted }}>{a.id}</div>
                       </div>
-                    </div>
+                    </Link>
                   </Td>
                   <Td>{a.product}</Td>
                   <Td style={{ fontWeight: 100 }}>{fmtGHS(a.amount)}</Td>
@@ -280,7 +275,7 @@ function ApplicationsPage() {
 }
 
 /** Rough placeholder for the table content while the first-ever load is in
- * flight — never a fixture standing in for real rows. */
+ * flight - never a fixture standing in for real rows. */
 function ApplicationsSkeleton() {
   return (
     <TableCard title="Loan Applications">

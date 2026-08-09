@@ -28,7 +28,7 @@ type GuarantorDraft = {
   clientRelationshipTypeCode: string;
   /** Numeric entity id, used directly for non-"CUSTOMER" guarantor types. */
   entityId: string;
-  /** For "CUSTOMER" guarantors, resolved via client search — entityId is
+  /** For "CUSTOMER" guarantors, resolved via client search - entityId is
    * that client's fineractClientId, not our app's UUID. */
   pickedClient: Client | null;
 };
@@ -58,7 +58,7 @@ type Step = (typeof STEPS)[number];
 const today = () => new Date().toISOString().slice(0, 10);
 
 // LOAN_TYPE has no Fineract template values on this instance (confirmed live
-// — the reference category returns an empty list even after a sync), so this
+// - the reference category returns an empty list even after a sync), so this
 // stays a small hardcoded set of Fineract's standard loan account types
 // rather than a broken dropdown.
 const LOAN_TYPES = [
@@ -121,7 +121,7 @@ function LoanApplicationPage() {
   const [interestCalculationPeriodType, setInterestCalculationPeriodType] = useState("DAILY");
   const [allowPartialPeriodInterest, setAllowPartialPeriodInterest] = useState(false);
 
-  // Reference-driven dropdown options (readable Fineract option codes — see
+  // Reference-driven dropdown options (readable Fineract option codes - see
   // src/api/backend/references.ts for the full category list).
   const [termFreqOptions, setTermFreqOptions] = useState<ReferenceValueDto[]>([]);
   const [repayFreqOptions, setRepayFreqOptions] = useState<ReferenceValueDto[]>([]);
@@ -146,7 +146,7 @@ function LoanApplicationPage() {
     void referencesApi.list("CLIENT_RELATIONSHIP_TYPE").then(setRelationshipOptions);
   }, []);
 
-  // Picking a product prefills sensible starting numbers — the user can still
+  // Picking a product prefills sensible starting numbers - the user can still
   // edit every field afterward.
   function selectProduct(code: string) {
     setProductCode(code);
@@ -165,7 +165,7 @@ function LoanApplicationPage() {
 
   // ---- Collateral & guarantors ----
   // Posted to /loan-accounts/{accountNo}/collaterals and .../guarantors right
-  // after loan creation succeeds — these are loan-scoped endpoints, so there's
+  // after loan creation succeeds - these are loan-scoped endpoints, so there's
   // no accountNo to post against until create() returns one.
   const [collateralDrafts, setCollateralDrafts] = useState<CollateralDraft[]>([]);
   const [guarantorDrafts, setGuarantorDrafts] = useState<GuarantorDraft[]>([]);
@@ -259,7 +259,7 @@ function LoanApplicationPage() {
       if (!result?.accountNo) throw new Error("Backend is not reachable right now.");
       const accountNo = result.accountNo;
 
-      // Collateral/guarantors are loan-scoped endpoints — there's no accountNo
+      // Collateral/guarantors are loan-scoped endpoints - there's no accountNo
       // to post against until the loan itself exists. A failure here doesn't
       // roll back the loan (already created); it's surfaced separately so the
       // user knows to add the item manually from the Collateral & Guarantors
@@ -611,7 +611,7 @@ function BoxSelect({
       }}
       style={{ ...boxInputCss, fontSize: 14, cursor: "pointer" }}
     >
-      {options.length === 0 && <option value={value}>{value || "—"}</option>}
+      {options.length === 0 && <option value={value}>{value || "-"}</option>}
       {options.map((o) => (
         <option key={o.code} value={o.code}>
           {o.name}
@@ -1045,7 +1045,7 @@ function CollateralStep({
           fontSize: 12,
         }}
       >
-        Optional — posted to Fineract right after the loan is created. Incomplete rows are skipped
+        Optional - posted to Fineract right after the loan is created. Incomplete rows are skipped
         rather than blocking submission.
       </div>
 
@@ -1388,8 +1388,8 @@ function ReviewStep({
       <SectionLabel>Review Loan Application</SectionLabel>
 
       <ReviewCard title="Borrower Information">
-        <ReviewRow label="Client" value={client?.name ?? "—"} />
-        <ReviewRow label="Loan Product" value={product?.name ?? "—"} />
+        <ReviewRow label="Client" value={client?.name ?? "-"} />
+        <ReviewRow label="Loan Product" value={product?.name ?? "-"} />
         <ReviewRow label="Loan Type" value={loanType === "group" ? "Group" : "Individual"} />
       </ReviewCard>
 
@@ -1397,13 +1397,13 @@ function ReviewStep({
         <ReviewRow label="Principal" value={fmtGHS(principal)} />
         <ReviewRow
           label="Term"
-          value={`${loanTermFrequency || "—"} ${loanTermFrequencyType.toLowerCase()}`}
+          value={`${loanTermFrequency || "-"} ${loanTermFrequencyType.toLowerCase()}`}
         />
         <ReviewRow label="Disbursement Date" value={expectedDisbursementDate} />
       </ReviewCard>
 
       <ReviewCard title="Repayment Plan">
-        <ReviewRow label="Installments" value={numberOfRepayments || "—"} />
+        <ReviewRow label="Installments" value={numberOfRepayments || "-"} />
         <ReviewRow label="Frequency" value={repaymentFrequencyType} />
         <ReviewRow
           label="Interest Rate"

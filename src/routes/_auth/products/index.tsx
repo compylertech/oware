@@ -33,15 +33,18 @@ type NavCard = {
   iconFg: string;
   route: string;
   tag: { label: string; variant: LayerVariant };
+  /** Greyed out and unclickable - for catalogues not ready yet. */
+  disabled?: boolean;
 };
 
 function HubCard({ card }: { card: NavCard }) {
   const navigate = useNavigate();
   return (
     <button
-      onClick={() => navigate({ to: card.route as never })}
+      onClick={() => !card.disabled && navigate({ to: card.route as never })}
+      disabled={card.disabled}
       style={{
-        cursor: "pointer",
+        cursor: card.disabled ? "not-allowed" : "pointer",
         textAlign: "left",
         background: tokens.surface,
         border: `1px solid ${tokens.border}`,
@@ -53,13 +56,16 @@ function HubCard({ card }: { card: NavCard }) {
         gap: 14,
         transition: "background 120ms, transform 120ms, box-shadow 120ms",
         fontFamily: FONTS.body,
+        opacity: card.disabled ? 0.45 : 1,
       }}
       onMouseEnter={(e) => {
+        if (card.disabled) return;
         e.currentTarget.style.background = "#F7FAFF";
         e.currentTarget.style.transform = "translateY(-2px)";
         e.currentTarget.style.boxShadow = "0 6px 16px rgba(13,27,62,0.08)";
       }}
       onMouseLeave={(e) => {
+        if (card.disabled) return;
         e.currentTarget.style.background = tokens.surface;
         e.currentTarget.style.transform = "none";
         e.currentTarget.style.boxShadow = "none";
@@ -87,19 +93,24 @@ function HubCard({ card }: { card: NavCard }) {
           {card.desc}
         </div>
       </div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          marginTop: "auto",
-          color: tokens.accent,
-          fontSize: 13,
-          fontWeight: 300,
-        }}
-      >
-        View <ArrowRight size={14} />
-      </div>
+      {!card.disabled && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            marginTop: "auto",
+            color: tokens.accent,
+            fontSize: 13,
+            fontWeight: 300,
+          }}
+        >
+          View <ArrowRight size={14} />
+        </div>
+      )}
+      {card.disabled && (
+        <div style={{ marginTop: "auto", fontSize: 12, color: tokens.textMuted }}>Coming soon</div>
+      )}
     </button>
   );
 }
@@ -117,7 +128,7 @@ function ProductsHub() {
     },
     {
       title: "Loan Products",
-      desc: "Lending catalogue — rates, tenures and security definitions.",
+      desc: "Lending catalogue - rates, tenures and security definitions.",
       icon: <Landmark size={22} />,
       iconBg: "#ECFDF5",
       iconFg: "#059669",
@@ -141,6 +152,7 @@ function ProductsHub() {
       iconFg: "#7C3AED",
       route: "/products/prepaid",
       tag: { label: "Overlay", variant: "overlay" },
+      disabled: true,
     },
   ];
 

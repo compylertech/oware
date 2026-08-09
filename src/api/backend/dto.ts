@@ -89,14 +89,14 @@ export type ClientUpdateDto = Partial<
   >
 >;
 
-// GET /clients/{id}/addresses row shape (verified against a live instance —
+// GET /clients/{id}/addresses row shape (verified against a live instance -
 // note this differs from the create/update payload shape below: it carries
 // display names (addressType, stateName, countryName) and numeric Fineract
 // ids, not the codes the write endpoints take).
 export type ClientAddressDto = {
   clientId?: number;
   addressId?: number;
-  addressType?: string; // e.g. "Home", "Office" — display name
+  addressType?: string; // e.g. "Home", "Office" - display name
   addressTypeId?: number;
   active?: boolean;
   street?: string;
@@ -117,7 +117,7 @@ export type ClientAddressDto = {
 
 /** POST/PUT /clients/{id}/addresses[/{addressId}] payload shape. */
 export type ClientAddressWriteDto = {
-  addressTypeCode: string; // e.g. "HOME", "OFFICE" — reference code
+  addressTypeCode: string; // e.g. "HOME", "OFFICE" - reference code
   addressLine1?: string;
   addressLine2?: string | null;
   city?: string;
@@ -143,7 +143,7 @@ export type ReferenceValueDto = {
 };
 
 // GET /clients/{id}/family-members row shape (verified against a live
-// instance — like addresses, this differs from the create/update payload: it
+// instance - like addresses, this differs from the create/update payload: it
 // carries display names (relationship, gender, maritalStatus, profession) and
 // numeric Fineract ids, not the codes the write endpoint takes).
 export type ClientFamilyMemberDto = {
@@ -182,7 +182,7 @@ export type ClientFamilyMemberWriteDto = {
   dateOfBirth?: string | null;
 };
 
-// GET /clients/{id}/identifiers row shape (verified against a live instance —
+// GET /clients/{id}/identifiers row shape (verified against a live instance -
 // like addresses/family members, this differs from the create/update payload:
 // it carries a display name + numeric Fineract id (documentTypeId,
 // documentTypeName), not the documentTypeCode the write endpoint takes, and
@@ -239,7 +239,11 @@ export type ProductDto = {
   currencyCode?: string;
   status?: string; // ACTIVE | INACTIVE
   active?: boolean;
-  // Loan product economics (Fineract-coded fields arrive as strings)
+  // Loan product economics - repaymentFrequencyType/interestRateFrequencyType/
+  // amortizationType/interestType/interestCalculationPeriodType arrive as
+  // Fineract's raw internal numeric id (e.g. "2"), not the human string code
+  // ("MONTHS") the create/update payload takes - verified live. Match against
+  // a reference row's `providerId` to reverse-map back to the string code.
   principal?: number;
   minPrincipal?: number | null;
   maxPrincipal?: number | null;
@@ -247,12 +251,53 @@ export type ProductDto = {
   repaymentEvery?: number;
   repaymentFrequencyType?: string;
   annualNominalInterestRate?: number | null;
+  interestRateFrequencyType?: string;
+  amortizationType?: string;
   interestType?: string; // "0" declining balance | "1" flat
+  interestCalculationPeriodType?: string;
+  transactionProcessingStrategyCode?: string;
   // Savings product economics
   nominalAnnualInterestRate?: number;
-  minRequiredOpeningBalance?: number;
+  minRequiredOpeningBalance?: number | null;
+  interestCompoundingPeriodType?: string;
+  interestPostingPeriodType?: string;
+  interestCalculationType?: string;
+  interestCalculationDaysInYearType?: string;
+  minRequiredBalance?: number | null;
+  enforceMinRequiredBalance?: boolean;
   // Share product economics
   unitPrice?: number;
+  totalShares?: number | null;
+  nominalShares?: number | null;
+  minimumShares?: number | null;
+  maximumShares?: number | null;
+  // Lock-in — shared by savings and share products.
+  lockinPeriodFrequency?: number | null;
+  lockinPeriodFrequencyType?: string | null;
+  // Accounting — GET now returns the product's actual current configuration
+  // (fixed on the backend; previously write-only). "NONE" when no accounting
+  // is configured; GL fields are null when unmapped.
+  accountingRule?: string;
+  savingsReferenceAccountCode?: string | null;
+  savingsControlAccountCode?: string | null;
+  interestOnSavingsAccountCode?: string | null;
+  transfersInSuspenseAccountCode?: string | null;
+  writeOffAccountCode?: string | null;
+  incomeFromFeeAccountCode?: string | null;
+  incomeFromPenaltyAccountCode?: string | null;
+  incomeFromInterestAccountCode?: string | null;
+  overdraftPortfolioControlAccountCode?: string | null;
+  fundSourceAccountCode?: string | null;
+  loanPortfolioAccountCode?: string | null;
+  interestOnLoanAccountCode?: string | null;
+  incomeFromRecoveryAccountCode?: string | null;
+  overpaymentLiabilityAccountCode?: string | null;
+  receivableInterestAccountCode?: string | null;
+  receivableFeeAccountCode?: string | null;
+  receivablePenaltyAccountCode?: string | null;
+  shareReferenceAccountCode?: string | null;
+  shareSuspenseAccountCode?: string | null;
+  shareEquityAccountCode?: string | null;
 };
 
 export type AccountDto = {
@@ -296,9 +341,9 @@ export type TransactionDto = {
   reversed?: boolean;
 };
 
-// GET /loan-accounts/{loanAccountId} — a single loan's full detail (verified
+// GET /loan-accounts/{loanAccountId} - a single loan's full detail (verified
 // against a live instance). Note there's no clientName here, only clientId
-// (this service's own UUID) — cross-reference the app-wide client registry.
+// (this service's own UUID) - cross-reference the app-wide client registry.
 export type LoanAccountDetailDto = {
   id: string;
   clientId?: string;
@@ -325,6 +370,8 @@ export type LoanAccountDetailDto = {
   amortizationType?: string;
   interestType?: string;
   interestCalculationPeriodType?: string;
+  transactionProcessingStrategyCode?: string;
+  allowPartialPeriodInterestCalculation?: boolean;
   submittedOnDate?: string;
   approvedOnDate?: string | null;
   expectedDisbursementDate?: string | null;
@@ -334,7 +381,7 @@ export type LoanAccountDetailDto = {
   syncedWithFineract?: boolean;
 };
 
-// GET /loan-accounts/{loanAccountId}/repayment-schedule — verified against a
+// GET /loan-accounts/{loanAccountId}/repayment-schedule - verified against a
 // live instance. The first period (periodNumber: null) is Fineract's
 // disbursement-row convention, not a real installment.
 export type LoanRepaymentPeriodDto = {
@@ -377,9 +424,9 @@ export type LoanRepaymentScheduleDto = {
   periods?: LoanRepaymentPeriodDto[];
 };
 
-// GET /loan-accounts/{loanAccountId}/transactions/history — a flat array,
+// GET /loan-accounts/{loanAccountId}/transactions/history - a flat array,
 // verified against a live instance. Neither this nor repayment-schedule
-// actually respect limit/offset (confirmed live — same full result either
+// actually respect limit/offset (confirmed live - same full result either
 // way), so pagination for both is done client-side.
 export type LoanTransactionHistoryItemDto = {
   transactionId: number;
@@ -393,7 +440,7 @@ export type LoanTransactionHistoryItemDto = {
   reversed: boolean;
 };
 
-// POST /loan-accounts/{loanAccountId}/transactions/repayment — the posted
+// POST /loan-accounts/{loanAccountId}/transactions/repayment - the posted
 // transaction shape here differs from the savings TransactionDto (loan-
 // specific *Portion fields + outstandingLoanBalance instead of a running
 // balance), verified against a live instance.
@@ -421,7 +468,7 @@ export type LoanRepaymentResultDto = {
   transaction: LoanRepaymentTransactionDto;
 };
 
-// GET /loan-accounts/{loanAccountId}/transactions/preview?amount= —
+// GET /loan-accounts/{loanAccountId}/transactions/preview?amount= -
 // allocation preview for a prospective repayment, verified against a live
 // instance.
 export type LoanRepaymentPreviewDto = {
@@ -434,7 +481,7 @@ export type LoanRepaymentPreviewDto = {
   totalApplied?: number;
 };
 
-// POST /loan-accounts/{loanAccountId}/guarantors — verified against a live
+// POST /loan-accounts/{loanAccountId}/guarantors - verified against a live
 // instance. entityId for guarantorTypeCode "CUSTOMER" is the guarantor's own
 // Fineract client id (Client.fineractClientId in this app), not our UUID.
 export type CreateLoanGuarantorDto = {
@@ -451,7 +498,7 @@ export type LoanGuarantorResultDto = {
   fineractGuarantorId?: number;
 };
 
-// GET /loan-accounts/{loanAccountId}/guarantors — verified against a live
+// GET /loan-accounts/{loanAccountId}/guarantors - verified against a live
 // instance.
 export type LoanGuarantorDetailsDto = {
   fineractGuarantorId: number;
@@ -470,7 +517,7 @@ export type LoanGuarantorDetailsDto = {
   staffMember?: boolean;
 };
 
-// POST/GET /loan-accounts/{loanAccountId}/collaterals — verified against a
+// POST/GET /loan-accounts/{loanAccountId}/collaterals - verified against a
 // live instance. GET now exists (previously creation-only).
 export type CreateLoanCollateralDto = {
   collateralTypeCode: string;
@@ -486,7 +533,7 @@ export type LoanCollateralResultDto = {
   description?: string;
 };
 
-/** POST /savings-accounts/{ref}/transactions/deposit|withdrawal response —
+/** POST /savings-accounts/{ref}/transactions/deposit|withdrawal response -
  * wraps the resulting transaction with the async-review operation's id/status
  * (mirrors the transaction-operations workflow; POSTED means it went straight
  * through, anything else means it's pending review). */
@@ -511,7 +558,7 @@ export type ApplicationRowDto = {
   officerName?: string | null;
 };
 
-/** GET /loan-accounts/reports/applications response — `total` is the count
+/** GET /loan-accounts/reports/applications response - `total` is the count
  * across the whole filtered result set, not just this page's `applications`. */
 export type ApplicationsReportDto = {
   stage?: string;
@@ -536,7 +583,7 @@ export type ActiveLoanRowDto = {
   repaidPercent?: number;
 };
 
-/** GET /loan-accounts/reports/active response — summary stats alongside the
+/** GET /loan-accounts/reports/active response - summary stats alongside the
  * loan rows (verified against a live instance). */
 export type ActiveLoansReportDto = {
   totalOutstanding?: number;
@@ -567,7 +614,7 @@ export type ApprovalsReportDto = {
   approvals?: ApprovalRowDto[];
 };
 
-// GET /loan-accounts/reports/disbursements — shapes verified against
+// GET /loan-accounts/reports/disbursements - shapes verified against
 // /v3/api-docs/all's LoanDisbursementsResponseDto/DisbursementQueueItemDto/
 // DisbursementCompletedItemDto. `loanId` is only populated when full=false;
 // full=true (Fineract's richer report) omits it, exposing accountNo only.
@@ -621,7 +668,7 @@ export type DisbursementsReportDto = {
   recentlyDisbursed?: DisbursementCompletedItemDto[];
 };
 
-// GET /loan-accounts/reports/arrears — verified against a live instance.
+// GET /loan-accounts/reports/arrears - verified against a live instance.
 // `bucket`/`limit`/`offset` narrow `arrears`/`filteredCount` only; the
 // summary fields (parAmount, bucketXCount/Amount, etc.) always cover every
 // loan in arrears regardless of the filter.
@@ -677,7 +724,7 @@ export type OverviewDto = {
   arrearsAging?: Record<string, { count?: number; amount?: number }>;
 };
 
-// GET /clients/{id}/accounts row shapes (verified against a live instance) —
+// GET /clients/{id}/accounts row shapes (verified against a live instance) -
 // a combined loan/savings/share summary for a client.
 export type LoanAccountSummaryDto = {
   id: number;
@@ -729,7 +776,7 @@ export type ClientAccountsSummaryDto = {
 };
 
 /**
- * GET /share-accounts (search/get) shape — distinct from {@link ShareAccountSummaryDto}
+ * GET /share-accounts (search/get) shape - distinct from {@link ShareAccountSummaryDto}
  * (the lighter accounts-summary rendering, whose `id` is Fineract's numeric
  * core ID). Here `id` is this service's own UUID, which is what
  * `/share-accounts/{id}/...` action endpoints (apply-additional-shares,
@@ -786,7 +833,7 @@ export type TransactionOperationStatus =
   | "UNKNOWN"
   | "REVERSED";
 
-/** GET /transaction-operations row shape — `localAccountId` is this
+/** GET /transaction-operations row shape - `localAccountId` is this
  * service's own account UUID (matches AccountDto.id / ShareAccountDto.id). */
 export type TransactionOperationDto = {
   id: string;
@@ -804,7 +851,7 @@ export type TransactionOperationDto = {
 };
 
 // ── Dashboard ────────────────────────────────────────────────────────────────
-// GET /dashboard/client-growth | transaction-volume | summary — verified
+// GET /dashboard/client-growth | transaction-volume | summary - verified
 // against a live instance. `month` is 1-indexed. Sparse months (zero activity)
 // are simply absent from the growth/volume arrays, not returned as zero rows.
 
@@ -828,3 +875,137 @@ export type DashboardSummaryDto = {
   depositsThisMonth: number;
   pendingKycCount: number;
 };
+
+// ── Ledger ───────────────────────────────────────────────────────────────────
+// GET /ledger/entries - one row per journal-entry leg (a single deposit posts
+// a debit leg and a credit leg, so it's two rows here), verified against a
+// live instance. accountNo/clientName are legitimately null for manual/
+// adjusting GL entries with no linked account - render blank, not an error.
+export type LedgerEntryDto = {
+  accountNo: string | null;
+  clientName: string | null;
+  debit: number | null;
+  credit: number | null;
+  narration: string;
+  status: "Completed" | "Reversed" | string;
+  date: string;
+  officeName: string;
+};
+
+// ── Product creation ────────────────────────────────────────────────────────
+// POST /savings-products | /loan-products | /share-products - verified
+// against a live instance. Each creates directly in Fineract, syncs into the
+// local catalogue, and returns the synced record (same shape as GET /{id},
+// i.e. ProductDto). Reference-code fields (currencyCode, frequency types,
+// etc.) reject invalid codes with a clean 400 rather than a raw passthrough.
+// GL accounting fields are only required when accountingRule != "NONE".
+// GET /{id} was originally write-only for accounting/GL/lock-in/share-count
+// fields (confirmed live), but that's since been fixed backend-side - GET now
+// returns the product's real current configuration for all of these.
+// shortName and nominalAnnualInterestRate are listed as optional in the API
+// doc, but confirmed live to actually be enforced as required - a create
+// without them 400s ("shortName is mandatory" / "nominalAnnualInterestRate
+// is mandatory").
+export type CreateSavingsProductDto = {
+  name: string;
+  shortName: string;
+  description?: string;
+  currencyCode: string;
+  nominalAnnualInterestRate: number;
+  inMultiplesOf?: number;
+  interestCompoundingPeriodType?: string;
+  interestPostingPeriodType?: string;
+  interestCalculationType?: string;
+  interestCalculationDaysInYearType?: string;
+  minRequiredOpeningBalance?: number;
+  lockinPeriodFrequency?: number;
+  lockinPeriodFrequencyType?: string;
+  minRequiredBalance?: number;
+  enforceMinRequiredBalance?: boolean;
+  // Only required when accountingRule != "NONE".
+  accountingRule?: string;
+  savingsReferenceAccountCode?: string;
+  savingsControlAccountCode?: string;
+  interestOnSavingsAccountCode?: string;
+  transfersInSuspenseAccountCode?: string;
+  writeOffAccountCode?: string;
+  incomeFromFeeAccountCode?: string;
+  incomeFromPenaltyAccountCode?: string;
+  incomeFromInterestAccountCode?: string;
+  overdraftPortfolioControlAccountCode?: string;
+};
+
+// numberOfRepayments/repaymentEvery/repaymentFrequencyType/
+// interestRatePerPeriod/interestRateFrequencyType/amortizationType/
+// interestType/interestCalculationPeriodType are all required - same set as
+// LoanAccountCreate, since a loan account's terms default from the product.
+// shortName is listed as optional in the API doc, but confirmed live to
+// actually be required - a create without it 400s.
+export type CreateLoanProductDto = {
+  name: string;
+  shortName: string;
+  description?: string;
+  currencyCode: string;
+  principal: number;
+  minPrincipal?: number;
+  maxPrincipal?: number;
+  numberOfRepayments: number;
+  minNumberOfRepayments?: number;
+  maxNumberOfRepayments?: number;
+  repaymentEvery: number;
+  repaymentFrequencyType: string;
+  interestRatePerPeriod: number;
+  minInterestRatePerPeriod?: number;
+  maxInterestRatePerPeriod?: number;
+  interestRateFrequencyType: string;
+  amortizationType: string;
+  interestType: string;
+  interestCalculationPeriodType: string;
+  transactionProcessingStrategyCode?: string;
+  // Only required when accountingRule != "NONE".
+  accountingRule?: string;
+  fundSourceAccountCode?: string;
+  loanPortfolioAccountCode?: string;
+  transfersInSuspenseAccountCode?: string;
+  interestOnLoanAccountCode?: string;
+  incomeFromFeeAccountCode?: string;
+  incomeFromPenaltyAccountCode?: string;
+  incomeFromRecoveryAccountCode?: string;
+  writeOffAccountCode?: string;
+  overpaymentLiabilityAccountCode?: string;
+  receivableInterestAccountCode?: string;
+  receivableFeeAccountCode?: string;
+  receivablePenaltyAccountCode?: string;
+};
+
+// shortName is Fineract-enforced max 4 characters.
+export type CreateShareProductDto = {
+  name: string;
+  shortName: string;
+  description: string;
+  currencyCode: string;
+  totalShares: number;
+  nominalShares: number;
+  minimumShares?: number;
+  maximumShares?: number;
+  unitPrice: number;
+  lockinPeriodFrequency?: number;
+  lockinPeriodFrequencyType?: string;
+  // Only required when accountingRule != "NONE".
+  accountingRule?: string;
+  shareReferenceAccountCode?: string;
+  shareSuspenseAccountCode?: string;
+  shareEquityAccountCode?: string;
+  incomeFromFeeAccountCode?: string;
+};
+
+// PUT /savings-products/{id} | /loan-products/{id} | /share-products/{id} -
+// genuinely partial, verified live: every field is optional, and an omitted
+// field is left exactly as-is (there's no way to unset/clear a field back to
+// null, only set a new value). GL account fields resolve independently of
+// accountingRule - you can update a single GL mapping without resending
+// accountingRule or any other field. `code` is derived from shortName at
+// creation and is never editable, even though shortName itself can change.
+export type UpdateSavingsProductDto = Partial<CreateSavingsProductDto>;
+export type UpdateLoanProductDto = Partial<CreateLoanProductDto>;
+export type UpdateShareProductDto = Partial<CreateShareProductDto>;

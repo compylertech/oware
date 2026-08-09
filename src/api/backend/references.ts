@@ -1,4 +1,4 @@
-// References service — maps to the "References" group of the Postman collection.
+// References service - maps to the "References" group of the Postman collection.
 //   GET  /references?category=&provider=
 //   POST /references/sync
 //
@@ -21,7 +21,7 @@ import { request, withMock } from "./http";
 // change within a session, but nearly every form on the client detail page
 // and the add/edit wizard asks for the same handful of categories. Cache the
 // in-flight/resolved promise per category+provider so repeated calls across
-// components share one network request instead of firing one each — this is
+// components share one network request instead of firing one each - this is
 // a module-level cache, so it persists for the lifetime of the page (cleared
 // on full reload) and is shared by every caller.
 const cache = new Map<string, Promise<ReferenceValueDto[]>>();
@@ -40,7 +40,7 @@ export const referencesApi = {
       () => request<ReferenceValueDto[]>("/references", { query: { category, provider } }),
       () => [],
     );
-    // Don't let a failed request poison the cache — the next caller should retry.
+    // Don't let a failed request poison the cache - the next caller should retry.
     promise.catch(() => cache.delete(key));
     cache.set(key, promise);
     return promise;
@@ -51,7 +51,7 @@ export const referencesApi = {
       () => request<void>("/references/sync", { method: "POST", body: { category } }),
       () => undefined,
     ).then(() => {
-      // The backend just refreshed this category — drop our cache so the next
+      // The backend just refreshed this category - drop our cache so the next
       // list() call picks up the new values instead of the stale cached list.
       cache.delete(cacheKey(category, provider));
     });

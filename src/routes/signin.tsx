@@ -9,7 +9,7 @@ import { apiErrorMessage } from "@/api/backend";
 export const Route = createFileRoute("/signin")({
   head: () => ({
     meta: [
-      { title: "Sign in — Oware" },
+      { title: "Sign in - Oware" },
       { name: "description", content: "Sign in to your Oware workspace." },
     ],
   }),
@@ -34,7 +34,7 @@ function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Already signed in (e.g. navigated here directly) — no reason to show the form.
+  // Already signed in (e.g. navigated here directly) - no reason to show the form.
   useEffect(() => {
     if (session) navigate({ to: "/dashboard", replace: true });
   }, [session, navigate]);

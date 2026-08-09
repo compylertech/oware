@@ -97,17 +97,17 @@ function mapAccountDetail(dto: AccountDto, fallbackAccountNumber: string): Accou
   return {
     id: dto.id,
     accountNumber: dto.accountNo ?? fallbackAccountNumber,
-    productName: dto.productName ?? "—",
+    productName: dto.productName ?? "-",
     balance: dto.availableBalance ?? dto.accountBalance ?? 0,
     status: accountStatusFrom(dto.status),
-    clientId: dto.clientId ?? "—",
-    clientName: dto.clientName ?? "—",
-    activationDate: dto.activatedOnDate ? fmtDate(new Date(dto.activatedOnDate)) : "—",
+    clientId: dto.clientId ?? "-",
+    clientName: dto.clientName ?? "-",
+    activationDate: dto.activatedOnDate ? fmtDate(new Date(dto.activatedOnDate)) : "-",
   };
 }
 
 // A "withdrawal notice" on this backend is a SAVINGS_WITHDRAWAL transaction
-// operation sitting in the async review workflow — statuses map onto the
+// operation sitting in the async review workflow - statuses map onto the
 // same StatusPill tones used elsewhere rather than a bespoke 3-state enum.
 const NOTICE_STATUS: Record<string, StatusKind> = {
   RECEIVED: "Pending",
@@ -138,7 +138,7 @@ function mapWithdrawalNotice(dto: TransactionOperationDto): WithdrawalNotice {
 
 // The transactions endpoint reports amount as an unsigned magnitude and
 // encodes direction in transactionTypeCode (e.g.
-// "savingsAccountTransactionType.withdrawal") — classify by keyword since
+// "savingsAccountTransactionType.withdrawal") - classify by keyword since
 // deposits/interest/dividends are the credit side and withdrawals/fees/
 // charges are the debit side.
 const DEBIT_TRANSACTION_KEYWORDS = ["withdrawal", "fee", "charge", "penalty"];
@@ -151,7 +151,7 @@ function mapTransaction(dto: TransactionDto): Txn {
   const dateValue = dto.transactionDate ?? dto.date;
   return {
     id: String(dto.id),
-    date: dateValue ? fmtDate(new Date(dateValue)) : "—",
+    date: dateValue ? fmtDate(new Date(dateValue)) : "-",
     narration: dto.note?.trim() || dto.transactionTypeValue || dto.type || "Transaction",
     entry: entryFromTransactionType(dto.transactionTypeCode),
     amount: dto.amount ?? 0,
@@ -276,7 +276,7 @@ function AccountLookupPage() {
     }
   }
 
-  /** Re-runs the transactions fetch with a date range — the API filters
+  /** Re-runs the transactions fetch with a date range - the API filters
    * server-side, so this replaces the current rows rather than re-filtering
    * client-side. */
   async function refetchTransactions(fromDate: string, toDate: string) {
@@ -337,7 +337,7 @@ function AccountLookupPage() {
   }
 
   /** Credit/Debit dialogs post to the real deposit/withdrawal endpoints and
-   * hand back the resulting transaction — apply it directly rather than
+   * hand back the resulting transaction - apply it directly rather than
    * guessing at a new balance. */
   function applyTxnResult(tx: TransactionDto) {
     setAccount((prev) => (prev ? { ...prev, balance: tx.runningBalance ?? prev.balance } : prev));
@@ -345,7 +345,7 @@ function AccountLookupPage() {
   }
 
   /** A withdrawal notice is a SAVINGS_WITHDRAWAL sent with approvalRequired:
-   * true — the backend parks it awaiting approval instead of posting it, so
+   * true - the backend parks it awaiting approval instead of posting it, so
    * runningBalance/transaction.id come back null and there's nothing to add
    * to the transactions table; it becomes a new notice row instead. */
   function applyNoticeResult(result: MoneyTransactionResultDto) {
@@ -380,7 +380,7 @@ function AccountLookupPage() {
       );
       toast.success(action === "approve" ? "Notice approved." : "Notice rejected.");
       setReviewDialog(null);
-      // Approving actually posts the withdrawal to Fineract — refresh the
+      // Approving actually posts the withdrawal to Fineract - refresh the
       // account balance and transactions so they reflect it immediately.
       if (action === "approve" && account) {
         const [detail, rows] = await Promise.all([

@@ -2,9 +2,9 @@ import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 import { tokens } from "@/lib/tokens";
 import { cn } from "@/lib/utils";
 
-// Semantic convention: `success` (solid green) for affirmative actions —
+// Semantic convention: `success` (solid green) for affirmative actions -
 // add/create/approve/post/register/issue; `danger` (solid red) for negative
-// actions — reject/cancel/delete. `primary` (navy) is for neutral primaries.
+// actions - reject/cancel/delete. `primary` (navy) is for neutral primaries.
 type Variant =
   | "primary"
   | "primaryOutline"
@@ -108,7 +108,7 @@ function variantStyle(variant: Variant, disabled?: boolean): ButtonVariantStyle 
 }
 
 /**
- * Canonical button. The single button used across the app — every page action,
+ * Canonical button. The single button used across the app - every page action,
  * modal footer, and toolbar button renders through this so they look the same
  * everywhere. Use `variant` for intent and `size` for scale; pass `icon` /
  * `iconRight` instead of nesting icons in children.

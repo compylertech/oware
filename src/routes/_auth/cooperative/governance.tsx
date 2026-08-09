@@ -89,7 +89,7 @@ const SEED_MEETINGS: Meeting[] = [
   },
   {
     id: "m3",
-    title: "Credit Committee — June",
+    title: "Credit Committee - June",
     type: "Committee",
     date: "18 Jun 2026",
     location: "Head Office Room 2",
@@ -103,7 +103,7 @@ const SEED_MEETINGS: Meeting[] = [
   },
   {
     id: "m4",
-    title: "Special Resolution — Bylaw Amendment",
+    title: "Special Resolution - Bylaw Amendment",
     type: "Special",
     date: "09 Jul 2026",
     location: "Virtual (Zoom)",
@@ -380,7 +380,7 @@ function QuorumBar({
           fontVariantNumeric: "tabular-nums",
         }}
       >
-        {attendance ?? "—"} / {eligible}
+        {attendance ?? "-"} / {eligible}
       </div>
       <span
         style={{
@@ -922,7 +922,7 @@ function GovernancePage() {
                               color,
                             }}
                           >
-                            {m.attendance ?? "—"} / {m.quorumRequired}
+                            {m.attendance ?? "-"} / {m.quorumRequired}
                           </Td>
                           <Td>
                             <StatusPill status={m.status} />
@@ -1147,7 +1147,7 @@ function GovernancePage() {
                               <SlidersHorizontal size={12} /> {r.governedChange}
                             </span>
                           ) : (
-                            <span style={{ color: tokens.textMuted }}>—</span>
+                            <span style={{ color: tokens.textMuted }}>-</span>
                           )}
                         </Td>
                         <Td>

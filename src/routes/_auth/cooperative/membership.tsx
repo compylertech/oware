@@ -292,7 +292,7 @@ function MembershipPage() {
         >
           <Info size={16} style={{ marginTop: 2, flexShrink: 0 }} />
           <div>
-            Members are admitted through the <strong>Clients</strong> registration flow — tick
+            Members are admitted through the <strong>Clients</strong> registration flow - tick
             “Register as cooperative member” on the Cooperative step to enrol a client into this
             register.
           </div>

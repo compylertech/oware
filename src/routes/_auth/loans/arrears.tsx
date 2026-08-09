@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { X } from "lucide-react";
 import { LOAN } from "@/lib/tokens";
@@ -27,10 +27,10 @@ export const Route = createFileRoute("/_auth/loans/arrears")({
 
 const PREVIEW_COUNT = 5;
 
-const BUCKET_LABEL: Record<ArrearsBucketKey, "1–30" | "31–60" | "61–90" | "90+"> = {
-  "1to30": "1–30",
-  "31to60": "31–60",
-  "61to90": "61–90",
+const BUCKET_LABEL: Record<ArrearsBucketKey, "1-30" | "31-60" | "61-90" | "90+"> = {
+  "1to30": "1-30",
+  "31to60": "31-60",
+  "61to90": "61-90",
   "90plus": "90+",
 };
 
@@ -100,7 +100,16 @@ function ArrearsPage() {
                 ) : (
                   data.rows.map((o) => (
                     <Tr key={o.loanId} hover>
-                      <Td style={{ fontWeight: 300 }}>{o.client}</Td>
+                      <Td style={{ fontWeight: 300 }}>
+                        <Link
+                          to="/loans/$loanId"
+                          params={{ loanId: o.accountNo }}
+                          search={{ from: "arrears" }}
+                          style={{ color: LOAN.navy }}
+                        >
+                          {o.client}
+                        </Link>
+                      </Td>
                       <Td>{fmtGHS(o.principalOutstanding + o.interestOutstanding)}</Td>
                       <Td style={{ color: LOAN.red, fontWeight: 100 }}>{o.daysOverdue} days</Td>
                       <Td>
@@ -255,7 +264,16 @@ function ArrearsModal({ onClose }: { onClose: () => void }) {
                   ) : (
                     data.rows.map((o) => (
                       <Tr key={o.loanId} hover>
-                        <Td style={{ fontWeight: 300 }}>{o.client}</Td>
+                        <Td style={{ fontWeight: 300 }}>
+                          <Link
+                            to="/loans/$loanId"
+                            params={{ loanId: o.accountNo }}
+                            search={{ from: "arrears" }}
+                            style={{ color: LOAN.navy }}
+                          >
+                            {o.client}
+                          </Link>
+                        </Td>
                         <Td>{o.product}</Td>
                         <Td style={{ color: LOAN.muted }}>{o.accountNo}</Td>
                         <Td>{fmtGHS(o.principalOutstanding + o.interestOutstanding)}</Td>

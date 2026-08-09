@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Search, RefreshCw, Landmark } from "lucide-react";
+import { Search, RefreshCw, Landmark, Check, AlertTriangle } from "lucide-react";
 import { LOAN } from "@/lib/tokens";
 import { LoansShell } from "@/components/loans/LoansShell";
 import {
@@ -84,7 +84,7 @@ function RepaymentsPage() {
   const [preview, setPreview] = useState<LoanRepaymentPreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
 
-  // Debounced live allocation preview — re-fetched from the server on every
+  // Debounced live allocation preview - re-fetched from the server on every
   // amount change rather than computed locally, since allocation order
   // (penalty > interest > fees > principal) is business logic that lives
   // backend-side.
@@ -133,7 +133,7 @@ function RepaymentsPage() {
       const teller =
         [session?.user.firstName, session?.user.lastName].filter(Boolean).join(" ") ||
         session?.user.email ||
-        "—";
+        "-";
       const isPartial = n < loan.totalOutstanding;
       const note = `${method.toUpperCase()} | ${date} | TELLER: ${teller} | ${isPartial ? "PARTIAL PAYMENT" : "FULL PAYMENT"}`;
       const result = await loanAccountsApi.repayment(loan.accountNo, {
@@ -248,7 +248,7 @@ function RepaymentsPage() {
                     {loan.accountNo}
                   </div>
                   <div style={{ fontSize: 12, color: LOAN.ink }}>
-                    {client?.name ?? "—"} · {loan.productName}
+                    {client?.name ?? "-"} · {loan.productName}
                   </div>
                 </div>
                 <div className="ml-auto" style={{ textAlign: "right" }}>
@@ -403,7 +403,8 @@ function RepaymentsPage() {
                       <Td>
                         <StatusPill
                           label={r.reversed ? "Reversed" : "Completed"}
-                          tone={r.reversed ? "gray" : "green"}
+                          tone={r.reversed ? "red" : "green"}
+                          icon={r.reversed ? <AlertTriangle size={12} /> : <Check size={12} />}
                         />
                       </Td>
                     </Tr>

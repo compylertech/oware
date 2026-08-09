@@ -3,6 +3,8 @@
 export { Button } from "./Button";
 export { Tabs } from "./Tabs";
 export type { TabItem } from "./Tabs";
+export { SegmentedControl } from "./SegmentedControl";
+export type { SegmentOption } from "./SegmentedControl";
 export { FilterSelect } from "./FilterSelect";
 export type { FilterOption } from "./FilterSelect";
 export { DateRangeFilter } from "./DateRangeFilter";

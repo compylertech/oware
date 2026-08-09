@@ -1,7 +1,7 @@
 // Watches the signed-in user's access-token expiry and keeps active sessions
 // alive: while the user is interacting with the app, the token is renewed
 // silently ahead of expiry. If they've gone idle, a "still there?" prompt
-// asks before renewing — declining (or letting it time out) signs them out.
+// asks before renewing - declining (or letting it time out) signs them out.
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/patterns";
@@ -56,7 +56,7 @@ export function SessionExpiryGuard() {
     async function onWarning() {
       const idleMs = Date.now() - lastActivityRef.current;
       if (idleMs < ACTIVE_WITHIN_MS) {
-        // Actively browsing — renew quietly, no interruption.
+        // Actively browsing - renew quietly, no interruption.
         try {
           await refreshSession();
         } catch {
@@ -65,7 +65,7 @@ export function SessionExpiryGuard() {
         return;
       }
 
-      // Idle — ask before renewing.
+      // Idle - ask before renewing.
       setSecondsLeft(Math.round(WARNING_LEAD_MS / 1000));
       setPrompting(true);
       countdownTimer = setInterval(() => {

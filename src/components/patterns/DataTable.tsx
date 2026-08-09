@@ -13,6 +13,39 @@ type Align = "left" | "center" | "right";
 /** Standard "rows per page" choices for TablePagination's pageSizeOptions. */
 export const PAGE_SIZE_OPTIONS = [5, 10, 25, 50, 75, 100];
 
+/** Compact page-number list: first, last, and a small window around the
+ * current page, with "…" filling any gap - so the pager stays a fixed width
+ * regardless of how many pages there are (was rendering one button per page,
+ * unbounded). `siblingCount` is how many pages to show on each side of the
+ * current one. */
+function paginationRange(current: number, total: number, siblingCount = 1): (number | "…")[] {
+  const totalSlots = siblingCount * 2 + 5; // first + last + current + 2 siblings + 2 ellipses
+  if (total <= totalSlots) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  const leftSibling = Math.max(current - siblingCount, 1);
+  const rightSibling = Math.min(current + siblingCount, total);
+  const showLeftEllipsis = leftSibling > 2;
+  const showRightEllipsis = rightSibling < total - 1;
+
+  if (!showLeftEllipsis && showRightEllipsis) {
+    const leftCount = 3 + siblingCount * 2;
+    const leftRange = Array.from({ length: leftCount }, (_, i) => i + 1);
+    return [...leftRange, "…", total];
+  }
+  if (showLeftEllipsis && !showRightEllipsis) {
+    const rightCount = 3 + siblingCount * 2;
+    const rightRange = Array.from({ length: rightCount }, (_, i) => total - rightCount + i + 1);
+    return [1, "…", ...rightRange];
+  }
+  const middleRange = Array.from(
+    { length: rightSibling - leftSibling + 1 },
+    (_, i) => leftSibling + i,
+  );
+  return [1, "…", ...middleRange, "…", total];
+}
+
 export type TablePaginationProps = {
   page: number;
   totalPages: number;
@@ -73,7 +106,7 @@ export function TableCard({
           actions={actions}
         />
       )}
-      {/* Clip only the table content to the card's rounded corners — the
+      {/* Clip only the table content to the card's rounded corners - the
           toolbar's own overflow must stay visible so filter dropdowns aren't
           cut off by whatever's rendered below them. */}
       <div style={{ overflow: "hidden", borderRadius: 14 }}>{children}</div>
@@ -273,7 +306,7 @@ export function TablePagination({
 }: TablePaginationProps) {
   const safeTotalPages = Math.max(1, totalPages);
   const safePage = Math.min(Math.max(1, page), safeTotalPages);
-  const pages = Array.from({ length: safeTotalPages }, (_, i) => i + 1);
+  const pages = paginationRange(safePage, safeTotalPages);
   const showPageSize = pageSize != null && pageSizeOptions?.length && onPageSizeChange;
 
   return (
@@ -313,25 +346,42 @@ export function TablePagination({
         <PageButton onClick={() => onPageChange(safePage - 1)} disabled={safePage === 1}>
           <ChevronLeft size={14} />
         </PageButton>
-        {pages.map((p) => (
-          <button
-            key={p}
-            onClick={() => onPageChange(p)}
-            className="cursor-pointer"
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: 8,
-              fontSize: 12,
-              fontWeight: 300,
-              background: p === safePage ? tokens.navy : "#fff",
-              color: p === safePage ? "#fff" : tokens.textSub,
-              border: `1px solid ${p === safePage ? tokens.navy : tokens.border}`,
-            }}
-          >
-            {p}
-          </button>
-        ))}
+        {pages.map((p, i) =>
+          p === "…" ? (
+            <span
+              key={`ellipsis-${i}`}
+              style={{
+                width: 30,
+                height: 30,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 12,
+                color: tokens.textMuted,
+              }}
+            >
+              …
+            </span>
+          ) : (
+            <button
+              key={p}
+              onClick={() => onPageChange(p)}
+              className="cursor-pointer"
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 300,
+                background: p === safePage ? tokens.navy : "#fff",
+                color: p === safePage ? "#fff" : tokens.textSub,
+                border: `1px solid ${p === safePage ? tokens.navy : tokens.border}`,
+              }}
+            >
+              {p}
+            </button>
+          ),
+        )}
         <PageButton
           onClick={() => onPageChange(safePage + 1)}
           disabled={safePage === safeTotalPages}

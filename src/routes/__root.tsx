@@ -80,7 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Oware — Core Banking Platform" },
+      { title: "Oware - Core Banking Platform" },
       { name: "description", content: "Core banking platform for modern financial institutions." },
       { name: "author", content: "Oware" },
       { property: "og:title", content: "Oware" },

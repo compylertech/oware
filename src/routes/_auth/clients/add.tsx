@@ -790,7 +790,7 @@ function AddClientPage() {
       setShareForm({ productCode: "", requestedShares: "" });
     } catch {
       setShareError(
-        "The backend rejected this request — the demo share-accounts endpoint currently has a data-linking issue on some clients.",
+        "The backend rejected this request - the demo share-accounts endpoint currently has a data-linking issue on some clients.",
       );
     } finally {
       setShareSubmitting(false);
@@ -1056,7 +1056,7 @@ function AddClientPage() {
                             addressTypeOptions.find((o) => o.code === a.addressTypeCode)?.name ??
                             a.addressTypeCode
                           }
-                          subtitle={[a.addressLine1, a.city].filter(Boolean).join(", ") || "—"}
+                          subtitle={[a.addressLine1, a.city].filter(Boolean).join(", ") || "-"}
                           onEdit={() => {
                             setAddressDraft(a);
                             setAddressModalOpen(true);
@@ -1086,10 +1086,10 @@ function AddClientPage() {
                       {family.map((f) => (
                         <ItemRow
                           key={f.localId}
-                          title={[f.firstName, f.lastName].filter(Boolean).join(" ") || "—"}
+                          title={[f.firstName, f.lastName].filter(Boolean).join(" ") || "-"}
                           subtitle={
                             relationshipOptions.find((o) => o.code === f.relationshipCode)?.name ??
-                            "—"
+                            "-"
                           }
                           onEdit={() => {
                             setFamilyDraft(f);
@@ -1124,7 +1124,7 @@ function AddClientPage() {
                             identifierTypeOptions.find((o) => o.code === i.documentTypeCode)
                               ?.name ?? i.documentTypeCode
                           }
-                          subtitle={i.documentKey || "—"}
+                          subtitle={i.documentKey || "-"}
                           onEdit={() => {
                             setIdentityDraft(i);
                             setIdentityModalOpen(true);
@@ -1346,7 +1346,7 @@ function AddClientPage() {
           <strong>
             {personal.firstName} {personal.lastName}
           </strong>{" "}
-          as a new client record. This cannot be easily undone — the remaining steps (address,
+          as a new client record. This cannot be easily undone - the remaining steps (address,
           family, identity, shares) will attach to this client once created.
         </p>
       </Modal>
@@ -1423,7 +1423,7 @@ function AddClientPage() {
                   )
                 }
                 options={[
-                  { value: "", label: "— None —" },
+                  { value: "", label: "- None -" },
                   ...stateOptions.map((o) => ({ value: o.code, label: o.name })),
                 ]}
               />

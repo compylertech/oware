@@ -6,7 +6,7 @@ import { Button } from "@/components/patterns";
 export type FilterOption = { key: string; label: string };
 
 /** Pill-button dropdown shared by the loan pages' Product/Branch/Officer
- * filters — shows `placeholder` when nothing is selected, closes on outside
+ * filters - shows `placeholder` when nothing is selected, closes on outside
  * click. */
 export function FilterDropdown({
   placeholder,

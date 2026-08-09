@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import { RefreshCw, Download, Search, MoreVertical } from "lucide-react";
-import { StatusPill, type StatusKind } from "@/components/common/StatusPill";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { RefreshCw, Search, Eye } from "lucide-react";
+import { StatusPill } from "@/components/common/StatusPill";
 import {
   Button,
   DateRangeFilter,
@@ -13,9 +14,12 @@ import {
   Th,
   THead,
   Tr,
+  PAGE_SIZE_OPTIONS,
 } from "@/components/patterns";
-import { isDisplayDateInRange } from "@/lib/dateFilters";
+import { ledgerApi, referencesApi, apiErrorMessage, type LedgerEntry } from "@/api/backend";
+import { useBackendData, refreshBackendData } from "@/api/useBackendData";
 import { FONTS } from "@/lib/tokens";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_auth/transactions")({
   component: TransactionsPage,
@@ -26,130 +30,23 @@ const BORDER = "#DDE4EF";
 const MUTED = "#5B6A86";
 const INK = "#16233F";
 const BG = "#F4F6FB";
-const PAGE_SIZE = 10;
-
-type Row = {
-  acct: string;
-  client: string;
-  type: "Credit" | "Debit";
-  amount: number;
-  narration: string;
-  status: Extract<StatusKind, "Completed" | "Pending">;
-  date: string;
-};
-
-const ROWS: Row[] = [
-  {
-    acct: "ACC-00001",
-    client: "Kwame Asante",
-    type: "Credit",
-    amount: 100000,
-    narration: "Salary deposit",
-    status: "Completed",
-    date: "22 Jun 2026",
-  },
-  {
-    acct: "ACC-00001",
-    client: "Kwame Asante",
-    type: "Debit",
-    amount: 800,
-    narration: "Utility payment",
-    status: "Completed",
-    date: "22 Jun 2026",
-  },
-  {
-    acct: "ACC-00002",
-    client: "Abena Mensah",
-    type: "Debit",
-    amount: 4000,
-    narration: "Loan repayment",
-    status: "Completed",
-    date: "20 Jun 2026",
-  },
-  {
-    acct: "ACC-00003",
-    client: "Kofi Boateng",
-    type: "Credit",
-    amount: 12500,
-    narration: "Business income",
-    status: "Completed",
-    date: "18 Jun 2026",
-  },
-  {
-    acct: "ACC-00002",
-    client: "Abena Mensah",
-    type: "Debit",
-    amount: 200,
-    narration: "Mobile transfer",
-    status: "Completed",
-    date: "15 Jun 2026",
-  },
-  {
-    acct: "ACC-00004",
-    client: "Ama Darko",
-    type: "Credit",
-    amount: 39.8,
-    narration: "Interest earned",
-    status: "Completed",
-    date: "12 Jun 2026",
-  },
-  {
-    acct: "ACC-00005",
-    client: "Yaw Owusu",
-    type: "Credit",
-    amount: 5000,
-    narration: "Cash deposit",
-    status: "Completed",
-    date: "10 Jun 2026",
-  },
-  {
-    acct: "ACC-00003",
-    client: "Kofi Boateng",
-    type: "Debit",
-    amount: 1200,
-    narration: "Insurance premium",
-    status: "Completed",
-    date: "08 Jun 2026",
-  },
-  {
-    acct: "ACC-00006",
-    client: "Efua Tetteh",
-    type: "Credit",
-    amount: 750,
-    narration: "Refund",
-    status: "Pending",
-    date: "05 Jun 2026",
-  },
-  {
-    acct: "ACC-00001",
-    client: "Kwame Asante",
-    type: "Debit",
-    amount: 3500,
-    narration: "Withdrawal",
-    status: "Completed",
-    date: "01 Jun 2026",
-  },
-];
+const PAGE_SIZE_DEFAULT = 10;
+// Bulk-fetch pattern used elsewhere in this app (e.g. Active Loans): the
+// ledger endpoint's pagination is server-reliable, but Type/Status/search
+// aren't server-side filters here, so a large batch is fetched once (office/
+// date narrow it server-side) and Type/Status/search/pagination are applied
+// client-side over that batch.
+const BULK_SIZE = 500;
 
 const fmt = (n: number) =>
   n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const OFFICE_BY_ACCT: Record<string, string> = {
-  "ACC-00001": "Head Office",
-  "ACC-00002": "Kumasi",
-  "ACC-00003": "Takoradi",
-  "ACC-00004": "Accra Main",
-  "ACC-00005": "Head Office",
-  "ACC-00006": "Kumasi",
-};
+function fmtDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
 
-const OFFICE_OPTIONS = [
-  { label: "All offices", value: "All" },
-  { label: "Head Office", value: "Head Office" },
-  { label: "Accra Main", value: "Accra Main" },
-  { label: "Kumasi", value: "Kumasi" },
-  { label: "Takoradi", value: "Takoradi" },
-];
 const TYPE_OPTIONS = [
   { label: "All types", value: "All" },
   { label: "Credit", value: "Credit" },
@@ -158,100 +55,108 @@ const TYPE_OPTIONS = [
 const STATUS_OPTIONS = [
   { label: "All statuses", value: "All" },
   { label: "Completed", value: "Completed" },
-  { label: "Pending", value: "Pending" },
+  { label: "Reversed", value: "Reversed" },
 ];
 
-function showToast(msg: string) {
-  if (typeof window === "undefined") return;
-  const el = document.createElement("div");
-  el.textContent = msg;
-  Object.assign(el.style, {
-    position: "fixed",
-    bottom: "24px",
-    right: "24px",
-    background: "#16233F",
-    color: "#fff",
-    padding: "10px 16px",
-    borderRadius: "8px",
-    fontSize: "13px",
-    fontFamily: FONTS.body,
-    zIndex: "9999",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-  } as Partial<CSSStyleDeclaration>);
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 2400);
-}
-
 function TransactionsPage() {
-  const [openMenu, setOpenMenu] = useState<number | null>(null);
-  const [detail, setDetail] = useState<Row | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [detail, setDetail] = useState<LedgerEntry | null>(null);
 
   const [search, setSearch] = useState("");
-  const [office, setOffice] = useState("All");
+  const [officeFilter, setOfficeFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE_DEFAULT);
 
+  const [officeOptions, setOfficeOptions] = useState<{ label: string; value: string }[]>([
+    { label: "All offices", value: "All" },
+  ]);
   useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpenMenu(null);
-    }
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+    void referencesApi
+      .list("OFFICE")
+      .then((opts) =>
+        setOfficeOptions([
+          { label: "All offices", value: "All" },
+          ...opts.map((o) => ({ label: o.name, value: o.code })),
+        ]),
+      );
   }, []);
 
+  const cacheKey = `ledger:${officeFilter}:${dateFrom}:${dateTo}`;
+  const fetchEntries = () =>
+    ledgerApi.entries({
+      officeCode: officeFilter === "All" ? undefined : officeFilter,
+      fromDate: dateFrom || undefined,
+      toDate: dateTo || undefined,
+      size: BULK_SIZE,
+    });
+  const { data, loading } = useBackendData(cacheKey, fetchEntries);
+  const rows = data?.content ?? [];
+
+  const [refreshing, setRefreshing] = useState(false);
+  async function handleRefresh() {
+    setRefreshing(true);
+    try {
+      await refreshBackendData(cacheKey, fetchEntries);
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Could not refresh transactions."));
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
   const q = search.trim().toLowerCase();
-  const filtered = ROWS.filter((r) => {
-    if (office !== "All" && OFFICE_BY_ACCT[r.acct] !== office) return false;
-    if (typeFilter !== "All" && r.type !== typeFilter) return false;
+  const filtered = rows.filter((r) => {
+    if (typeFilter === "Credit" && r.credit == null) return false;
+    if (typeFilter === "Debit" && r.debit == null) return false;
     if (statusFilter !== "All" && r.status !== statusFilter) return false;
-    if (!isDisplayDateInRange(r.date, dateFrom, dateTo)) return false;
-    if (q && !`${r.acct} ${r.client} ${r.narration}`.toLowerCase().includes(q)) return false;
+    if (q) {
+      const haystack = `${r.accountNo ?? ""} ${r.clientName ?? ""} ${r.narration}`.toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
     return true;
   });
 
   const totalCredits = filtered
-    .filter((r) => r.type === "Credit" && r.status === "Completed")
-    .reduce((s, r) => s + r.amount, 0);
+    .filter((r) => r.credit != null && r.status === "Completed")
+    .reduce((s, r) => s + (r.credit ?? 0), 0);
   const totalDebits = filtered
-    .filter((r) => r.type === "Debit" && r.status === "Completed")
-    .reduce((s, r) => s + r.amount, 0);
-  const pendingCount = filtered.filter((r) => r.status === "Pending").length;
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    .filter((r) => r.debit != null && r.status === "Completed")
+    .reduce((s, r) => s + (r.debit ?? 0), 0);
+  const reversedCount = filtered.filter((r) => r.status === "Reversed").length;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const pageRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageRows = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  function resetPage() {
+    setPage(1);
+  }
 
   function updateSearch(value: string) {
     setSearch(value);
-    setPage(1);
+    resetPage();
   }
-
   function updateOffice(value: string) {
-    setOffice(value);
-    setPage(1);
+    setOfficeFilter(value);
+    resetPage();
   }
-
   function updateType(value: string) {
     setTypeFilter(value);
-    setPage(1);
+    resetPage();
   }
-
   function updateStatus(value: string) {
     setStatusFilter(value);
-    setPage(1);
+    resetPage();
   }
-
   function updateDateFrom(value: string) {
     setDateFrom(value);
-    setPage(1);
+    resetPage();
   }
-
   function updateDateTo(value: string) {
     setDateTo(value);
-    setPage(1);
+    resetPage();
   }
 
   return (
@@ -281,51 +186,68 @@ function TransactionsPage() {
           </p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
-          <Button variant="outline" icon={<RefreshCw size={14} />}>
-            Refresh
-          </Button>
-          <Button variant="primary" icon={<Download size={14} />}>
-            Export
+          <Button
+            variant="outline"
+            icon={<RefreshCw size={14} className={refreshing ? "animate-spin" : undefined} />}
+            onClick={() => void handleRefresh()}
+            disabled={refreshing}
+          >
+            {refreshing ? "Refreshing…" : "Refresh"}
           </Button>
         </div>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 16,
-          marginBottom: 16,
-        }}
-      >
-        <Kpi
-          label="TOTAL TRANSACTIONS"
-          value={String(filtered.length)}
-          valueColor={INK}
-          sub="Matching filters"
-        />
-        <Kpi
-          label="TOTAL CREDITS"
-          value={`GH₵ ${fmt(totalCredits)}`}
-          valueColor="#067647"
-          sub="Completed credits"
-        />
-        <Kpi
-          label="TOTAL DEBITS"
-          value={`GH₵ ${fmt(totalDebits)}`}
-          valueColor="#D92D20"
-          sub="Completed debits"
-        />
-        <Kpi
-          label="PENDING"
-          value={String(pendingCount)}
-          valueColor="#B45309"
-          sub="Awaiting processing"
-        />
-      </div>
+      {!data ? (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 16,
+            marginBottom: 16,
+          }}
+        >
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-[92px] w-full rounded-xl" />
+          ))}
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 16,
+            marginBottom: 16,
+          }}
+        >
+          <Kpi
+            label="TOTAL ENTRIES"
+            value={String(filtered.length)}
+            valueColor={INK}
+            sub="Matching filters"
+          />
+          <Kpi
+            label="TOTAL CREDITS"
+            value={`GH₵ ${fmt(totalCredits)}`}
+            valueColor="#067647"
+            sub="Completed credits"
+          />
+          <Kpi
+            label="TOTAL DEBITS"
+            value={`GH₵ ${fmt(totalDebits)}`}
+            valueColor="#D92D20"
+            sub="Completed debits"
+          />
+          <Kpi
+            label="REVERSED"
+            value={String(reversedCount)}
+            valueColor="#B45309"
+            sub="Reversed entries"
+          />
+        </div>
+      )}
 
       <TableCard
-        title="Transaction Register"
+        title="Transaction Ledger"
         filters={
           <>
             <div
@@ -343,7 +265,7 @@ function TransactionsPage() {
               <input
                 value={search}
                 onChange={(e) => updateSearch(e.target.value)}
-                placeholder="Search reference, client, account…"
+                placeholder="Search account, client, narration…"
                 style={{
                   minWidth: 0,
                   flex: 1,
@@ -357,9 +279,9 @@ function TransactionsPage() {
             </div>
             <FilterSelect
               label="Office"
-              value={office}
+              value={officeFilter}
               onChange={updateOffice}
-              options={OFFICE_OPTIONS}
+              options={officeOptions}
             />
             <FilterSelect
               label="Type"
@@ -386,135 +308,107 @@ function TransactionsPage() {
           page: currentPage,
           totalPages,
           totalItems: filtered.length,
-          itemLabel: "transactions",
+          itemLabel: "entries",
           onPageChange: setPage,
+          pageSize,
+          pageSizeOptions: PAGE_SIZE_OPTIONS,
+          onPageSizeChange: (size) => {
+            setPageSize(size);
+            resetPage();
+          },
         }}
       >
         <Table>
           <THead>
-            {["ACCOUNT NO.", "CLIENT", "DEBIT", "CREDIT", "NARRATION", "STATUS", "DATE", ""].map(
-              (h) => (
-                <Th
-                  key={h}
-                  style={{
-                    padding: "14px 18px",
-                    fontSize: 12,
-                    color: MUTED,
-                    letterSpacing: "0.08em",
-                  }}
-                >
-                  {h}
-                </Th>
-              ),
-            )}
+            {[
+              "ACCOUNT NO.",
+              "CLIENT",
+              "DEBIT",
+              "CREDIT",
+              "NARRATION",
+              "STATUS",
+              "DATE",
+              "OFFICE",
+              "",
+            ].map((h) => (
+              <Th
+                key={h}
+                style={{
+                  padding: "14px 18px",
+                  fontSize: 12,
+                  color: MUTED,
+                  letterSpacing: "0.08em",
+                }}
+              >
+                {h}
+              </Th>
+            ))}
           </THead>
           <tbody>
-            {filtered.length === 0 && (
-              <EmptyRow colSpan={8}>No transactions match the current filters.</EmptyRow>
-            )}
-            {pageRows.map((r, i) => (
-              <Tr
-                key={`${r.acct}-${r.date}-${r.narration}`}
-                hover
-                style={{ borderBottom: i < pageRows.length - 1 ? `1px solid ${BORDER}` : "none" }}
-              >
-                <Td style={td}>
-                  <span style={{ fontFamily: FONTS.mono, color: NAVY, fontSize: 13 }}>
-                    {r.acct}
-                  </span>
-                </Td>
-                <Td style={td}>
-                  <span style={{ fontSize: 13, color: INK }}>{r.client}</span>
-                </Td>
-                <Td
-                  style={{
-                    ...td,
-                    fontWeight: 100,
-                    color: INK,
-                    fontVariantNumeric: "tabular-nums",
-                  }}
+            {loading && !data ? (
+              <EmptyRow colSpan={9}>Loading transactions…</EmptyRow>
+            ) : pageRows.length === 0 ? (
+              <EmptyRow colSpan={9}>No transactions match the current filters.</EmptyRow>
+            ) : (
+              pageRows.map((r, i) => (
+                <Tr
+                  key={`${r.accountNo ?? "gl"}-${r.date}-${r.narration}-${i}`}
+                  hover
+                  style={{ borderBottom: i < pageRows.length - 1 ? `1px solid ${BORDER}` : "none" }}
                 >
-                  {r.type === "Debit" ? `GH₵ ${fmt(r.amount)}` : ""}
-                </Td>
-                <Td
-                  style={{
-                    ...td,
-                    fontWeight: 100,
-                    color: INK,
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                >
-                  {r.type === "Credit" ? `GH₵ ${fmt(r.amount)}` : ""}
-                </Td>
-                <Td style={{ ...td, color: INK }}>{r.narration}</Td>
-                <Td style={td}>
-                  <StatusPill status={r.status} />
-                </Td>
-                <Td style={{ ...td, color: INK }}>{r.date}</Td>
-                <Td style={{ ...td, textAlign: "right", position: "relative" }}>
-                  <button
-                    type="button"
-                    aria-label="Actions"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const menuKey = (currentPage - 1) * PAGE_SIZE + i;
-                      setOpenMenu(openMenu === menuKey ? null : menuKey);
-                    }}
+                  <Td style={td}>
+                    <span style={{ fontFamily: FONTS.mono, color: NAVY, fontSize: 13 }}>
+                      {r.accountNo ?? "-"}
+                    </span>
+                  </Td>
+                  <Td style={td}>
+                    <span style={{ fontSize: 13, color: INK }}>{r.clientName ?? "-"}</span>
+                  </Td>
+                  <Td
                     style={{
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                      color: MUTED,
-                      padding: 4,
+                      ...td,
+                      fontWeight: 100,
+                      color: INK,
+                      fontVariantNumeric: "tabular-nums",
                     }}
                   >
-                    <MoreVertical size={16} />
-                  </button>
-                  {openMenu === (currentPage - 1) * PAGE_SIZE + i && (
-                    <div
-                      ref={menuRef}
+                    {r.debit != null ? `GH₵ ${fmt(r.debit)}` : ""}
+                  </Td>
+                  <Td
+                    style={{
+                      ...td,
+                      fontWeight: 100,
+                      color: INK,
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {r.credit != null ? `GH₵ ${fmt(r.credit)}` : ""}
+                  </Td>
+                  <Td style={{ ...td, color: INK }}>{r.narration}</Td>
+                  <Td style={td}>
+                    <StatusPill status={r.status === "Reversed" ? "Reversed" : "Completed"} />
+                  </Td>
+                  <Td style={{ ...td, color: INK }}>{fmtDate(r.date)}</Td>
+                  <Td style={{ ...td, color: MUTED }}>{r.officeName}</Td>
+                  <Td style={{ ...td, textAlign: "right" }}>
+                    <button
+                      type="button"
+                      aria-label="View details"
+                      onClick={() => setDetail(r)}
                       style={{
-                        position: "absolute",
-                        top: "100%",
-                        right: 12,
-                        zIndex: 30,
-                        background: "#fff",
-                        border: `1px solid ${BORDER}`,
-                        borderRadius: 8,
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        color: MUTED,
                         padding: 4,
-                        minWidth: 170,
-                        textAlign: "left",
                       }}
                     >
-                      <MenuItem
-                        onClick={() => {
-                          setOpenMenu(null);
-                          setDetail(r);
-                        }}
-                      >
-                        View details
-                      </MenuItem>
-                      <MenuItem
-                        onClick={() => {
-                          setOpenMenu(null);
-                          showToast("Receipt downloaded");
-                        }}
-                      >
-                        Download receipt
-                      </MenuItem>
-                      <MenuItem
-                        onClick={() => {
-                          setOpenMenu(null);
-                          showToast("Transaction flagged for review");
-                        }}
-                      >
-                        Flag transaction
-                      </MenuItem>
-                    </div>
-                  )}
-                </Td>
-              </Tr>
-            ))}
+                      <Eye size={16} />
+                    </button>
+                  </Td>
+                </Tr>
+              ))
+            )}
           </tbody>
         </Table>
       </TableCard>
@@ -573,16 +467,17 @@ function TransactionsPage() {
                 ×
               </button>
             </div>
-            <DetailRow label="Account" value={detail.acct} mono />
-            <DetailRow label="Client" value={detail.client} />
-            <DetailRow label="Type" value={detail.type} />
+            <DetailRow label="Account" value={detail.accountNo ?? "-"} mono />
+            <DetailRow label="Client" value={detail.clientName ?? "-"} />
+            <DetailRow label="Type" value={detail.credit != null ? "Credit" : "Debit"} />
             <DetailRow
               label="Amount"
-              value={`${detail.type === "Credit" ? "+" : "-"}GH₵ ${fmt(detail.amount)}`}
+              value={`${detail.credit != null ? "+" : "-"}GH₵ ${fmt((detail.credit ?? detail.debit ?? 0) as number)}`}
             />
             <DetailRow label="Narration" value={detail.narration} />
             <DetailRow label="Status" value={detail.status} />
-            <DetailRow label="Date" value={detail.date} />
+            <DetailRow label="Date" value={fmtDate(detail.date)} />
+            <DetailRow label="Office" value={detail.officeName} />
           </div>
         </div>
       )}
@@ -614,32 +509,6 @@ function DetailRow({ label, value, mono }: { label: string; value: string; mono?
         {value}
       </span>
     </div>
-  );
-}
-
-function MenuItem({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        display: "block",
-        width: "100%",
-        textAlign: "left",
-        background: "transparent",
-        border: "none",
-        cursor: "pointer",
-        padding: "8px 14px",
-        fontSize: 13,
-        color: INK,
-        fontFamily: FONTS.body,
-        borderRadius: 6,
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = "#F4F6FB")}
-      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-    >
-      {children}
-    </button>
   );
 }
 
@@ -691,4 +560,3 @@ function Kpi({
     </Card>
   );
 }
-

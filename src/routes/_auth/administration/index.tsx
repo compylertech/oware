@@ -490,7 +490,7 @@ function RolesTab() {
                       fontWeight: 100,
                     }}
                   >
-                    {on ? "✓" : "—"}
+                    {on ? "✓" : "-"}
                   </Td>
                 ))}
               </Tr>
@@ -510,7 +510,7 @@ const AUDIT_ROWS = [
     user: "Kwame Asante",
     action: "Login",
     module: "System",
-    rec: "—",
+    rec: "-",
     ip: "197.255.32.1",
     status: "Success" as const,
   },
@@ -564,7 +564,7 @@ const AUDIT_ROWS = [
     user: "Efua Tetteh",
     action: "Failed login attempt",
     module: "System",
-    rec: "—",
+    rec: "-",
     ip: "41.66.10.5",
     status: "Failed" as const,
   },

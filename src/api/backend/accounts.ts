@@ -1,4 +1,4 @@
-// Accounts service — maps to the "Savings Accounts", "Savings Transactions",
+// Accounts service - maps to the "Savings Accounts", "Savings Transactions",
 // "Loan Accounts" and "Loan Transactions" groups of the Postman collection.
 //
 // Covers the account lifecycle the sidebar exercises: create → approve →
@@ -33,17 +33,27 @@ export type LoanAccountDetail = {
   id: string;
   clientId: string;
   accountNo: string;
+  externalId: string | null;
   productCode: string;
   productName: string;
   currencyCode: string;
   principal: number;
+  approvedPrincipal: number | null;
+  disbursedPrincipal: number | null;
   totalOutstanding: number;
   status: string;
+  loanType: string;
   interestRatePerPeriod: number;
   interestRateFrequencyType: string;
   loanTermFrequency: number;
   loanTermFrequencyType: string;
   numberOfRepayments: number;
+  repaymentEvery: number;
+  repaymentFrequencyType: string;
+  amortizationType: string;
+  interestType: string;
+  interestCalculationPeriodType: string;
+  transactionProcessingStrategyCode: string;
   submittedOnDate: string;
   approvedOnDate: string | null;
   expectedDisbursementDate: string | null;
@@ -56,17 +66,27 @@ function mapLoanAccountDetail(dto: LoanAccountDetailDto): LoanAccountDetail {
     id: dto.id,
     clientId: dto.clientId ?? "",
     accountNo: dto.accountNo,
+    externalId: dto.externalId ?? null,
     productCode: dto.productCode ?? "",
-    productName: dto.productName ?? "—",
+    productName: dto.productName ?? "-",
     currencyCode: dto.currencyCode ?? "",
     principal: dto.principal ?? 0,
+    approvedPrincipal: dto.approvedPrincipal ?? null,
+    disbursedPrincipal: dto.disbursedPrincipal ?? null,
     totalOutstanding: dto.totalOutstanding ?? 0,
     status: dto.status ?? "",
+    loanType: dto.loanType ?? "",
     interestRatePerPeriod: dto.interestRatePerPeriod ?? 0,
     interestRateFrequencyType: dto.interestRateFrequencyType ?? "",
     loanTermFrequency: dto.loanTermFrequency ?? 0,
     loanTermFrequencyType: dto.loanTermFrequencyType ?? "",
     numberOfRepayments: dto.numberOfRepayments ?? 0,
+    repaymentEvery: dto.repaymentEvery ?? 0,
+    repaymentFrequencyType: dto.repaymentFrequencyType ?? "",
+    amortizationType: dto.amortizationType ?? "",
+    interestType: dto.interestType ?? "",
+    interestCalculationPeriodType: dto.interestCalculationPeriodType ?? "",
+    transactionProcessingStrategyCode: dto.transactionProcessingStrategyCode ?? "",
     submittedOnDate: dto.submittedOnDate ?? "",
     approvedOnDate: dto.approvedOnDate ?? null,
     expectedDisbursementDate: dto.expectedDisbursementDate ?? null,
@@ -87,7 +107,7 @@ export type RepaymentPeriodRow = {
 
 function mapRepaymentPeriod(dto: LoanRepaymentPeriodDto): RepaymentPeriodRow | null {
   // periodNumber: null is Fineract's disbursement-row convention, not a
-  // real installment — skip it.
+  // real installment - skip it.
   if (dto.periodNumber == null) return null;
   return {
     periodNumber: dto.periodNumber,
@@ -227,11 +247,11 @@ export type LoanGuarantorDetails = {
 function mapLoanGuarantorDetails(dto: LoanGuarantorDetailsDto): LoanGuarantorDetails {
   return {
     id: dto.fineractGuarantorId,
-    name: [dto.firstName, dto.lastName].filter(Boolean).join(" ") || "—",
-    guarantorType: dto.guarantorTypeValue ?? dto.guarantorTypeCode ?? "—",
-    relationshipType: dto.clientRelationshipTypeName ?? "—",
+    name: [dto.firstName, dto.lastName].filter(Boolean).join(" ") || "-",
+    guarantorType: dto.guarantorTypeValue ?? dto.guarantorTypeCode ?? "-",
+    relationshipType: dto.clientRelationshipTypeName ?? "-",
     entityId: dto.entityId ?? null,
-    officeName: dto.officeName ?? "—",
+    officeName: dto.officeName ?? "-",
     joinedDate: dto.joinedDate ?? "",
     active: dto.status ?? false,
     existingClient: dto.existingClient ?? false,
@@ -464,7 +484,7 @@ export const loanAccountsApi = {
     );
   },
   // Note: the backend does not actually honor limit/offset on this endpoint
-  // (confirmed live — full result returned regardless), but we still send
+  // (confirmed live - full result returned regardless), but we still send
   // them per spec/future-proofing; pagination is applied client-side by callers.
   repaymentScheduleDetailed(
     ref: string,
@@ -535,7 +555,7 @@ export const loanAccountsApi = {
       () => undefined,
     );
   },
-  // GET, not a write — no Idempotency-Key needed; a preview doesn't post anything.
+  // GET, not a write - no Idempotency-Key needed; a preview doesn't post anything.
   repaymentPreview(ref: string, amount: number): Promise<LoanRepaymentPreview | undefined> {
     return withMock(
       async () =>
@@ -594,7 +614,7 @@ export const loanAccountsApi = {
   },
 };
 
-// Share accounts — request cooperative shares for a client. clientsApi.accountsSummary()
+// Share accounts - request cooperative shares for a client. clientsApi.accountsSummary()
 // remains the source for the lightweight read-only position shown on the
 // client detail page (its `id` is Fineract's numeric core ID, not usable
 // here); search() below is what resolves the actual UUID that action
@@ -627,7 +647,7 @@ export const shareAccountsApi = {
     );
   },
   /** `shareAccountId` must be this service's UUID (see {@link ShareAccountDto.id}),
-   * not Fineract's numeric core ID — resolve it via search() first. */
+   * not Fineract's numeric core ID - resolve it via search() first. */
   applyAdditionalShares(
     shareAccountId: string,
     body: ShareAccountApplyAdditionalSharesDto,

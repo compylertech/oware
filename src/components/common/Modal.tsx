@@ -100,6 +100,9 @@ export function MField({ label, children }: { label: string; children: ReactNode
   );
 }
 
+// Light fill (not white) so an editable field visibly reads as an input
+// rather than blending into the modal's white background - same treatment
+// used for search bars and the loan application wizard elsewhere in the app.
 const baseInputStyle: React.CSSProperties = {
   border: `1px solid ${tokens.border}`,
   borderRadius: 8,
@@ -108,17 +111,44 @@ const baseInputStyle: React.CSSProperties = {
   fontFamily: FONTS.body,
   color: "#16233F",
   outline: "none",
-  background: "#fff",
+  background: "#F5F8FE",
   width: "100%",
 };
 
-export function MInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  return <input {...props} style={{ ...baseInputStyle, ...(props.style ?? {}) }} />;
+function focusHandlers(
+  onFocus?: React.FocusEventHandler<HTMLElement>,
+  onBlur?: React.FocusEventHandler<HTMLElement>,
+) {
+  return {
+    onFocus: (e: React.FocusEvent<HTMLElement>) => {
+      e.currentTarget.style.borderColor = tokens.navy;
+      onFocus?.(e);
+    },
+    onBlur: (e: React.FocusEvent<HTMLElement>) => {
+      e.currentTarget.style.borderColor = tokens.border;
+      onBlur?.(e);
+    },
+  };
 }
-export function MTextarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+
+export function MInput({ onFocus, onBlur, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      {...focusHandlers(onFocus, onBlur)}
+      style={{ ...baseInputStyle, ...(props.style ?? {}) }}
+    />
+  );
+}
+export function MTextarea({
+  onFocus,
+  onBlur,
+  ...props
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
       {...props}
+      {...focusHandlers(onFocus, onBlur)}
       style={{ ...baseInputStyle, resize: "vertical", ...(props.style ?? {}) }}
     />
   );
@@ -127,10 +157,16 @@ export type MSelectOption = string | { value: string; label: string };
 
 export function MSelect({
   options,
+  onFocus,
+  onBlur,
   ...props
 }: React.SelectHTMLAttributes<HTMLSelectElement> & { options: MSelectOption[] }) {
   return (
-    <select {...props} style={{ ...baseInputStyle, ...(props.style ?? {}) }}>
+    <select
+      {...props}
+      {...focusHandlers(onFocus, onBlur)}
+      style={{ ...baseInputStyle, ...(props.style ?? {}) }}
+    >
       {options.map((o) => {
         const value = typeof o === "string" ? o : o.value;
         const label = typeof o === "string" ? o : o.label;

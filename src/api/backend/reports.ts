@@ -1,4 +1,4 @@
-// Loan reporting service — maps to the "Loan Reporting" group.
+// Loan reporting service - maps to the "Loan Reporting" group.
 //   GET /loan-accounts/reports/overview | active | disbursements | arrears |
 //       applications | approvals
 //
@@ -6,7 +6,7 @@
 // endpoint-specific key (loans / applications / approvals / pending / arrears).
 // Live responses are mapped to the UI's LoanApplication / ActiveLoan types.
 // Offline/unreachable-backend fallbacks return empty/zeroed shapes, never
-// fixture rows — the Loan Management section must never show fabricated
+// fixture rows - the Loan Management section must never show fabricated
 // names or numbers, even when the backend is down (the empty/zero state is
 // itself the honest signal that nothing loaded).
 import type { ActiveLoan, LoanApplication } from "../loans/types";
@@ -43,11 +43,11 @@ function mapApprovalRow(dto: ApprovalRowDto): ApprovalRow {
   return {
     loanId: dto.loanId,
     accountNo: dto.accountNo ?? String(dto.loanId),
-    client: dto.clientName ?? "—",
-    product: dto.loanProductName ?? "—",
+    client: dto.clientName ?? "-",
+    product: dto.loanProductName ?? "-",
     amount: dto.amount ?? 0,
     submittedDate: dto.submittedDate ?? "",
-    officer: dto.officerName || "—",
+    officer: dto.officerName || "-",
     daysWaiting: dto.daysWaiting ?? 0,
   };
 }
@@ -76,13 +76,13 @@ function mapDisbursementQueueRow(dto: DisbursementQueueItemDto): DisbursementQue
   return {
     loanId: dto.loanId ?? null,
     accountNo: dto.accountNo ?? String(dto.loanId ?? ""),
-    client: dto.clientName ?? "—",
-    product: dto.productName ?? "—",
+    client: dto.clientName ?? "-",
+    product: dto.productName ?? "-",
     amount: dto.approvedAmount ?? 0,
     approvedDate: dto.approvedDate ?? "",
-    officer: dto.officerName || "—",
+    officer: dto.officerName || "-",
     daysSinceApproval: dto.daysSinceApproval ?? 0,
-    officeName: dto.officeName ?? "—",
+    officeName: dto.officeName ?? "-",
     expectedDisbursalDate: dto.expectedDisbursalDate ?? "",
     daysToDisbursal: dto.daysToDisbursal ?? null,
   };
@@ -103,12 +103,12 @@ function mapDisbursementCompletedRow(dto: DisbursementCompletedItemDto): Disburs
   return {
     loanId: dto.loanId ?? null,
     accountNo: dto.accountNo ?? String(dto.loanId ?? ""),
-    client: dto.clientName ?? "—",
-    product: dto.productName ?? "—",
+    client: dto.clientName ?? "-",
+    product: dto.productName ?? "-",
     amount: dto.disbursedAmount ?? 0,
     disbursedDate: dto.disbursedDate ?? "",
     daysAgo: dto.daysAgo ?? null,
-    officeName: dto.officeName ?? "—",
+    officeName: dto.officeName ?? "-",
   };
 }
 
@@ -196,7 +196,7 @@ export const loanReportsApi = {
   active(
     params: {
       /** Validated against the LOAN_PRODUCT reference category's own `code`
-       * (e.g. "HOUSING_LOAN") — NOT the loan product catalogue's short code
+       * (e.g. "HOUSING_LOAN") - NOT the loan product catalogue's short code
        * ("HLN"); an unrecognized code 400s. */
       loanProductCode?: string;
       limit?: number;
@@ -237,13 +237,13 @@ export const loanReportsApi = {
       limit?: number;
       offset?: number;
       /** Filters to a single office (validated server-side against the OFFICE
-       * reference category — an unknown code 400s). */
+       * reference category - an unknown code 400s). */
       officeCode?: string;
       /** Loan officers are modeled as staff clients; this is that client's
        * Fineract numeric id. Accepts string or number. */
       loanOfficerId?: string | number;
       /** Validated against the LOAN_PRODUCT reference category's own code
-       * (e.g. "AUTO_LOAN") — NOT the product catalogue's short code
+       * (e.g. "AUTO_LOAN") - NOT the product catalogue's short code
        * ("ALN"); confirmed live, same as Active Loans' loanProductCode. */
       loanProductCode?: string;
     } = {},
@@ -278,7 +278,7 @@ export const loanReportsApi = {
     );
   },
 
-  /** Total application count across the whole (unfiltered) result set —
+  /** Total application count across the whole (unfiltered) result set -
    * cheap to fetch with limit=1 since we only need `total`, not the rows. */
   applicationsTotal(): Promise<number> {
     return withMock(
@@ -293,7 +293,7 @@ export const loanReportsApi = {
   },
 
   /** Loans awaiting approval. Fetches one larger batch (default limit=10)
-   * rather than trusting a "total" field for true offset paging — other
+   * rather than trusting a "total" field for true offset paging - other
    * report endpoints here (active) turned out to mirror the page size
    * instead of a grand total, so pagination is done client-side to be safe. */
   approvals(params: { limit?: number; offset?: number } = {}): Promise<ApprovalsReport> {
@@ -314,9 +314,9 @@ export const loanReportsApi = {
   },
 
   /** By default (full unset/false) reads this catalog's own lightweight
-   * report — status/limit/offset only, no officeCode needed. Set full:true
+   * report - status/limit/offset only, no officeCode needed. Set full:true
    * to use Fineract's own richer reports instead, which is what unlocks
-   * officeCode/loanProductCode/fromDate/toDate — but officeCode is
+   * officeCode/loanProductCode/fromDate/toDate - but officeCode is
    * effectively required then (confirmed live: full=true with no officeCode
    * silently returns zero rows rather than erroring). fromDate/toDate only
    * affect status="disbursed" ("Active Loans by Disbursal Period" needs a
@@ -373,7 +373,7 @@ export const loanReportsApi = {
     );
   },
 
-  // bucket/limit/offset only narrow the `arrears` list + filteredCount — the
+  // bucket/limit/offset only narrow the `arrears` list + filteredCount - the
   // summary fields (parAmount, bucketXCount/Amount, etc.) always cover every
   // loan in arrears regardless of the filter (confirmed in the OpenAPI
   // parameter description). filteredCount is a true grand total under the

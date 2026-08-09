@@ -5,19 +5,19 @@
 // means the frontend never needs to know the real backend host.
 //
 // Auth is now Bearer-token based end to end (HTTP Basic was removed on the
-// backend) — the proxy forwards whatever `Authorization: Bearer <token>`
+// backend) - the proxy forwards whatever `Authorization: Bearer <token>`
 // header the client sent, it does not inject credentials of its own. Every
 // request also needs `X-Tenant-Id` (multi-tenancy): a login issued for one
 // tenant is rejected on any request that doesn't carry that same tenant
-// header. There's no single tenant for this app — it's resolved per email via
-// the tenant-lookup endpoint at sign-in time — so the proxy forwards whatever
+// header. There's no single tenant for this app - it's resolved per email via
+// the tenant-lookup endpoint at sign-in time - so the proxy forwards whatever
 // `X-Tenant-Id` the client sent (matching that user's session) rather than
 // injecting a fixed one; BACKEND_TENANT_ID is only a fallback for the rare
 // case a request has no tenant context at all (e.g. manual testing).
 //
 // Configuration (server env; on Cloudflare these arrive via the `env` binding
 // per wrangler.toml, locally via process.env):
-//   BACKEND_URL        backend base, e.g. https://host  (no /api/v1) — set as
+//   BACKEND_URL        backend base, e.g. https://host  (no /api/v1) - set as
 //                      a [vars] entry in wrangler.toml (see there)
 //   BACKEND_TENANT_ID  fallback X-Tenant-Id when the client sends none
 //
@@ -28,7 +28,7 @@ const PROXY_PREFIX = "/api/v1/";
 
 // Temporary default so the app shows live data out of the box before BACKEND_URL
 // is set. Override via wrangler.toml [vars] (deployed) or the BACKEND_URL env var
-// (local) — the demo tunnel below is ephemeral and will stop resolving.
+// (local) - the demo tunnel below is ephemeral and will stop resolving.
 const DEFAULT_BACKEND_URL = "http://localhost:8084";
 
 type Env = Record<string, string | undefined> | undefined;
@@ -66,10 +66,10 @@ export async function proxyApiRequest(request: Request, env?: Env): Promise<Resp
   const headers = new Headers();
   headers.set("Accept", "application/json");
   // The tenant the client's own session belongs to, if any (tenant-lookup
-  // itself intentionally sends none — it has no session yet).
+  // itself intentionally sends none - it has no session yet).
   const tenantId = request.headers.get("x-tenant-id") ?? fallbackTenantId;
   if (tenantId) headers.set("X-Tenant-Id", tenantId);
-  // Forward the caller's own bearer token — the proxy holds no credentials.
+  // Forward the caller's own bearer token - the proxy holds no credentials.
   const authorization = request.headers.get("authorization");
   if (authorization) headers.set("Authorization", authorization);
   // Bypass the ngrok free-tier browser interstitial (no-op for other hosts).

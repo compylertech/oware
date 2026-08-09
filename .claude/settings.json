@@ -18,7 +18,9 @@
       "Bash(curl -s -X POST http://localhost:8084/api/v1/auth/login -H \"Content-Type: application/json\" -H \"X-Tenant-Id: acme\" -d '{\"email\":\"admin@acme.test\",\"password\":\"AdminPass123!\"}')",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8081/)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8081/loans/arrears)",
-      "Bash(curl -s -X POST http://localhost:8081/api/v1/auth/login -H \"Content-Type: application/json\" -H \"X-Tenant-Id: acme\" -d '{\"email\":\"admin@acme.test\",\"password\":\"AdminPass123!\"}' -w \"\\\\nHTTP:%{http_code}\\\\n\")"
+      "Bash(curl -s -X POST http://localhost:8081/api/v1/auth/login -H \"Content-Type: application/json\" -H \"X-Tenant-Id: acme\" -d '{\"email\":\"admin@acme.test\",\"password\":\"AdminPass123!\"}' -w \"\\\\nHTTP:%{http_code}\\\\n\")",
+      "Bash(curl -s \"http://localhost:8084/v3/api-docs\" -o /tmp/openapi.json -w \"HTTP:%{http_code} size:%{size_download}\\\\n\")",
+      "Bash(curl -s http://localhost:8080/api/v1/references?category=GL_ACCOUNT -H 'Authorization: Bearer __CMDSUB_OUTPUT__' -H 'X-Tenant-Id: acme' -o /tmp/gl_accounts.json -w 'HTTP:%{http_code} size:%{size_download}\\\\n')"
     ]
   }
 }

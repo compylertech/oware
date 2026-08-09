@@ -1,4 +1,4 @@
-// Clients service — maps to the "Clients" group of the Postman collection.
+// Clients service - maps to the "Clients" group of the Postman collection.
 //   GET    /clients            search (paged)
 //   GET    /clients/{id}       get one
 //   POST   /clients            create

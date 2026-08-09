@@ -4,7 +4,7 @@
 // the `use*` hooks and mutate via the action functions.
 //
 // Going live: replace each action body with a `request()` call (see
-// `../client.ts`) and refetch — call sites only depend on this module's API.
+// `../client.ts`) and refetch - call sites only depend on this module's API.
 import { useSyncExternalStore } from "react";
 import {
   SEED_ALERTS,
@@ -56,7 +56,7 @@ export const getMaturityAlerts = () => alerts;
 export const getExposureSnapshots = () => exposures;
 
 export const institutionName = (id: string) =>
-  institutions.find((i) => i.id === id)?.name ?? "—";
+  institutions.find((i) => i.id === id)?.name ?? "-";
 
 // ---- Institutions ----
 export function addInstitution(input: NewInstitution): InvestmentInstitution {
@@ -79,7 +79,7 @@ export function approveInstitution(id: string, approvalReference?: string) {
       ? {
           ...i,
           status: "APPROVED",
-          approvalReference: approvalReference ?? i.approvalReference ?? "—",
+          approvalReference: approvalReference ?? i.approvalReference ?? "-",
           approvedAt: new Date().toISOString(),
         }
       : i,

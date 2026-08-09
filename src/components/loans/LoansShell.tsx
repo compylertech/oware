@@ -1,27 +1,48 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Download, Plus, Bell } from "lucide-react";
 import { type ReactNode } from "react";
-import { LOAN } from "@/lib/tokens";
+import { LOAN, tokens } from "@/lib/tokens";
 import { fontDisplay } from "./ui";
 import { Button } from "@/components/patterns";
 import { loanReportsApi } from "@/api/loans";
 import { useBackendData } from "@/api/useBackendData";
 
-type Tab = { label: string; to: string; badge?: number };
+type Tab = { label: string; to: string };
+// A group has no route of its own - its children are the real pages. The
+// group's nav button links to its first child (a natural "section landing"),
+// and once any child is active, the group's row of children shows as a
+// second-level tab strip beneath the primary row.
+type NavItem = Tab | { label: string; children: Tab[] };
 
-const TABS: Tab[] = [
+// Applications/Approvals/Disbursements are one loan's journey through three
+// sequential stages, not three unrelated pages - same for Active/Repayments/
+// Arrears once a loan is disbursed and being serviced. Grouping them this way
+// replaces nine flat tabs with four sections without moving any route.
+const NAV: NavItem[] = [
   { label: "Overview", to: "/loans" },
-  // Applications/Active Loans badges come from live data (see liveBadges
-  // below) rather than a fixture here, so no fake count flashes before it.
-  { label: "Applications", to: "/loans/applications" },
-  { label: "Active Loans", to: "/loans/active" },
-  { label: "Approvals", to: "/loans/approvals" },
-  { label: "Disbursements", to: "/loans/disbursements" },
-  { label: "Repayments", to: "/loans/repayments" },
-  { label: "Arrears & PAR", to: "/loans/arrears" },
+  {
+    label: "Loan Pipeline",
+    children: [
+      { label: "Applications", to: "/loans/applications" },
+      { label: "Approvals", to: "/loans/approvals" },
+      { label: "Disbursements", to: "/loans/disbursements" },
+    ],
+  },
+  {
+    label: "Portfolio",
+    children: [
+      { label: "Active Loans", to: "/loans/active" },
+      { label: "Repayments", to: "/loans/repayments" },
+      { label: "Arrears & PAR", to: "/loans/arrears" },
+    ],
+  },
   { label: "Loan Products", to: "/loans/products" },
-  { label: "Collateral & Guarantors", to: "/loans/collateral" },
 ];
+
+function isGroup(item: NavItem): item is { label: string; children: Tab[] } {
+  return "children" in item;
+}
+const LEAVES: Tab[] = NAV.flatMap((item) => (isGroup(item) ? item.children : [item]));
 
 const fmtBadge = (n: number) =>
   n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k` : String(n);
@@ -29,7 +50,7 @@ const fmtBadge = (n: number) =>
 export function LoansShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   // Loan detail rolls under whichever tab the user actually navigated from
-  // (Active Loans vs Disbursements), carried via the ?from= search param —
+  // (Active Loans vs Disbursements), carried via the ?from= search param -
   // not hardcoded to Active Loans.
   const fromSearch = useRouterState({
     select: (s) => (s.location.search as { from?: string }).from,
@@ -40,7 +61,7 @@ export function LoansShell({ children }: { children: ReactNode }) {
   );
   // Same cache key + params as the unfiltered call on the Active Loans page
   // itself, so visiting it doesn't refetch. `totalLoans` mirrors however many
-  // rows come back (not a true grand total — see active.tsx), so a large
+  // rows come back (not a true grand total - see active.tsx), so a large
   // limit is needed here too or this badge would cap at the default page size.
   const { data: activeReport } = useBackendData("loans:active:", () =>
     loanReportsApi.active({ limit: 500 }),
@@ -67,22 +88,36 @@ export function LoansShell({ children }: { children: ReactNode }) {
     "/loans/disbursements": disbursementsReport?.pending.length,
     "/loans/arrears": arrearsReport?.loansInArrears,
   };
+  // A group's own badge is the sum of whichever of its children's live
+  // badges have loaded - so "Loan Pipeline" reads as one glance at the whole
+  // stage instead of forcing a click into each child to see what's pending.
+  function groupBadge(children: Tab[]): number | undefined {
+    const values = children.map((c) => liveBadges[c.to]).filter((n): n is number => n != null);
+    return values.length ? values.reduce((a, b) => a + b, 0) : undefined;
+  }
 
-  // Exact match for tab activation
-  const activeTab =
-    TABS.find((t) => t.to === pathname) ??
-    // Loan detail rolls under wherever the user actually came from.
+  const FROM_LEAF_TO: Record<string, string> = {
+    disbursements: "/loans/disbursements",
+    applications: "/loans/applications",
+    approvals: "/loans/approvals",
+    arrears: "/loans/arrears",
+    active: "/loans/active",
+  };
+  // Exact match for leaf activation; loan detail (no leaf of its own) rolls
+  // under whichever page the user actually navigated from.
+  const activeLeaf =
+    LEAVES.find((t) => t.to === pathname) ??
     (pathname.startsWith("/loans/")
-      ? TABS.find(
-          (t) =>
-            t.to === (fromSearch === "disbursements" ? "/loans/disbursements" : "/loans/active"),
-        )
-      : TABS[0]) ??
-    TABS[0];
+      ? LEAVES.find((t) => t.to === (FROM_LEAF_TO[fromSearch ?? "active"] ?? "/loans/active"))
+      : LEAVES[0]) ??
+    LEAVES[0];
+  const activeGroup = NAV.find((item) =>
+    isGroup(item) ? item.children.includes(activeLeaf) : item === activeLeaf,
+  );
 
   return (
     <div style={{ background: LOAN.pageBg, minHeight: "100%" }}>
-      {/* Sub-nav bar */}
+      {/* Primary nav */}
       <div
         style={{
           background: "#fff",
@@ -92,13 +127,14 @@ export function LoansShell({ children }: { children: ReactNode }) {
         }}
       >
         <div className="flex items-end gap-1" style={{ height: 50 }}>
-          {TABS.map((t) => {
-            const active = t === activeTab;
-            const badge = liveBadges[t.to] ?? t.badge;
+          {NAV.map((item) => {
+            const active = item === activeGroup;
+            const to = isGroup(item) ? item.children[0].to : item.to;
+            const badge = isGroup(item) ? groupBadge(item.children) : liveBadges[item.to];
             return (
               <Link
-                key={t.to}
-                to={t.to}
+                key={item.label}
+                to={to}
                 className="flex items-center gap-2"
                 style={{
                   height: "100%",
@@ -110,7 +146,7 @@ export function LoansShell({ children }: { children: ReactNode }) {
                   whiteSpace: "nowrap",
                 }}
               >
-                {t.label}
+                {item.label}
                 {badge != null && (
                   <span
                     style={{
@@ -143,7 +179,7 @@ export function LoansShell({ children }: { children: ReactNode }) {
               textTransform: "uppercase",
             }}
           >
-            Loan Management
+            Loan Management{activeGroup && isGroup(activeGroup) ? ` · ${activeGroup.label}` : ""}
           </div>
           <h1
             style={{
@@ -154,12 +190,12 @@ export function LoansShell({ children }: { children: ReactNode }) {
               marginTop: 4,
             }}
           >
-            {activeTab.label}
+            {activeLeaf.label}
           </h1>
         </div>
         <div className="flex items-center gap-2">
           {(() => {
-            const path = activeTab.to;
+            const path = activeLeaf.to;
             const showExport = [
               "/loans",
               "/loans/applications",
@@ -168,7 +204,6 @@ export function LoansShell({ children }: { children: ReactNode }) {
             ].includes(path);
             const showNewApp = ["/loans", "/loans/applications"].includes(path);
             const showReminders = path === "/loans/arrears";
-            const showNewProduct = path === "/loans/products";
             return (
               <>
                 {showExport && (
@@ -188,16 +223,52 @@ export function LoansShell({ children }: { children: ReactNode }) {
                     Send Reminders
                   </Button>
                 )}
-                {showNewProduct && (
-                  <Button variant="success" icon={<Plus size={14} />}>
-                    New Product
-                  </Button>
-                )}
               </>
             );
           })()}
         </div>
       </div>
+
+      {/* Sub-tabs - a nested filter within the active section, not a second
+          nav bar, so this echoes the primary tabs' underline instead of
+          repeating their pill shape. */}
+      {activeGroup && isGroup(activeGroup) && (
+        <div style={{ padding: "0 28px" }}>
+          <div
+            className="flex items-center"
+            style={{ gap: 26, borderBottom: `1px solid ${LOAN.border}`, marginBottom: 18 }}
+          >
+            {activeGroup.children.map((t) => {
+              const active = t === activeLeaf;
+              const badge = liveBadges[t.to];
+              return (
+                <Link
+                  key={t.to}
+                  to={t.to}
+                  className="flex items-center"
+                  style={{
+                    gap: 6,
+                    padding: "9px 1px",
+                    fontSize: 13.5,
+                    fontWeight: active ? 600 : 500,
+                    color: active ? "#0A2F6D" : tokens.textSub,
+                    borderBottom: `2px solid ${active ? LOAN.navy : "transparent"}`,
+                    whiteSpace: "nowrap",
+                    cursor: "pointer",
+                  }}
+                >
+                  {t.label}
+                  {badge != null && (
+                    <span style={{ color: active ? tokens.textSub : LOAN.muted, fontWeight: 500 }}>
+                      {fmtBadge(badge)}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div style={{ padding: "0 28px 32px" }}>{children}</div>
     </div>

@@ -1,4 +1,4 @@
-// Dashboard service — maps to the "Dashboard" group backing the client/
+// Dashboard service - maps to the "Dashboard" group backing the client/
 // transaction dashboard's two charts and summary cards.
 //   GET /dashboard/client-growth?fromDate=&toDate=
 //   GET /dashboard/transaction-volume?fromDate=&toDate=
@@ -7,10 +7,10 @@
 // See docs/dashboard-api-integration.md (corebanking-starter repo) for the
 // full spec. Known gaps confirmed against that doc, not bugs here:
 //  - Growth chart's "+X% vs last month" badge and the summary cards' "vs
-//    last month" deltas aren't returned by any endpoint — computed
+//    last month" deltas aren't returned by any endpoint - computed
 //    client-side where possible (growth), omitted where not (summary).
 //  - Sparse months (zero activity) are absent from the array entirely, not
-//    a zero row — callers fill gaps to a continuous window themselves.
+//    a zero row - callers fill gaps to a continuous window themselves.
 
 import type { ClientGrowthPointDto, DashboardSummaryDto, TransactionVolumePointDto } from "./dto";
 import { request, withMock } from "./http";

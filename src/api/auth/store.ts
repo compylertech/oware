@@ -1,4 +1,4 @@
-// Auth session store — a module-level singleton (same pattern as
+// Auth session store - a module-level singleton (same pattern as
 // src/api/store.ts for clients) holding the logged-in user's tokens.
 //
 // Deliberately dependency-free (no imports from ../backend/http) so that
@@ -26,10 +26,10 @@ export type AuthSession = {
   accessToken: string;
   refreshToken: string;
   // Every request must carry the tenant the token was issued for (X-Tenant-Id)
-  // — a mismatch is rejected outright, so this travels with the session
+  // - a mismatch is rejected outright, so this travels with the session
   // rather than being a fixed deployment-wide constant.
   tenantCode: string;
-  /** Epoch ms; informational only (e.g. for a "session expiring" banner) — the
+  /** Epoch ms; informational only (e.g. for a "session expiring" banner) - the
    * source of truth for whether a token still works is the 401 it gets back. */
   expiresAt: number;
   user: AuthUser;
@@ -53,7 +53,7 @@ function persist(next: AuthSession | null) {
     if (next) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     else window.localStorage.removeItem(STORAGE_KEY);
   } catch {
-    /* storage unavailable (private mode, quota) — session just won't persist */
+    /* storage unavailable (private mode, quota) - session just won't persist */
   }
 }
 

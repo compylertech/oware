@@ -194,7 +194,7 @@ function PolicyEngineTab() {
       rule: "Minimum shares for dividend",
       module: "Shares",
       value: "50 shares",
-      eff: "—",
+      eff: "-",
       status: "Draft",
     },
   ]);
@@ -206,7 +206,7 @@ function PolicyEngineTab() {
     if (!f.rule) return;
     setRows((r) => [
       ...r,
-      { rule: f.rule, module: f.module, value: f.value, eff: f.eff || "—", status: f.status },
+      { rule: f.rule, module: f.module, value: f.value, eff: f.eff || "-", status: f.status },
     ]);
     setF({ rule: "", module: "Loans", value: "", eff: "", status: "Active" });
     setOpen(false);
@@ -499,7 +499,7 @@ function ApprovalMatrixTab() {
       </TableShell>
 
       <p style={{ color: tokens.textMuted, fontSize: 12, fontStyle: "italic", marginTop: 12 }}>
-        The same approval matrix the Approvals surfaces read from — change a band here and routing
+        The same approval matrix the Approvals surfaces read from - change a band here and routing
         updates everywhere.
       </p>
 
@@ -611,7 +611,7 @@ function CommonBondsTab() {
         </Button>
       </div>
       <p style={{ color: tokens.textSub, fontSize: 13, margin: "0 0 14px" }}>
-        The cooperative grouping a member belongs to — the basis of membership eligibility.
+        The cooperative grouping a member belongs to - the basis of membership eligibility.
         Referenced by the Clients cooperative tab when admitting and grouping members.
       </p>
 
@@ -1030,7 +1030,7 @@ function StrategicPlanTab() {
         >
           <Info size={16} style={{ marginTop: 2, flexShrink: 0 }} />
           <div>
-            Strategic KPIs make the system intelligent enough to administer the entire union — they
+            Strategic KPIs make the system intelligent enough to administer the entire union - they
             feed dashboards and board reporting against the cooperative's strategic plan.
           </div>
         </div>
@@ -1215,7 +1215,7 @@ function StrategicPlanTab() {
                         type="number"
                         value={actualFor(k.name)}
                         onChange={(e) => setActual(k.name, e.target.value)}
-                        placeholder="—"
+                        placeholder="-"
                         style={{ maxWidth: 120, fontVariantNumeric: "tabular-nums" }}
                       />
                     </Td>
@@ -1325,7 +1325,7 @@ function StrategicPlanTab() {
                         {suffix}
                       </Td>
                       <Td style={{ ...tdRight, fontVariantNumeric: "tabular-nums" }}>
-                        {v ? `${v.actual}${suffix}` : "—"}
+                        {v ? `${v.actual}${suffix}` : "-"}
                       </Td>
                       <Td
                         style={{
@@ -1334,7 +1334,7 @@ function StrategicPlanTab() {
                           color: v ? (v.onTrack ? "#067647" : "#D92D20") : tokens.textSub,
                         }}
                       >
-                        {v ? `${v.pct >= 0 ? "+" : ""}${v.pct.toFixed(1)}%` : "—"}
+                        {v ? `${v.pct >= 0 ? "+" : ""}${v.pct.toFixed(1)}%` : "-"}
                       </Td>
                       <Td style={td}>
                         {v ? (
@@ -1465,7 +1465,7 @@ function ComplianceTab() {
     policy("Loan Policy"),
     policy("Savings Policy"),
     policy("Cash Policy", "Review Due", "Aug 2026"),
-    policy("Mobile Money Policy", "Draft", "—"),
+    policy("Mobile Money Policy", "Draft", "-"),
     policy("IT Policy"),
   ]);
 
@@ -1479,7 +1479,7 @@ function ComplianceTab() {
   const [np, setNp] = useState<Policy>(blankPolicy);
   const addPolicy = () => {
     if (!np.name.trim()) return;
-    setPolicies((p) => [...p, { ...np, name: np.name.trim(), nextReview: np.nextReview || "—" }]);
+    setPolicies((p) => [...p, { ...np, name: np.name.trim(), nextReview: np.nextReview || "-" }]);
     setNp(blankPolicy);
     setOpen(false);
   };

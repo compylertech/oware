@@ -63,7 +63,7 @@ export async function hydrateClients() {
     const live = await clientsApi.search({ size: 200 });
     setClients(live);
   } catch {
-    // Keep the (empty) registry on any failure — the UI must not break.
+    // Keep the (empty) registry on any failure - the UI must not break.
   }
 }
 

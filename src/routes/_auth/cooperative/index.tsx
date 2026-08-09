@@ -129,7 +129,7 @@ function CooperativeHub() {
       icon: <PieChart size={22} />,
       iconBg: "#FFF7ED",
       iconFg: "#B45309",
-      route: "/products/shares",
+      route: "/cooperative/shares",
       tag: { label: "AGM-governed", variant: "governed" },
     },
     {

@@ -55,7 +55,7 @@ const MONTH_SHORT = [
   "Dec",
 ];
 
-/** Trailing N calendar months (inclusive of the current month) — gives both
+/** Trailing N calendar months (inclusive of the current month) - gives both
  * charts a known, gap-fillable window instead of relying on the endpoints'
  * own "trailing 7 months" default, which we can't see the boundaries of. */
 function trailingMonths(count: number): { year: number; month: number }[] {
@@ -89,7 +89,7 @@ function fmtCompactGHS(n: number): string {
 function DashboardPage() {
   const [cashTxType, setCashTxType] = useState<CashTxType | null>(null);
 
-  // Trailing 7 calendar months (inclusive of the current month) — sent
+  // Trailing 7 calendar months (inclusive of the current month) - sent
   // explicitly so both charts share exactly one known window, rather than
   // trusting each endpoint's own default and reverse-engineering the range
   // from whatever (possibly sparse) months come back.
@@ -104,7 +104,7 @@ function DashboardPage() {
     dashboardApi.transactionVolume({ fromDate, toDate }),
   );
 
-  // Sparse months (zero activity) are simply absent from the API response —
+  // Sparse months (zero activity) are simply absent from the API response -
   // fill every month in the window to zero so the chart always shows a
   // continuous 7-bar axis instead of silently compressing/skipping gaps.
   const growthData = months.map(({ year, month }) => {
@@ -121,7 +121,7 @@ function DashboardPage() {
     };
   });
 
-  // "+X% vs <prev month>" badge isn't returned by the API — computed
+  // "+X% vs <prev month>" badge isn't returned by the API - computed
   // client-side from the raw (un-padded) response per the integration doc.
   // Hidden if there's fewer than 2 real data points yet, or the baseline
   // month is zero (would be a divide-by-zero / infinite percentage).
@@ -144,7 +144,7 @@ function DashboardPage() {
           <div>
             <h1 className="text-[20px] font-semibold text-[#101828] leading-tight">Dashboard</h1>
             <p className="text-xs text-gray-400 mt-1">
-              Welcome back — here's what's happening today.
+              Welcome back - here's what's happening today.
             </p>
           </div>
           {/* <span className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-500 border border-blue-100 text-xs font-medium opacity-50 pointer-events-none select-none">
@@ -235,7 +235,7 @@ function DashboardPage() {
             )}
           </Panel>
 
-          {/* D - Recent Activity — no backend endpoint documented yet
+          {/* D - Recent Activity - no backend endpoint documented yet
               (dashboard-api-integration.md covers only the two charts and
               the summary cards), so this stays an honest placeholder rather
               than fabricated names/events. */}
@@ -380,7 +380,7 @@ type VolumeDatum = { month: string; total: number; net: number; variance: number
 
 function VolumeChart({ data }: { data: VolumeDatum[] }) {
   // Real data scale varies a lot month to month (netVolume can jump from
-  // hundreds to tens of thousands) — domains are derived from the actual
+  // hundreds to tens of thousands) - domains are derived from the actual
   // data with headroom, not the fixed dummy-scaled ticks this used to have.
   const leftMax = Math.max(1, ...data.map((d) => d.total));
   const rightValues = data.flatMap((d) => [d.net, d.variance]);

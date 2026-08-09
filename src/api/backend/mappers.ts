@@ -16,7 +16,7 @@ import type {
 import type { ActiveLoanRowDto, ApplicationRowDto, ClientDto, ProductDto } from "./dto";
 
 function fmtDate(iso?: string | null): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const d = new Date(iso);
   return Number.isNaN(d.getTime())
     ? String(iso)
@@ -24,7 +24,7 @@ function fmtDate(iso?: string | null): string {
 }
 
 function fmtDay(iso?: string | null): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const d = new Date(iso);
   return Number.isNaN(d.getTime())
     ? String(iso)
@@ -61,7 +61,7 @@ export function mapClient(dto: ClientDto): Client {
   const name =
     dto.displayName ||
     [dto.firstName, dto.middleName, dto.lastName].filter(Boolean).join(" ").trim() ||
-    "—";
+    "-";
   return {
     id: dto.id,
     name,
@@ -87,7 +87,7 @@ export function mapClient(dto: ClientDto): Client {
 // ── Loan products ─────────────────────────────────────────────────────────────
 
 const fmtK = (n?: number | null): string => {
-  if (!n) return "—";
+  if (!n) return "-";
   if (n >= 1_000_000) return `GH₵${(n / 1_000_000).toFixed(n % 1_000_000 ? 1 : 0)}M`;
   if (n >= 1_000) return `GH₵${Math.round(n / 1_000)}K`;
   return `GH₵${n}`;
@@ -100,11 +100,12 @@ export function mapLoanProduct(dto: ProductDto, index = 0): LoanProduct {
   const flat = dto.interestType === "1";
   const rate = dto.annualNominalInterestRate;
   return {
+    code: dto.code,
     name: dto.name,
     type: flat ? "Flat rate" : "Declining balance",
     typeColor: PRODUCT_COLORS[index % PRODUCT_COLORS.length],
-    rate: rate != null ? (flat ? `${rate}% flat` : `${rate}% p.a.`) : "—",
-    term: dto.numberOfRepayments != null ? `${dto.numberOfRepayments} periods` : "—",
+    rate: rate != null ? (flat ? `${rate}% flat` : `${rate}% p.a.`) : "-",
+    term: dto.numberOfRepayments != null ? `${dto.numberOfRepayments} periods` : "-",
     max: fmtK(dto.maxPrincipal ?? dto.principal),
     extra: dto.shortName ?? dto.code,
     active: (dto.status ?? "").toUpperCase() === "ACTIVE" && dto.active !== false,
@@ -116,8 +117,8 @@ export function mapLoanProduct(dto: ProductDto, index = 0): LoanProduct {
 
 function appStageFrom(statusId?: number, statusName?: string): AppStage {
   // Fineract loan status ids take precedence when present. Confirmed live:
-  // 300 comes back with statusName "Active" for fully-disbursed loans — not
-  // "awaiting disbursal" — so it's its own stage, distinct from 200
+  // 300 comes back with statusName "Active" for fully-disbursed loans - not
+  // "awaiting disbursal" - so it's its own stage, distinct from 200
   // ("Approved", not yet disbursed). 800 is unconfirmed against a live
   // instance; left under "To Disburse" until seen for real.
   switch (statusId) {
@@ -151,7 +152,7 @@ export function mapApplication(dto: ApplicationRowDto): LoanApplication {
     product: dto.productName ?? "",
     amount: dto.amount ?? 0,
     stage: appStageFrom(dto.statusId, dto.statusName),
-    officer: dto.officerName || "—",
+    officer: dto.officerName || "-",
     submitted: fmtDay(dto.submittedDate),
     avatar: avatarFor(client || String(dto.loanId)),
   };
@@ -174,7 +175,7 @@ export function mapActiveLoan(dto: ActiveLoanRowDto): ActiveLoan {
     client,
     product: dto.productName ?? "",
     outstanding: dto.outstandingBalance ?? 0,
-    nextDue: dto.nextDueDate ? fmtDay(dto.nextDueDate) : (dto.statusLabel ?? "—"),
+    nextDue: dto.nextDueDate ? fmtDay(dto.nextDueDate) : (dto.statusLabel ?? "-"),
     repaid: Math.round(dto.repaidPercent ?? 0),
     status: activeStatus(dto),
     avatar: avatarFor(client || String(dto.loanId)),

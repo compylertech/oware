@@ -146,7 +146,7 @@ function InfoBanner({ children }: { children: React.ReactNode }) {
   );
 }
 
-const fmtDate = (v: string) => (v ? v : "—");
+const fmtDate = (v: string) => (v ? v : "-");
 
 function HeaderRow({ headers, rightFrom }: { headers: string[]; rightFrom?: number }) {
   return (
@@ -233,7 +233,7 @@ function InstitutionsTab() {
                 <Td style={td}>
                   <Tag value={r.status} />
                 </Td>
-                <Td style={tdMuted}>{r.approvalReference ?? "—"}</Td>
+                <Td style={tdMuted}>{r.approvalReference ?? "-"}</Td>
                 <Td style={tdRight}>
                   <div style={{ display: "inline-flex", gap: 14, alignItems: "center" }}>
                     {r.status === "PENDING_APPROVAL" && r.riskRating !== "PROHIBITED" && (

@@ -1,4 +1,4 @@
-// Investments domain types — mirror the backend module
+// Investments domain types - mirror the backend module
 // com.obenyaade.cooperative.modules.investments. Enums match the Java enum
 // constants verbatim so payloads map 1:1 when the real backend is wired.
 

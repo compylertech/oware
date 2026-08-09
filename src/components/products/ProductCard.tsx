@@ -1,8 +1,9 @@
-import { useState } from "react";
 import { tokens, FONTS } from "@/lib/tokens";
 import { Button } from "@/components/patterns";
+import { StatusPill } from "@/components/common/StatusPill";
 
 export type ProductCardData = {
+  code: string;
   name: string;
   type: string;
   typeColor: string;
@@ -11,8 +12,13 @@ export type ProductCardData = {
   active: boolean;
 };
 
-export function ProductCardGrid({ products }: { products: ProductCardData[] }) {
-  const [active, setActive] = useState<boolean[]>(products.map((p) => p.active));
+export function ProductCardGrid({
+  products,
+  onEdit,
+}: {
+  products: ProductCardData[];
+  onEdit?: (code: string) => void;
+}) {
   return (
     <div
       style={{
@@ -21,13 +27,8 @@ export function ProductCardGrid({ products }: { products: ProductCardData[] }) {
         gap: 14,
       }}
     >
-      {products.map((p, i) => (
-        <ProductCard
-          key={p.name}
-          product={p}
-          on={active[i]}
-          onToggle={() => setActive(active.map((v, j) => (j === i ? !v : v)))}
-        />
+      {products.map((p) => (
+        <ProductCard key={p.name} product={p} onEdit={onEdit} />
       ))}
     </div>
   );
@@ -35,12 +36,10 @@ export function ProductCardGrid({ products }: { products: ProductCardData[] }) {
 
 function ProductCard({
   product,
-  on,
-  onToggle,
+  onEdit,
 }: {
   product: ProductCardData;
-  on: boolean;
-  onToggle: () => void;
+  onEdit?: (code: string) => void;
 }) {
   return (
     <div
@@ -77,7 +76,7 @@ function ProductCard({
             {product.type}
           </div>
         </div>
-        <Switch on={on} onClick={onToggle} />
+        <StatusPill status={product.active ? "Active" : "Inactive"} />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
@@ -112,42 +111,10 @@ function ProductCard({
         }}
       >
         <span style={{ fontSize: 12, color: tokens.textMuted }}>{product.footerLeft}</span>
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" onClick={() => onEdit?.(product.code)}>
           Edit
         </Button>
       </div>
     </div>
-  );
-}
-
-function Switch({ on, onClick }: { on: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      aria-pressed={on}
-      style={{
-        width: 36,
-        height: 20,
-        borderRadius: 999,
-        background: on ? "#059669" : "#CBD5E1",
-        position: "relative",
-        border: "none",
-        cursor: "pointer",
-        transition: "background 0.15s",
-      }}
-    >
-      <span
-        style={{
-          position: "absolute",
-          top: 2,
-          left: on ? 18 : 2,
-          width: 16,
-          height: 16,
-          borderRadius: 999,
-          background: "#fff",
-          transition: "left 0.15s",
-        }}
-      />
-    </button>
   );
 }

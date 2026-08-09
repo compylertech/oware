@@ -33,7 +33,7 @@ function ActiveLoansPage() {
 
   // The loan product filter is validated against the LOAN_PRODUCT reference
   // category's own code (e.g. "HOUSING_LOAN"), not the product catalogue's
-  // short code ("HLN") — confirmed live, an unrecognized code 400s.
+  // short code ("HLN") - confirmed live, an unrecognized code 400s.
   const [productOptions, setProductOptions] = useState<FilterOption[]>([]);
   useEffect(() => {
     void referencesApi
@@ -41,18 +41,18 @@ function ActiveLoansPage() {
       .then((opts) => setProductOptions(opts.map((o) => ({ key: o.code, label: o.name }))));
   }, []);
 
-  // Every row here is inherently active, so there's no "Status" to filter —
+  // Every row here is inherently active, so there's no "Status" to filter -
   // only Product, applied server-side via loanProductCode. Pagination is
   // client-side over a large fetched batch rather than true limit/offset
   // paging: confirmed live that `totalLoans` mirrors however many rows come
   // back in a given call (limit=2 → totalLoans=2, even with 4 loans total),
-  // not a grand total across pages — so trusting it under a small `limit`
+  // not a grand total across pages - so trusting it under a small `limit`
   // would show "Page 1 of 1" and hide the rest.
   const { data } = useBackendData(`loans:active:${productFilter ?? ""}`, () =>
     loanReportsApi.active({ loanProductCode: productFilter ?? undefined, limit: 500 }),
   );
 
-  // Cached data (even stale) shows instantly with no skeleton — only a
+  // Cached data (even stale) shows instantly with no skeleton - only a
   // genuinely first-ever load has nothing to show yet.
   if (!data) {
     return (
@@ -170,7 +170,7 @@ function ActiveLoansPage() {
 }
 
 /** Rough placeholder for Active Loans while the first-ever load is in
- * flight — never a fixture standing in for real numbers. */
+ * flight - never a fixture standing in for real numbers. */
 function ActiveLoansSkeleton() {
   return (
     <>

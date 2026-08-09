@@ -1,4 +1,4 @@
-// Clients domain — registry of clients and the in-memory store accessors.
+// Clients domain - registry of clients and the in-memory store accessors.
 export * from "./types";
 export {
   getClients,
@@ -11,6 +11,6 @@ export {
   hydrateClients,
 } from "../store";
 
-// Backend service (live-only — falls back to an empty result when offline).
+// Backend service (live-only - falls back to an empty result when offline).
 export { clientsApi } from "../backend/clients";
 export type { ClientSearch } from "../backend/clients";

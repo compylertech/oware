@@ -10,7 +10,7 @@ import { fmtGHS, loanAccountsApi, loanReportsApi, type DisbursementQueueRow } fr
 import { apiErrorMessage, referencesApi } from "@/api/backend";
 import { useBackendData, refreshBackendData } from "@/api/useBackendData";
 import {
-  Tabs,
+  SegmentedControl,
   TableCard,
   DateRangeFilter,
   PAGE_SIZE_OPTIONS,
@@ -28,7 +28,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 // The backend only computes daysAgo/daysSinceApproval under full=true for
 // some fields; fall back to a client-side calc from the date so the column
-// doesn't just read "—" whenever full=false (the common, no-office-filter
+// doesn't just read "-" whenever full=false (the common, no-office-filter
 // case).
 function daysSince(dateStr: string): number | null {
   if (!dateStr) return null;
@@ -62,7 +62,7 @@ function DisbursementsPage() {
   }, []);
 
   // officeCode is required for full=true to return anything (confirmed live:
-  // full=true with no officeCode silently comes back empty) — so product/date
+  // full=true with no officeCode silently comes back empty) - so product/date
   // filters, which only apply under full=true, stay disabled until an office
   // is picked, rather than quietly doing nothing.
   const full = officeFilter != null;
@@ -71,7 +71,7 @@ function DisbursementsPage() {
   const [pageSize, setPageSize] = useState(PAGE_SIZE_DEFAULT);
 
   // Omitting `status` returns pending AND recentlyDisbursed (plus every
-  // stat) together in one call — confirmed live, including combined with
+  // stat) together in one call - confirmed live, including combined with
   // full=true/officeCode/date range. Fetching per-tab with status: tab was
   // the bug behind the Pending/Disbursed badges: whichever tab wasn't
   // active came back with an empty array since that fetch never asked for it.
@@ -147,18 +147,19 @@ function DisbursementsPage() {
 
   return (
     <LoansShell>
-      <Tabs
-        style={{ marginBottom: 12 }}
-        value={tab}
-        onChange={(v) => {
-          setTab(v);
-          resetPage();
-        }}
-        items={[
-          { key: "pending", label: "Pending", badge: data ? pendingRows.length : undefined },
-          { key: "disbursed", label: "Disbursed", badge: data ? disbursedRows.length : undefined },
-        ]}
-      />
+      <div className="flex items-center justify-end mb-4">
+        <SegmentedControl
+          value={tab}
+          onChange={(v) => {
+            setTab(v);
+            resetPage();
+          }}
+          options={[
+            { key: "pending", label: data ? `Pending ${pendingRows.length}` : "Pending" },
+            { key: "disbursed", label: data ? `Disbursed ${disbursedRows.length}` : "Disbursed" },
+          ]}
+        />
+      </div>
 
       {!data ? (
         <div className="grid gap-3 mb-4" style={{ gridTemplateColumns: "repeat(2,1fr)" }}>
@@ -300,7 +301,7 @@ function DisbursementsPage() {
                       <Td>{r.product}</Td>
                       <Td style={{ fontWeight: 100 }}>{fmtGHS(r.amount)}</Td>
                       <Td style={{ color: LOAN.muted }}>{r.officeName}</Td>
-                      <Td style={{ color: LOAN.muted }}>{r.approvedDate || "—"}</Td>
+                      <Td style={{ color: LOAN.muted }}>{r.approvedDate || "-"}</Td>
                       <Td style={{ color: LOAN.muted }}>
                         {waiting} day{waiting === 1 ? "" : "s"}
                       </Td>
@@ -380,8 +381,8 @@ function DisbursementsPage() {
                       <Td>{r.product}</Td>
                       <Td style={{ fontWeight: 100 }}>{fmtGHS(r.amount)}</Td>
                       <Td style={{ color: LOAN.muted }}>{r.officeName}</Td>
-                      <Td style={{ color: LOAN.muted }}>{r.disbursedDate || "—"}</Td>
-                      <Td style={{ color: LOAN.muted }}>{daysAgo ?? "—"}</Td>
+                      <Td style={{ color: LOAN.muted }}>{r.disbursedDate || "-"}</Td>
+                      <Td style={{ color: LOAN.muted }}>{daysAgo ?? "-"}</Td>
                     </Tr>
                   );
                 })

@@ -1,4 +1,4 @@
-// Transaction Operations service — maps to the "Transaction Operations" group.
+// Transaction Operations service - maps to the "Transaction Operations" group.
 //   GET  /transaction-operations             search (paged, filterable by
 //                                             operationType/accountType/
 //                                             localAccountId/status)

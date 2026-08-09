@@ -28,13 +28,13 @@ import { Route as AuthProductsLoansRouteImport } from './routes/_auth/products/l
 import { Route as AuthLoansRepaymentsRouteImport } from './routes/_auth/loans/repayments'
 import { Route as AuthLoansProductsRouteImport } from './routes/_auth/loans/products'
 import { Route as AuthLoansDisbursementsRouteImport } from './routes/_auth/loans/disbursements'
-import { Route as AuthLoansCollateralRouteImport } from './routes/_auth/loans/collateral'
 import { Route as AuthLoansArrearsRouteImport } from './routes/_auth/loans/arrears'
 import { Route as AuthLoansApprovalsRouteImport } from './routes/_auth/loans/approvals'
 import { Route as AuthLoansApplyRouteImport } from './routes/_auth/loans/apply'
 import { Route as AuthLoansApplicationsRouteImport } from './routes/_auth/loans/applications'
 import { Route as AuthLoansActiveRouteImport } from './routes/_auth/loans/active'
 import { Route as AuthLoansLoanIdRouteImport } from './routes/_auth/loans/$loanId'
+import { Route as AuthCooperativeSharesRouteImport } from './routes/_auth/cooperative/shares'
 import { Route as AuthCooperativeMembershipRouteImport } from './routes/_auth/cooperative/membership'
 import { Route as AuthCooperativeInvestmentsRouteImport } from './routes/_auth/cooperative/investments'
 import { Route as AuthCooperativeGovernanceRouteImport } from './routes/_auth/cooperative/governance'
@@ -137,11 +137,6 @@ const AuthLoansDisbursementsRoute = AuthLoansDisbursementsRouteImport.update({
   path: '/loans/disbursements',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthLoansCollateralRoute = AuthLoansCollateralRouteImport.update({
-  id: '/loans/collateral',
-  path: '/loans/collateral',
-  getParentRoute: () => AuthRoute,
-} as any)
 const AuthLoansArrearsRoute = AuthLoansArrearsRouteImport.update({
   id: '/loans/arrears',
   path: '/loans/arrears',
@@ -170,6 +165,11 @@ const AuthLoansActiveRoute = AuthLoansActiveRouteImport.update({
 const AuthLoansLoanIdRoute = AuthLoansLoanIdRouteImport.update({
   id: '/loans/$loanId',
   path: '/loans/$loanId',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthCooperativeSharesRoute = AuthCooperativeSharesRouteImport.update({
+  id: '/cooperative/shares',
+  path: '/cooperative/shares',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthCooperativeMembershipRoute =
@@ -226,13 +226,13 @@ export interface FileRoutesByFullPath {
   '/cooperative/governance': typeof AuthCooperativeGovernanceRoute
   '/cooperative/investments': typeof AuthCooperativeInvestmentsRoute
   '/cooperative/membership': typeof AuthCooperativeMembershipRoute
+  '/cooperative/shares': typeof AuthCooperativeSharesRoute
   '/loans/$loanId': typeof AuthLoansLoanIdRoute
   '/loans/active': typeof AuthLoansActiveRoute
   '/loans/applications': typeof AuthLoansApplicationsRoute
   '/loans/apply': typeof AuthLoansApplyRoute
   '/loans/approvals': typeof AuthLoansApprovalsRoute
   '/loans/arrears': typeof AuthLoansArrearsRoute
-  '/loans/collateral': typeof AuthLoansCollateralRoute
   '/loans/disbursements': typeof AuthLoansDisbursementsRoute
   '/loans/products': typeof AuthLoansProductsRoute
   '/loans/repayments': typeof AuthLoansRepaymentsRoute
@@ -260,13 +260,13 @@ export interface FileRoutesByTo {
   '/cooperative/governance': typeof AuthCooperativeGovernanceRoute
   '/cooperative/investments': typeof AuthCooperativeInvestmentsRoute
   '/cooperative/membership': typeof AuthCooperativeMembershipRoute
+  '/cooperative/shares': typeof AuthCooperativeSharesRoute
   '/loans/$loanId': typeof AuthLoansLoanIdRoute
   '/loans/active': typeof AuthLoansActiveRoute
   '/loans/applications': typeof AuthLoansApplicationsRoute
   '/loans/apply': typeof AuthLoansApplyRoute
   '/loans/approvals': typeof AuthLoansApprovalsRoute
   '/loans/arrears': typeof AuthLoansArrearsRoute
-  '/loans/collateral': typeof AuthLoansCollateralRoute
   '/loans/disbursements': typeof AuthLoansDisbursementsRoute
   '/loans/products': typeof AuthLoansProductsRoute
   '/loans/repayments': typeof AuthLoansRepaymentsRoute
@@ -296,13 +296,13 @@ export interface FileRoutesById {
   '/_auth/cooperative/governance': typeof AuthCooperativeGovernanceRoute
   '/_auth/cooperative/investments': typeof AuthCooperativeInvestmentsRoute
   '/_auth/cooperative/membership': typeof AuthCooperativeMembershipRoute
+  '/_auth/cooperative/shares': typeof AuthCooperativeSharesRoute
   '/_auth/loans/$loanId': typeof AuthLoansLoanIdRoute
   '/_auth/loans/active': typeof AuthLoansActiveRoute
   '/_auth/loans/applications': typeof AuthLoansApplicationsRoute
   '/_auth/loans/apply': typeof AuthLoansApplyRoute
   '/_auth/loans/approvals': typeof AuthLoansApprovalsRoute
   '/_auth/loans/arrears': typeof AuthLoansArrearsRoute
-  '/_auth/loans/collateral': typeof AuthLoansCollateralRoute
   '/_auth/loans/disbursements': typeof AuthLoansDisbursementsRoute
   '/_auth/loans/products': typeof AuthLoansProductsRoute
   '/_auth/loans/repayments': typeof AuthLoansRepaymentsRoute
@@ -332,13 +332,13 @@ export interface FileRouteTypes {
     | '/cooperative/governance'
     | '/cooperative/investments'
     | '/cooperative/membership'
+    | '/cooperative/shares'
     | '/loans/$loanId'
     | '/loans/active'
     | '/loans/applications'
     | '/loans/apply'
     | '/loans/approvals'
     | '/loans/arrears'
-    | '/loans/collateral'
     | '/loans/disbursements'
     | '/loans/products'
     | '/loans/repayments'
@@ -366,13 +366,13 @@ export interface FileRouteTypes {
     | '/cooperative/governance'
     | '/cooperative/investments'
     | '/cooperative/membership'
+    | '/cooperative/shares'
     | '/loans/$loanId'
     | '/loans/active'
     | '/loans/applications'
     | '/loans/apply'
     | '/loans/approvals'
     | '/loans/arrears'
-    | '/loans/collateral'
     | '/loans/disbursements'
     | '/loans/products'
     | '/loans/repayments'
@@ -401,13 +401,13 @@ export interface FileRouteTypes {
     | '/_auth/cooperative/governance'
     | '/_auth/cooperative/investments'
     | '/_auth/cooperative/membership'
+    | '/_auth/cooperative/shares'
     | '/_auth/loans/$loanId'
     | '/_auth/loans/active'
     | '/_auth/loans/applications'
     | '/_auth/loans/apply'
     | '/_auth/loans/approvals'
     | '/_auth/loans/arrears'
-    | '/_auth/loans/collateral'
     | '/_auth/loans/disbursements'
     | '/_auth/loans/products'
     | '/_auth/loans/repayments'
@@ -565,13 +565,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoansDisbursementsRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/loans/collateral': {
-      id: '/_auth/loans/collateral'
-      path: '/loans/collateral'
-      fullPath: '/loans/collateral'
-      preLoaderRoute: typeof AuthLoansCollateralRouteImport
-      parentRoute: typeof AuthRoute
-    }
     '/_auth/loans/arrears': {
       id: '/_auth/loans/arrears'
       path: '/loans/arrears'
@@ -612,6 +605,13 @@ declare module '@tanstack/react-router' {
       path: '/loans/$loanId'
       fullPath: '/loans/$loanId'
       preLoaderRoute: typeof AuthLoansLoanIdRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/cooperative/shares': {
+      id: '/_auth/cooperative/shares'
+      path: '/cooperative/shares'
+      fullPath: '/cooperative/shares'
+      preLoaderRoute: typeof AuthCooperativeSharesRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/cooperative/membership': {
@@ -676,13 +676,13 @@ interface AuthRouteChildren {
   AuthCooperativeGovernanceRoute: typeof AuthCooperativeGovernanceRoute
   AuthCooperativeInvestmentsRoute: typeof AuthCooperativeInvestmentsRoute
   AuthCooperativeMembershipRoute: typeof AuthCooperativeMembershipRoute
+  AuthCooperativeSharesRoute: typeof AuthCooperativeSharesRoute
   AuthLoansLoanIdRoute: typeof AuthLoansLoanIdRoute
   AuthLoansActiveRoute: typeof AuthLoansActiveRoute
   AuthLoansApplicationsRoute: typeof AuthLoansApplicationsRoute
   AuthLoansApplyRoute: typeof AuthLoansApplyRoute
   AuthLoansApprovalsRoute: typeof AuthLoansApprovalsRoute
   AuthLoansArrearsRoute: typeof AuthLoansArrearsRoute
-  AuthLoansCollateralRoute: typeof AuthLoansCollateralRoute
   AuthLoansDisbursementsRoute: typeof AuthLoansDisbursementsRoute
   AuthLoansProductsRoute: typeof AuthLoansProductsRoute
   AuthLoansRepaymentsRoute: typeof AuthLoansRepaymentsRoute
@@ -708,13 +708,13 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthCooperativeGovernanceRoute: AuthCooperativeGovernanceRoute,
   AuthCooperativeInvestmentsRoute: AuthCooperativeInvestmentsRoute,
   AuthCooperativeMembershipRoute: AuthCooperativeMembershipRoute,
+  AuthCooperativeSharesRoute: AuthCooperativeSharesRoute,
   AuthLoansLoanIdRoute: AuthLoansLoanIdRoute,
   AuthLoansActiveRoute: AuthLoansActiveRoute,
   AuthLoansApplicationsRoute: AuthLoansApplicationsRoute,
   AuthLoansApplyRoute: AuthLoansApplyRoute,
   AuthLoansApprovalsRoute: AuthLoansApprovalsRoute,
   AuthLoansArrearsRoute: AuthLoansArrearsRoute,
-  AuthLoansCollateralRoute: AuthLoansCollateralRoute,
   AuthLoansDisbursementsRoute: AuthLoansDisbursementsRoute,
   AuthLoansProductsRoute: AuthLoansProductsRoute,
   AuthLoansRepaymentsRoute: AuthLoansRepaymentsRoute,

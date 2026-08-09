@@ -1,4 +1,4 @@
-// Auth service — maps to the "Auth" and "Platform" groups of the Postman
+// Auth service - maps to the "Auth" and "Platform" groups of the Postman
 // collection.
 //   GET  /platform/tenants/lookup  email -> which tenant(s) this email belongs to
 //   POST /auth/login                email + password (+ tenant) -> tokens + user
@@ -10,7 +10,7 @@
 //
 // Auth is Bearer-token based end to end (HTTP Basic was removed on the
 // backend) and every request needs an X-Tenant-Id header matching the tenant
-// the token was issued for — a mismatch is rejected outright, even for a
+// the token was issued for - a mismatch is rejected outright, even for a
 // request that otherwise carries a perfectly valid token. There is no fixed
 // tenant for this app: the sign-in flow resolves it per email via the tenant
 // lookup endpoint (see lookupTenants) before a password is ever entered.
@@ -31,7 +31,7 @@ type LoginResponse = {
 };
 
 export const authApi = {
-  /** Cross-tenant lookup — deliberately sent with no X-Tenant-Id (there is no
+  /** Cross-tenant lookup - deliberately sent with no X-Tenant-Id (there is no
    * session yet, and the whole point is to discover which tenant(s) an email
    * belongs to before attempting to log in). */
   lookupTenants(email: string): Promise<TenantOption[]> {
@@ -55,7 +55,7 @@ export const authApi = {
     return data.user;
   },
 
-  /** Best-effort — clears the local session regardless of whether the backend call succeeds. */
+  /** Best-effort - clears the local session regardless of whether the backend call succeeds. */
   async logout(): Promise<void> {
     try {
       await request<void>("/auth/logout", { method: "POST", idempotent: false });

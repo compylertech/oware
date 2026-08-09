@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { LOAN } from "@/lib/tokens";
@@ -8,7 +8,13 @@ import { fmtGHS, loanAccountsApi, loanReportsApi, type ApprovalRow } from "@/api
 import { apiErrorMessage } from "@/api/backend";
 import { StatusPill } from "@/components/common/StatusPill";
 import { useBackendData, refreshBackendData } from "@/api/useBackendData";
-import { Tabs, Button, TableCard, EmptyRow, PAGE_SIZE_OPTIONS } from "@/components/patterns";
+import {
+  SegmentedControl,
+  Button,
+  TableCard,
+  EmptyRow,
+  PAGE_SIZE_OPTIONS,
+} from "@/components/patterns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Check, X } from "lucide-react";
 
@@ -27,7 +33,9 @@ function ApprovalsPage() {
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const { data } = useBackendData("loans:approvals", () => loanReportsApi.approvals({ limit: 500 }));
+  const { data } = useBackendData("loans:approvals", () =>
+    loanReportsApi.approvals({ limit: 500 }),
+  );
   const rows = data?.rows ?? [];
   const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -60,7 +68,7 @@ function ApprovalsPage() {
       }
       // Re-fetch rather than just filtering the row out locally, so every
       // reader of these keys (this page's queue/history tabs, and the
-      // sidebar's "My queue" badge) reflects the real post-action state —
+      // sidebar's "My queue" badge) reflects the real post-action state -
       // not just this one component's optimism.
       const refreshes: Promise<unknown>[] = [
         refreshBackendData("loans:approvals", () => loanReportsApi.approvals({ limit: 500 })),
@@ -83,89 +91,99 @@ function ApprovalsPage() {
 
   return (
     <LoansShell>
-      <Tabs
-        style={{ marginBottom: 12 }}
-        value={tab}
-        onChange={setTab}
-        items={[
-          { key: "my", label: `My queue (${rows.length})` },
-          { key: "history", label: "History" },
-        ]}
-      />
+      <div className="flex items-center justify-end mb-4">
+        <SegmentedControl
+          value={tab}
+          onChange={setTab}
+          options={[
+            { key: "my", label: `My queue (${rows.length})` },
+            { key: "history", label: "History" },
+          ]}
+        />
+      </div>
 
       {tab === "my" ? (
         !data ? (
           <TableSkeleton title="Approval Queue" />
         ) : (
-        <TableCard
-          title="Approval Queue"
-          resultLabel={`${rows.length} approvals`}
-          pagination={{
-            page: currentPage,
-            totalPages,
-            totalItems: rows.length,
-            itemLabel: "approvals",
-            onPageChange: setPage,
-            pageSize,
-            pageSizeOptions: PAGE_SIZE_OPTIONS,
-            onPageSizeChange: (size) => {
-              setPageSize(size);
-              setPage(1);
-            },
-          }}
-        >
-          <Table>
-            <THead>
-              <Th>Client</Th>
-              <Th>Product</Th>
-              <Th>Amount</Th>
-              <Th>Loan No.</Th>
-              <Th>Officer</Th>
-              <Th>Waiting</Th>
-              <Th style={{ textAlign: "right" }}>Actions</Th>
-            </THead>
-            <tbody>
-              {pageRows.length === 0 ? (
-                <EmptyRow colSpan={7}>No loans awaiting approval.</EmptyRow>
-              ) : (
-                pageRows.map((r) => (
-                  <Tr key={r.loanId} hover>
-                    <Td style={{ fontWeight: 300 }}>{r.client}</Td>
-                    <Td>{r.product}</Td>
-                    <Td style={{ fontWeight: 100 }}>{fmtGHS(r.amount)}</Td>
-                    <Td>
-                      <span style={{ ...fontMono, color: LOAN.muted }}>{r.accountNo}</span>
-                    </Td>
-                    <Td>{r.officer}</Td>
-                    <Td>
-                      {r.daysWaiting} day{r.daysWaiting === 1 ? "" : "s"}
-                    </Td>
-                    <Td>
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="dangerOutline"
-                          size="sm"
-                          icon={<X size={14} />}
-                          onClick={() => setConfirm({ row: r, action: "reject" })}
+          <TableCard
+            title="Approval Queue"
+            resultLabel={`${rows.length} approvals`}
+            pagination={{
+              page: currentPage,
+              totalPages,
+              totalItems: rows.length,
+              itemLabel: "approvals",
+              onPageChange: setPage,
+              pageSize,
+              pageSizeOptions: PAGE_SIZE_OPTIONS,
+              onPageSizeChange: (size) => {
+                setPageSize(size);
+                setPage(1);
+              },
+            }}
+          >
+            <Table>
+              <THead>
+                <Th>Client</Th>
+                <Th>Product</Th>
+                <Th>Amount</Th>
+                <Th>Loan No.</Th>
+                <Th>Officer</Th>
+                <Th>Waiting</Th>
+                <Th style={{ textAlign: "right" }}>Actions</Th>
+              </THead>
+              <tbody>
+                {pageRows.length === 0 ? (
+                  <EmptyRow colSpan={7}>No loans awaiting approval.</EmptyRow>
+                ) : (
+                  pageRows.map((r) => (
+                    <Tr key={r.loanId} hover>
+                      <Td style={{ fontWeight: 300 }}>
+                        <Link
+                          to="/loans/$loanId"
+                          params={{ loanId: r.accountNo }}
+                          search={{ from: "approvals" }}
+                          style={{ color: LOAN.navy }}
                         >
-                          Reject
-                        </Button>
-                        <Button
-                          variant="successOutline"
-                          size="sm"
-                          icon={<Check size={14} />}
-                          onClick={() => setConfirm({ row: r, action: "approve" })}
-                        >
-                          Approve
-                        </Button>
-                      </div>
-                    </Td>
-                  </Tr>
-                ))
-              )}
-            </tbody>
-          </Table>
-        </TableCard>
+                          {r.client}
+                        </Link>
+                      </Td>
+                      <Td>{r.product}</Td>
+                      <Td style={{ fontWeight: 100 }}>{fmtGHS(r.amount)}</Td>
+                      <Td>
+                        <span style={{ ...fontMono, color: LOAN.muted }}>{r.accountNo}</span>
+                      </Td>
+                      <Td>{r.officer}</Td>
+                      <Td>
+                        {r.daysWaiting} day{r.daysWaiting === 1 ? "" : "s"}
+                      </Td>
+                      <Td>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="dangerOutline"
+                            size="sm"
+                            icon={<X size={14} />}
+                            onClick={() => setConfirm({ row: r, action: "reject" })}
+                          >
+                            Reject
+                          </Button>
+                          <Button
+                            variant="successOutline"
+                            size="sm"
+                            icon={<Check size={14} />}
+                            onClick={() => setConfirm({ row: r, action: "approve" })}
+                          >
+                            Approve
+                          </Button>
+                        </div>
+                      </Td>
+                    </Tr>
+                  ))
+                )}
+              </tbody>
+            </Table>
+          </TableCard>
         )
       ) : !historyData ? (
         <TableSkeleton title="Approval History" />
@@ -202,7 +220,16 @@ function ApprovalsPage() {
               ) : (
                 historyPageRows.map((a) => (
                   <Tr key={a.id} hover>
-                    <Td style={{ fontWeight: 300 }}>{a.client}</Td>
+                    <Td style={{ fontWeight: 300 }}>
+                      <Link
+                        to="/loans/$loanId"
+                        params={{ loanId: a.id }}
+                        search={{ from: "approvals" }}
+                        style={{ color: LOAN.navy }}
+                      >
+                        {a.client}
+                      </Link>
+                    </Td>
                     <Td>{a.product}</Td>
                     <Td style={{ fontWeight: 100 }}>{fmtGHS(a.amount)}</Td>
                     <Td>
@@ -288,7 +315,7 @@ function ConfirmDialog({
 }
 
 /** Rough placeholder for a table's content while the first-ever load is in
- * flight — never a fixture standing in for real rows. */
+ * flight - never a fixture standing in for real rows. */
 function TableSkeleton({ title }: { title: string }) {
   return (
     <TableCard title={title}>

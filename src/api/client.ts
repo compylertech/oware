@@ -28,5 +28,5 @@ function clone<T>(value: T): T {
  * backend exists; domain modules already import from here.
  */
 export async function request<T>(_path: string, _init?: RequestInit): Promise<T> {
-  throw new Error("request() is not wired to a backend yet — domain modules return mock fixtures.");
+  throw new Error("request() is not wired to a backend yet - domain modules return mock fixtures.");
 }

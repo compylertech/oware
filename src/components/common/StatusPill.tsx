@@ -56,10 +56,10 @@ const STATUS_TONE: Record<StatusKind, Tone> = {
   Rejected: "red",
   Cancelled: "red",
   Withdrawn: "gray",
-  Inactive: "gray",
+  Inactive: "red",
   Draft: "gray",
   Tabled: "gray",
-  Reversed: "gray",
+  Reversed: "red",
   Regulatory: "blue",
   Membership: "blue",
   Scheduled: "blue",
@@ -85,7 +85,7 @@ const TONE_ICON: Record<Tone, LucideIcon> = {
 };
 
 /**
- * Semantic status badge — a special {@link Pill} that always has a border and a
+ * Semantic status badge - a special {@link Pill} that always has a border and a
  * tone-specific icon (so colour is never the only signal). Pass a known `status`
  * (mapped to a tone) or an explicit `tone` + `label` for domain-specific
  * statuses (e.g. loan stages). Pass `icon` to override the tone's default icon

@@ -31,6 +31,7 @@ export type ActiveLoan = {
 };
 
 export type LoanProduct = {
+  code: string;
   name: string;
   type: string;
   typeColor: string;

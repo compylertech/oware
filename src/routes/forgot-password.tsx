@@ -8,7 +8,7 @@ import { authApi, type TenantOption } from "@/api/auth";
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({
     meta: [
-      { title: "Reset password — Oware" },
+      { title: "Reset password - Oware" },
       { name: "description", content: "Reset your Oware account password." },
     ],
   }),
@@ -32,7 +32,7 @@ function ForgotPasswordPage() {
       await authApi.forgotPassword(email, tenantCode);
     } catch {
       // The backend already replies with a generic "sent if it exists" message
-      // regardless of whether the account exists — treat any failure here (e.g.
+      // regardless of whether the account exists - treat any failure here (e.g.
       // a transient network error) the same way rather than leaking which
       // emails are registered.
     } finally {
@@ -50,7 +50,7 @@ function ForgotPasswordPage() {
     try {
       const tenants = await authApi.lookupTenants(normalizedEmail);
       if (tenants.length === 0) {
-        // Don't reveal that the email isn't registered anywhere — same
+        // Don't reveal that the email isn't registered anywhere - same
         // generic outcome as a successful send.
         setStep("sent");
       } else if (tenants.length === 1) {
@@ -128,7 +128,7 @@ function ForgotPasswordPage() {
             Select your workspace
           </h2>
           <p className="mt-2 text-[14px] text-gray-400">
-            This email is linked to more than one workspace — which one do you want to reset the
+            This email is linked to more than one workspace - which one do you want to reset the
             password for?
           </p>
           <div className="mt-6 space-y-2">

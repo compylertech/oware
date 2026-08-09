@@ -43,6 +43,8 @@ export type {
   DashboardSummary,
   DashboardDateRange,
 } from "./dashboard";
+export { ledgerApi } from "./ledger";
+export type { LedgerEntry, LedgerEntriesParams, LedgerEntriesPage } from "./ledger";
 
 import { clientsApi } from "./clients";
 import { loanProductsApi, savingsProductsApi, shareProductsApi } from "./products";
@@ -51,6 +53,7 @@ import { loanReportsApi } from "./reports";
 import { referencesApi } from "./references";
 import { transactionOperationsApi } from "./transactionOperations";
 import { dashboardApi } from "./dashboard";
+import { ledgerApi } from "./ledger";
 
 /** Aggregate API surface grouped by domain. */
 export const api = {
@@ -65,6 +68,7 @@ export const api = {
   references: referencesApi,
   transactionOperations: transactionOperationsApi,
   dashboard: dashboardApi,
+  ledger: ledgerApi,
 };
 
 export type Api = typeof api;
